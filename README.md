@@ -1,67 +1,127 @@
-# LLM-Driven Network
+# LLM Integration Module
 
-Intent-based networking using Large Language Models (LLMs)
+Il modulo di integrazione LLM è il componente centrale del sistema di networking intent-based che utilizza Large Language Models per interpretare intent di rete in linguaggio naturale e generare azioni di configurazione appropriate.
 
-## Roadmap
+## Struttura del Progetto
 
-### Fase 1: Analisi e Definizione dei Requisiti
+```
+├── src/
+│   ├── models/          # Data models (Pydantic)
+│   │   ├── intent.py    # Intent-related models
+│   │   ├── network.py   # Network state models
+│   │   ├── actions.py   # Action models
+│   │   └── slices.py    # Network slice models
+│   ├── services/        # Business logic services
+│   ├── api/            # FastAPI routes and endpoints
+│   ├── utils/          # Utilities
+│   │   ├── logging.py  # Structured logging
+│   │   └── monitoring.py # Metrics and monitoring
+│   ├── config.py       # Configuration management
+│   └── main.py         # Application entry point
+├── tests/              # Test files
+├── requirements.txt    # Python dependencies
+└── README.md          # This file
+```
 
-**Obiettivo:** Comprendere esattamente cosa si vuole ottenere e definire scenari d'uso concreti (ad esempio, orchestrazione di slice e rilevamento anomalie).
+## Installazione
 
-**Task principali:**
-- Studio di RYU e raccolta dati di stato di rete
-- Identificazione delle possibili "intent" da gestire con LLM (es. routing, anomaly detection, configurazione slice)
+1. Clona il repository
+2. Crea un ambiente virtuale Python:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # oppure
+   venv\Scripts\activate     # Windows
+   ```
 
-**Divisione ruoli:**
-- **Filippo:** Responsabile SDN/RYU
-- **Andrea:** Studio LLM e integrazione
-- **Pietro:** Architettura applicativa e script Northbound
+3. Installa le dipendenze:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### Fase 2: Progettazione Architettura
+4. Copia il file di configurazione:
+   ```bash
+   cp .env.example .env
+   ```
 
-**Obiettivo:** Definire come dialogano i vari componenti (RYU, servizio LLM, script Northbound).
+5. Modifica il file `.env` con le tue configurazioni
 
-**Task principali:**
-- Schema di flusso dati tra RYU, modulo LLM e script Northbound
-- Specifica dati di input/output per LLM
-- Scelta framework per orchestrare lo scambio (REST API, Python, etc.)
+## Esecuzione
 
-### Fase 3: Sviluppo Singoli Moduli
+### Sviluppo
+```bash
+python -m src.main
+```
 
-**Divisione:**
+### Produzione
+```bash
+uvicorn src.main:app --host 0.0.0.0 --port 8080
+```
 
-**Filippo:**
-- Sviluppo script per raccogliere stato rete da RYU
-- Gestione intent: parsing e invio intent al modulo LLM
+## Test
 
-**Andrea:**
-- Prototipazione e test modello LLM (Chat GPT o clone)
-- Script di interfaccia per ricevere stato/intents e restituire azioni
-- Validazione risposte modello
+Esegui tutti i test:
+```bash
+pytest
+```
 
-**Pietro:**
-- Sviluppo Northbound script: riceve output LLM e applica modifiche alla rete
-- Logging/monitoraggio cambiamenti e gestione errori
+Esegui solo i test unitari:
+```bash
+pytest -m unit
+```
 
-### Fase 4: Integrazione e Test
+Esegui i test property-based:
+```bash
+pytest -m property
+```
 
-**Obiettivo:** Collegare tutti i moduli, testare funzionalità end-to-end ed eseguire casi di test.
+## Monitoraggio
 
-**Task principali:**
-- Test scenario "quale slice usare" e "anomaly detection"
-- Simulazione flussi di rete ed errori, raccolta log
-- Miglioramenti iterativi e debugging in gruppo
+Il modulo espone metriche Prometheus su `http://localhost:8000/metrics` (configurabile).
 
-### Fase 5: Documentazione e Presentazione
+Metriche disponibili:
+- `llm_module_intents_total`: Numero totale di intent processati
+- `llm_module_actions_total`: Numero totale di azioni generate
+- `llm_module_processing_seconds`: Tempo di elaborazione per componente
+- `llm_module_anomalies_total`: Numero totale di anomalie rilevate
 
-**Obiettivo:** Produrre materiale per documentare implementazione, test e risultati.
+## Configurazione
 
-**Task principali:**
-- Scrivere report tecnico e slide di presentazione
-- Preparare demo funzionale per valutatori/professori
-- Eventuali video o script per simulazione
+Tutte le configurazioni sono gestite tramite variabili d'ambiente. Vedi `.env.example` per la lista completa.
 
-## Suggerimenti per la Divisione del Lavoro
+Configurazioni principali:
+- `LLM_PROVIDER`: Provider LLM ("openai" o "local")
+- `OPENAI_API_KEY`: Chiave API OpenAI (se usando OpenAI)
+- `RYU_HOST`: Host del controller RYU
+- `NORTHBOUND_HOST`: Host dello script Northbound
 
-- Ruotare i ruoli di test/debugging e documentazione in modo che tutti acquisiscano familiarità con l'intero progetto
-- Utilizzare repository condiviso (es. GitHub) e tool di project management (Trello/Notion)
+## Architettura
+
+Il modulo segue un'architettura a microservizi con i seguenti componenti principali:
+
+1. **Intent Parser**: Analizza intent in linguaggio naturale
+2. **Context Analyzer**: Correla intent con stato della rete
+3. **Action Generator**: Genera azioni concrete tramite LLM
+4. **Validator**: Valida e verifica sicurezza delle azioni
+
+## API
+
+L'API REST sarà disponibile su `/api/v1/` (da implementare nei prossimi task).
+
+## Logging
+
+Il sistema utilizza logging strutturato con supporto per:
+- Output JSON per produzione
+- Correlation ID per tracciamento
+- Audit logging per eventi critici
+- Diversi livelli di log configurabili
+
+## Sviluppo
+
+Per contribuire al progetto:
+
+1. Segui la struttura dei task definita in `.kiro/specs/llm-integration-module/tasks.md`
+2. Usa i modelli Pydantic definiti in `src/models/`
+3. Implementa test sia unitari che property-based
+4. Mantieni la copertura dei test alta
+5. Segui le convenzioni di logging e monitoraggio
