@@ -1,7 +1,7 @@
 """Property-based tests for intent parsing functionality."""
 
 import pytest
-from hypothesis import given, strategies as st, assume, settings
+from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from src.services.intent_parser import IntentParser
 from src.models.intent import IntentObject, IntentType, Entity
@@ -59,7 +59,7 @@ class TestIntentParsingProperties:
         
         return template
     
-    @settings(max_examples=100)
+    @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     @given(intent_text=natural_language_intent())
     def test_intent_parsing_completeness(self, intent_text):
         """
