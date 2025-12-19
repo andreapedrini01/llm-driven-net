@@ -17,11 +17,12 @@ from typing import List, Dict, Any
 # Aggiungi il path src per gli import
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
-from models.intent import IntentObject, IntentType, Entity
+from models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
 from models.actions import NetworkAction, ActionType, ActionSequence
-from models.network import NetworkState, Topology, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+from models.network import NetworkState, Topology, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics, Anomaly, AnomalyType, AnomalySeverity, Switch, Link, Host
 from models.slices import NetworkSlice, SliceStatus, ServiceLevelAgreement, SliceResources
 from services.intent_parser import IntentParser
+from services.context_analyzer import NetworkStateCache, ContextCorrelationEngine, AnomalyDetectionSystem
 
 
 class NetworkDemoSystem:
@@ -31,6 +32,11 @@ class NetworkDemoSystem:
         """Inizializza il sistema demo."""
         self.parser = IntentParser()
         self.demo_results = []
+        
+        # Inizializza i componenti del Context Analyzer
+        self.state_cache = NetworkStateCache(default_ttl=600, max_entries=50)
+        self.correlation_engine = ContextCorrelationEngine(self.state_cache)
+        self.anomaly_detector = AnomalyDetectionSystem(self.state_cache)
         
     def print_header(self, title: str):
         """Stampa un header formattato."""
@@ -341,9 +347,232 @@ class NetworkDemoSystem:
         
         self.print_success("Slice modificata con successo!")
     
+    def demo_context_analyzer(self):
+        """Dimostra le funzionalità del Context Analyzer."""
+        self.print_header("DEMO 5: CONTEXT ANALYZER E RILEVAMENTO ANOMALIE")
+        
+        # Crea uno stato di rete più complesso per la demo
+        self.print_section("Inizializzazione Stato di Rete Complesso")
+        
+        # Crea switches
+        switches = [
+            Switch(id="sw1", name="Core Switch 1", dpid="0000000000000001", ports=["1", "2", "3", "4"], status="active"),
+            Switch(id="sw2", name="Access Switch 1", dpid="0000000000000002", ports=["1", "2", "3"], status="active"),
+            Switch(id="sw3", name="Access Switch 2", dpid="0000000000000003", ports=["1", "2", "3"], status="inactive"),  # Switch problematico
+        ]
+        
+        # Crea links
+        links = [
+            Link(id="link1", source_switch="sw1", source_port=1, destination_switch="sw2", destination_port=1, bandwidth=1000, latency=2.5, status="active"),
+            Link(id="link2", source_switch="sw1", source_port=2, destination_switch="sw3", destination_port=1, bandwidth=1000, latency=3.0, status="inactive"),  # Link problematico
+        ]
+        
+        # Crea hosts
+        hosts = [
+            Host(id="host1", mac_address="00:00:00:00:00:01", ip_address="192.168.1.10", connected_switch="sw2", connected_port="1", status="active"),
+            Host(id="host2", mac_address="00:00:00:00:00:02", ip_address="192.168.1.11", connected_switch="sw2", connected_port="2", status="active"),
+        ]
+        
+        # Crea metriche con anomalie
+        bandwidth_metrics = BandwidthMetrics(
+            total_capacity=50000,
+            used_bandwidth=42000,  # Utilizzo molto alto (84%)
+            available_bandwidth=8000,
+            utilization_percentage=84.0
+        )
+        
+        latency_metrics = LatencyMetrics(
+            average_latency=25.5,  # Latenza elevata
+            min_latency=2.1,
+            max_latency=150.0,
+            jitter=8.2
+        )
+        
+        utilization_metrics = UtilizationMetrics(
+            cpu_utilization=92.0,  # CPU molto alta
+            memory_utilization=78.0
+        )
+        
+        network_metrics = NetworkMetrics(
+            bandwidth=bandwidth_metrics,
+            latency=latency_metrics,
+            utilization=utilization_metrics
+        )
+        
+        topology = Topology(switches=switches, links=links, hosts=hosts)
+        
+        # Crea anomalie esistenti
+        existing_anomalies = [
+            Anomaly(
+                id="anomaly_001",
+                type=AnomalyType.SWITCH_FAILURE,
+                severity=AnomalySeverity.CRITICAL,
+                description="Switch sw3 is offline",
+                affected_resources=["sw3"],
+                detected_at=datetime.now(),
+                metrics={"switch_status": "inactive"}
+            )
+        ]
+        
+        network_state = NetworkState(
+            timestamp=datetime.now(),
+            topology=topology,
+            metrics=network_metrics,
+            flows=[],  # Semplificato per la demo
+            anomalies=existing_anomalies
+        )
+        
+        self.print_result("Switches Totali", len(switches))
+        self.print_result("Switches Attivi", len([s for s in switches if s.status == "active"]))
+        self.print_result("Links Totali", len(links))
+        self.print_result("Links Attivi", len([l for l in links if l.status == "active"]))
+        self.print_result("Hosts Connessi", len(hosts))
+        self.print_result("Anomalie Preesistenti", len(existing_anomalies))
+        
+        # Demo 1: Cache dello Stato
+        self.print_section("Demo 1: Cache dello Stato della Rete")
+        
+        # Aggiorna la cache
+        self.state_cache.update_state(network_state)
+        
+        # Mostra statistiche della cache
+        cache_stats = self.state_cache.get_cache_stats()
+        self.print_result("Stato Corrente Disponibile", "✅ Sì" if cache_stats["current_state_available"] else "❌ No")
+        self.print_result("Stato Fresco", "✅ Sì" if cache_stats["current_state_fresh"] else "❌ No")
+        self.print_result("Utilizzo Cache", f"{cache_stats['cache_utilization']:.1%}")
+        self.print_result("Entry Attive", cache_stats["active_entries"])
+        
+        self.print_success("Cache dello stato aggiornata con successo!")
+        
+        # Demo 2: Correlazione Intent-Contesto
+        self.print_section("Demo 2: Correlazione Intent con Contesto di Rete")
+        
+        # Crea un intent che coinvolge risorse problematiche
+        intent_text = "Configura QoS per il traffico verso sw3 con priorità alta"
+        parsed_intent = self.parser.parse_intent(intent_text)
+        
+        self.print_info(f"Intent: {intent_text}")
+        self.print_result("Confidenza Parsing", f"{parsed_intent.confidence:.1%}")
+        
+        # Correla l'intent con il contesto
+        contextualized_intent = self.correlation_engine.correlate_intent_with_state(parsed_intent)
+        
+        self.print_result("Risorse Rilevanti", len(contextualized_intent.relevant_resources))
+        for resource in contextualized_intent.relevant_resources:
+            self.print_result(f"  - {resource}", "Identificata")
+        
+        self.print_result("Conflitti Rilevati", len(contextualized_intent.conflicts))
+        for conflict in contextualized_intent.conflicts:
+            self.print_result("  - Conflitto", conflict)
+        
+        self.print_result("Raccomandazioni", len(contextualized_intent.recommendations))
+        for recommendation in contextualized_intent.recommendations:
+            self.print_result("  - Raccomandazione", recommendation)
+        
+        # Mostra contesto arricchito per LLM
+        enriched_context = self.correlation_engine.enrich_context_for_llm(contextualized_intent)
+        self.print_result("Contesto Arricchito", "✅ Generato per LLM")
+        self.print_result("Salute della Rete", enriched_context.get("operational_context", {}).get("network_health", "unknown"))
+        self.print_result("Stato del Carico", enriched_context.get("operational_context", {}).get("load_status", "unknown"))
+        
+        # Demo 3: Rilevamento Anomalie
+        self.print_section("Demo 3: Rilevamento Automatico Anomalie")
+        
+        # Rileva nuove anomalie
+        detected_anomalies = self.anomaly_detector.detect_anomalies(network_state)
+        
+        self.print_result("Nuove Anomalie Rilevate", len(detected_anomalies))
+        
+        for i, anomaly in enumerate(detected_anomalies, 1):
+            self.print_result(f"Anomalia {i} - Tipo", anomaly.type.value)
+            self.print_result(f"Anomalia {i} - Severità", anomaly.severity.value)
+            self.print_result(f"Anomalia {i} - Descrizione", anomaly.description)
+            
+            # Classifica la severità
+            classified_severity = self.anomaly_detector.classify_anomaly_severity(anomaly, network_state)
+            self.print_result(f"Anomalia {i} - Severità Classificata", classified_severity.value)
+            
+            # Genera risposta automatica
+            response_actions = self.anomaly_detector.generate_anomaly_response(anomaly, network_state)
+            self.print_result(f"Anomalia {i} - Azioni di Risposta", len(response_actions))
+            
+            for j, action in enumerate(response_actions, 1):
+                self.print_result(f"  Azione {j}", f"{action.type.value} su {action.target}")
+                self.print_result(f"  Priorità", action.priority)
+                self.print_result(f"  Descrizione", action.description)
+        
+        # Demo 4: Rilevamento Pattern
+        self.print_section("Demo 4: Rilevamento Pattern e Apprendimento")
+        
+        # Simula più stati per creare pattern
+        for i in range(5):
+            # Simula variazioni nei metriche
+            varying_bandwidth = BandwidthMetrics(
+                total_capacity=50000,
+                used_bandwidth=30000 + (i * 2000),  # Incremento graduale
+                available_bandwidth=20000 - (i * 2000),
+                utilization_percentage=60.0 + (i * 4.0)
+            )
+            
+            varying_metrics = NetworkMetrics(
+                bandwidth=varying_bandwidth,
+                latency=latency_metrics,
+                utilization=utilization_metrics
+            )
+            
+            varying_state = NetworkState(
+                timestamp=datetime.now(),
+                topology=topology,
+                metrics=varying_metrics,
+                flows=[],
+                anomalies=existing_anomalies
+            )
+            
+            # Rileva pattern anomalies
+            pattern_anomalies = self.anomaly_detector.detect_pattern_anomalies(varying_state)
+            
+            if pattern_anomalies:
+                self.print_result(f"Pattern Iteration {i+1}", f"{len(pattern_anomalies)} anomalie pattern")
+        
+        # Mostra statistiche di rilevamento
+        detection_stats = self.anomaly_detector.get_detection_statistics()
+        self.print_result("Anomalie Totali Segnalate", detection_stats["total_anomalies_reported"])
+        self.print_result("Tasso di Accuratezza", f"{detection_stats['accuracy_rate']:.1%}")
+        self.print_result("Sensibilità Corrente", f"{detection_stats['current_sensitivity']:.2f}")
+        self.print_result("Apprendimento Abilitato", "✅ Sì" if detection_stats["learning_enabled"] else "❌ No")
+        
+        # Demo feedback learning
+        self.print_section("Demo 5: Apprendimento da Feedback")
+        
+        if detected_anomalies:
+            # Simula feedback positivo e negativo
+            first_anomaly = detected_anomalies[0]
+            
+            # Feedback negativo (falso positivo)
+            self.anomaly_detector.learn_from_feedback(first_anomaly.id, is_false_positive=True)
+            self.print_success(f"✅ Feedback negativo registrato per {first_anomaly.id}")
+            
+            # Mostra come cambiano le statistiche
+            updated_stats = self.anomaly_detector.get_detection_statistics()
+            self.print_result("Nuova Sensibilità", f"{updated_stats['current_sensitivity']:.2f}")
+            
+            if len(detected_anomalies) > 1:
+                second_anomaly = detected_anomalies[1]
+                # Feedback positivo (vera anomalia)
+                self.anomaly_detector.learn_from_feedback(second_anomaly.id, is_false_positive=False)
+                self.print_success(f"✅ Feedback positivo registrato per {second_anomaly.id}")
+        
+        # Mostra metriche di correlazione
+        correlation_metrics = self.correlation_engine.get_correlation_metrics()
+        self.print_result("Performance Cache", f"{correlation_metrics['cache_performance']['cache_utilization']:.1%}")
+        self.print_result("Arricchimento Abilitato", "✅ Sì" if correlation_metrics["enrichment_enabled"] else "❌ No")
+        self.print_result("Soglia Similarità", f"{correlation_metrics['similarity_threshold']:.1f}")
+        
+        self.print_success("Demo Context Analyzer completata con successo!")
+    
     def demo_error_handling(self):
         """Dimostra la gestione degli errori."""
-        self.print_header("DEMO 5: GESTIONE ERRORI E VALIDAZIONE")
+        self.print_header("DEMO 6: GESTIONE ERRORI E VALIDAZIONE")
         
         self.print_section("Test Validazione Parametri")
         
@@ -413,6 +642,13 @@ class NetworkDemoSystem:
             "✅ Gestione sequenze multi-azione",
             "✅ Integrazione con stato della rete",
             "✅ Gestione completa network slice",
+            "✅ Cache intelligente dello stato di rete con TTL",
+            "✅ Correlazione intent-contesto automatica",
+            "✅ Rilevamento anomalie in tempo reale",
+            "✅ Classificazione automatica severità anomalie",
+            "✅ Generazione risposte automatiche alle anomalie",
+            "✅ Rilevamento pattern e apprendimento adattivo",
+            "✅ Arricchimento contesto per elaborazione LLM",
             "✅ Validazione parametri e gestione errori",
             "✅ Ottimizzazione ordine di esecuzione",
             "✅ Tracciabilità completa delle operazioni"
@@ -452,6 +688,7 @@ class NetworkDemoSystem:
             self.demo_action_generation()
             self.demo_network_state_integration()
             self.demo_network_slice_management()
+            self.demo_context_analyzer()
             self.demo_error_handling()
             self.generate_final_report()
             

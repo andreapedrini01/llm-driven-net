@@ -9,9 +9,9 @@ from dataclasses import dataclass
 from collections import defaultdict
 import logging
 
-from ..models.network import NetworkState, Anomaly, AnomalyType, AnomalySeverity
-from ..models.intent import IntentObject, ContextualizedIntent, Entity
-from ..models.actions import NetworkAction, ActionType
+from src.models.network import NetworkState, Anomaly, AnomalyType, AnomalySeverity
+from src.models.intent import IntentObject, ContextualizedIntent, Entity
+from src.models.actions import NetworkAction, ActionType
 
 
 @dataclass
