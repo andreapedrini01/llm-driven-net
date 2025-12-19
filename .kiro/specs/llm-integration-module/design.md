@@ -59,6 +59,31 @@ graph TB
 
 ## Components and Interfaces
 
+### LLM Provider Interface
+**Responsabilità**: Astrazione per diversi provider LLM (OpenAI, Ollama)
+- **Input**: Prompt strutturato con contesto di rete
+- **Output**: Risposta LLM parsata e validata
+- **Interfacce**:
+  - `generateResponse(prompt: str, context: dict) -> LLMResponse`
+  - `isAvailable() -> bool`
+  - `getLatency() -> float`
+  - `getCost() -> float`
+  - `getCapabilities() -> ProviderCapabilities`
+
+#### OpenAI Provider
+- **Modelli supportati**: GPT-4, GPT-3.5-turbo
+- **Vantaggi**: Qualità superiore, context window ampio (128k token)
+- **Configurazione**: API key, rate limiting, retry logic
+- **Costi**: ~$0.01-0.03 per 1K token (dipende dal modello)
+
+#### Ollama Provider  
+**Modelli raccomandati per RTX 5080 16GB:**
+- **Llama 3.1 70B (Q4_K_M)**: ~40GB, eccellente per reasoning complesso
+- **Llama 3.1 8B (Q8_0)**: ~8GB, veloce per operazioni semplici
+- **CodeLlama 34B (Q4_K_M)**: ~20GB, ottimizzato per codice/configurazioni
+- **Mistral 7B (Q8_0)**: ~7GB, bilanciato qualità/velocità
+- **Configurazione**: Modello locale, GPU acceleration, context window ottimizzato
+
 ### Intent Parser
 **Responsabilità**: Preprocessing e normalizzazione degli intent in linguaggio naturale
 - **Input**: Raw text intent da utenti
@@ -78,13 +103,15 @@ graph TB
   - `detectConflicts(intent: IntentObject, state: NetworkState) -> ConflictList`
 
 ### Action Generator
-**Responsabilità**: Generazione di azioni di rete concrete tramite LLM
+**Responsabilità**: Generazione di azioni di rete concrete tramite LLM (supporto ibrido OpenAI/Ollama)
 - **Input**: ContextualizedIntent
 - **Output**: ActionSequence con comandi strutturati
 - **Interfacce**:
   - `generateActions(contextIntent: ContextualizedIntent) -> ActionSequence`
   - `optimizeSequence(actions: ActionSequence) -> ActionSequence`
   - `estimateImpact(actions: ActionSequence) -> ImpactAssessment`
+  - `switchProvider(provider: LLMProviderType) -> void`
+  - `getProviderStatus() -> ProviderStatus`
 
 ### Validator
 **Responsabilità**: Validazione e verifica della sicurezza delle azioni generate
@@ -173,6 +200,40 @@ interface NetworkSlice {
   policies: Policy[];
   sla: ServiceLevelAgreement;
   status: 'active' | 'inactive' | 'configuring' | 'error';
+}
+```
+
+### LLM Provider Models
+```typescript
+interface LLMProviderConfig {
+  type: 'openai' | 'ollama';
+  priority: number;
+  fallback: boolean;
+  config: OpenAIConfig | OllamaConfig;
+}
+
+interface OpenAIConfig {
+  apiKey: string;
+  model: 'gpt-4' | 'gpt-3.5-turbo';
+  maxTokens: number;
+  temperature: number;
+  rateLimitRpm: number;
+}
+
+interface OllamaConfig {
+  baseUrl: string;
+  model: string;
+  contextWindow: number;
+  gpuLayers: number;
+  temperature: number;
+}
+
+interface ProviderStatus {
+  isAvailable: boolean;
+  latency: number;
+  cost: number;
+  errorRate: number;
+  lastUsed: Date;
 }
 ```
 
@@ -290,6 +351,61 @@ Dopo aver analizzato tutti i criteri di accettazione, ho identificato alcune pro
 *For any* system restart after an error, the previous operational state should be fully recovered without data loss
 **Validates: Requirements 6.5**
 
+## LLM Provider Selection Strategy
+
+Il sistema implementa una strategia intelligente per la selezione del provider LLM:
+
+### Modalità di Selezione
+
+**1. Primary-Fallback Mode (Default)**
+- Provider primario: Configurabile (OpenAI o Ollama)
+- Fallback automatico al provider secondario in caso di errore
+- Retry logic con backoff esponenziale
+
+**2. Cost-Optimized Mode**
+- Ollama per operazioni semplici (query stato, validazioni)
+- OpenAI per operazioni complesse (anomaly detection, slice orchestration)
+- Decisione basata su complessità dell'intent
+
+**3. Performance-Optimized Mode**
+- Ollama per bassa latenza (<500ms)
+- OpenAI per alta qualità quando latenza non è critica
+- Monitoraggio continuo delle performance
+
+**4. Hybrid Comparison Mode (Per ricerca/tesi)**
+- Esecuzione parallela su entrambi i provider
+- Raccolta metriche comparative (latenza, qualità, costi)
+- Logging dettagliato per analisi
+
+### Criteri di Selezione Automatica
+
+```python
+def select_provider(intent: IntentObject, mode: SelectionMode) -> LLMProvider:
+    if mode == "primary-fallback":
+        return primary_provider if primary_provider.is_available() else fallback_provider
+    
+    elif mode == "cost-optimized":
+        complexity = estimate_complexity(intent)
+        return ollama_provider if complexity < THRESHOLD else openai_provider
+    
+    elif mode == "performance-optimized":
+        if intent.requires_low_latency():
+            return ollama_provider
+        return openai_provider
+    
+    elif mode == "hybrid-comparison":
+        return [openai_provider, ollama_provider]  # Esegui su entrambi
+```
+
+### Metriche di Confronto
+
+Il sistema raccoglie metriche per confrontare i provider:
+- **Latenza**: Tempo di risposta end-to-end
+- **Qualità**: Validità delle azioni generate, tasso di errore
+- **Costi**: Token utilizzati, costo monetario (solo OpenAI)
+- **Affidabilità**: Uptime, tasso di fallimento
+- **Throughput**: Richieste al secondo gestite
+
 ## Error Handling
 
 Il sistema implementa una strategia di error handling a più livelli:
@@ -300,9 +416,12 @@ Il sistema implementa una strategia di error handling a più livelli:
 - **Authentication Failures**: Logging sicuro e notifica amministratori
 
 ### Processing Errors  
-- **LLM Model Failures**: Fallback a regole predefinite o modalità degradata
+- **LLM Model Failures**: 
+  - OpenAI: Fallback automatico a Ollama
+  - Ollama: Fallback a OpenAI o modalità degradata con regole predefinite
+  - Retry con parametri semplificati (temperatura ridotta, prompt più semplici)
 - **Context Analysis Errors**: Utilizzo di stato cached o richiesta aggiornamenti
-- **Action Generation Failures**: Retry con parametri semplificati
+- **Action Generation Failures**: Retry con provider alternativo prima del fallback completo
 
 ### Communication Errors
 - **RYU Connection Issues**: Retry con backoff esponenziale, max 5 tentativi
@@ -330,11 +449,13 @@ Il sistema utilizza sia unit testing che property-based testing per garantire co
 - Utilizzo di **Hypothesis** (Python) per property-based testing
 - Ogni test property-based configurato per minimo **100 iterazioni**
 - Ogni property-based test taggato con formato: **Feature: llm-integration-module, Property {number}: {property_text}**
+- **Test comparativi tra provider**: Ogni property testata su entrambi OpenAI e Ollama
 - Generatori intelligenti per:
   - Intent in linguaggio naturale con varie complessità
   - Stati di rete con topologie diverse
   - Sequenze di azioni con dipendenze complesse
   - Scenari di anomalie e errori
+  - Configurazioni provider diverse
 
 **Test Data Generation**:
 - **Intent Generator**: Crea intent naturali con entità, ambiguità e complessità variabili
@@ -347,9 +468,13 @@ Il sistema utilizza sia unit testing che property-based testing per garantire co
 - Test di carico con multiple richieste concorrenti  
 - Test di resilienza con injection di errori
 - Test di performance con grandi stati di rete
+- **Test di failover**: Simulazione fallimenti provider e test di fallback
+- **Test di confronto**: Esecuzione parallela su OpenAI e Ollama per validazione qualità
 
 **Continuous Testing**:
 - Pipeline CI/CD con test automatici
 - Monitoring di regressioni nelle performance
 - Test di compatibilità con versioni diverse di RYU
 - Validazione continua delle proprietà di correttezza
+- **Benchmarking automatico**: Confronto continuo performance OpenAI vs Ollama
+- **Cost tracking**: Monitoraggio costi OpenAI in ambiente di test

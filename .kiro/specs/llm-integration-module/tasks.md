@@ -7,9 +7,12 @@
 
 
   - Create directory structure for models, services, and API components
-  - Set up Python environment with required dependencies (FastAPI, Hypothesis, OpenAI/Transformers)
+  - Set up Python environment with hybrid LLM dependencies (FastAPI, Hypothesis, OpenAI, ollama-python)
+  - Install and configure Ollama with GPU support for RTX 5080 (16GB VRAM)
+  - Download recommended models: Llama 3.1 70B (Q4_K_M), Llama 3.1 8B (Q8_0), CodeLlama 34B (Q4_K_M)
+  - Configure CUDA and GPU memory optimization
   - Define TypeScript-like interfaces using Python dataclasses or Pydantic models
-  - Configure logging and monitoring infrastructure
+  - Configure logging and monitoring infrastructure with provider-specific metrics
   - _Requirements: 6.4, 6.5_
 
 - [x] 2. Implement core data models and validation
@@ -183,36 +186,69 @@
 
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Develop Action Generator component
-  - [ ] 6.1 Integrate LLM model for action generation
-    - Set up OpenAI API or local model integration
-    - Create prompt engineering templates for networking domain
-    - Implement response parsing and action extraction
+- [ ] 6. Develop Action Generator component with hybrid LLM support
+  - [ ] 6.1 Create LLM Provider abstraction layer
+    - Implement base LLMProvider interface
+    - Create provider factory and selection logic
+    - Add provider health monitoring and metrics collection
+    - _Requirements: 1.4, 6.2_
+
+  - [ ] 6.2 Implement OpenAI Provider
+    - Set up OpenAI API client with retry logic
+    - Create networking-specific prompt templates
+    - Implement response parsing and validation
+    - Add cost tracking and rate limiting
     - _Requirements: 1.4, 3.1_
 
-  - [ ]* 6.2 Write property test for action generation
+  - [ ] 6.3 Implement Ollama Provider
+    - Set up Ollama client for local models
+    - Configure GPU acceleration for RTX 5080 (16GB VRAM)
+    - Install and configure recommended models (Llama 3.1 70B Q4_K_M, Llama 3.1 8B Q8_0)
+    - Optimize context window and inference parameters
+    - _Requirements: 1.4, 3.1, 6.2_
+
+  - [ ] 6.4 Create provider selection and fallback logic
+    - Implement intelligent provider selection strategies
+    - Add automatic fallback mechanisms
+    - Create hybrid comparison mode for research
+    - Add performance and cost optimization modes
+    - _Requirements: 6.2_
+
+  - [ ]* 6.5 Write property test for action generation (both providers)
     - **Property 4: Action generation completeness**
     - **Validates: Requirements 1.4**
+    - Test both OpenAI and Ollama providers for consistency
 
-  - [ ] 6.3 Implement action sequencing and optimization
+  - [ ]* 6.6 Write property test for provider fallback reliability
+    - **Property 22: Fallback reliability**
+    - **Validates: Requirements 6.2**
+
+  - [ ] 6.7 Implement action sequencing and optimization
     - Create dependency analysis for action ordering
     - Implement action sequence optimization
     - Add conflict detection and resolution
     - _Requirements: 3.2, 3.4_
 
-  - [ ]* 6.4 Write property test for action sequencing
+  - [ ]* 6.8 Write property test for action sequencing
     - **Property 10: Action sequencing logic**
     - **Validates: Requirements 3.4**
 
-  - [ ] 6.5 Create NetworkSlice orchestration logic
+  - [ ] 6.9 Create NetworkSlice orchestration logic
     - Implement slice creation and modification workflows
     - Add resource allocation and conflict resolution
     - Create slice lifecycle management
     - _Requirements: 5.1, 5.2, 5.3_
 
-  - [ ]* 6.6 Write property test for slice configuration
+  - [ ]* 6.10 Write property test for slice configuration
     - **Property 16: Slice configuration completeness**
     - **Validates: Requirements 5.1**
+
+  - [ ] 6.11 Implement comparative analysis system
+    - Create side-by-side comparison of OpenAI vs Ollama responses
+    - Add quality metrics collection (accuracy, consistency, latency)
+    - Implement cost analysis and reporting
+    - Generate comparison reports for thesis research
+    - _Requirements: Research objectives_
 
 - [ ] 7. Build Validator component
   - [ ] 7.1 Implement action validation engine
@@ -271,9 +307,10 @@
     - Implement circuit breaker patterns
     - _Requirements: 6.2, 6.4_
 
-  - [ ]* 9.2 Write property test for fallback reliability
-    - **Property 22: Fallback reliability**
-    - **Validates: Requirements 6.2**
+  - [ ]* 9.2 Write comprehensive property test for hybrid system reliability
+    - **Property 22: Fallback reliability** (already covered in 6.6)
+    - Test provider switching under various failure scenarios
+    - Validate data consistency across provider switches
 
   - [ ] 9.3 Create input sanitization and security
     - Implement input validation and sanitization
@@ -336,7 +373,21 @@
     - Create chaos engineering tests
     - _Requirements: All_
 
-  - [ ]* 12.2 Write remaining property tests
+  - [ ] 12.2 Create comprehensive LLM provider comparison suite
+    - Implement automated benchmarking system
+    - Create test scenarios for different intent complexities
+    - Add latency, cost, and quality metrics collection
+    - Generate comparative analysis reports
+    - _Requirements: Research objectives_
+
+  - [ ] 12.3 Create Ollama model optimization tests
+    - Test different model configurations (Q4_K_M vs Q8_0)
+    - Optimize GPU memory usage and inference speed
+    - Compare model sizes vs quality trade-offs
+    - Document optimal configurations for RTX 5080
+    - _Requirements: Performance optimization_
+
+  - [ ]* 12.4 Write remaining property tests
     - **Property 7: Dynamic state adaptation** - **Validates: Requirements 2.5**
     - **Property 13: Automatic anomaly mitigation** - **Validates: Requirements 4.3**
     - **Property 14: Anomaly notification completeness** - **Validates: Requirements 4.4**
@@ -345,11 +396,20 @@
     - **Property 19: Resource cleanup completeness** - **Validates: Requirements 5.4**
     - **Property 20: Dependency update consistency** - **Validates: Requirements 5.5**
 
-  - [ ] 12.3 Create deployment and configuration scripts
-    - Build Docker containers and deployment configs
-    - Create configuration management system
-    - Add health checks and monitoring setup
+  - [ ] 12.5 Create deployment and configuration scripts
+    - Build Docker containers for both OpenAI and Ollama configurations
+    - Create Ollama setup scripts with GPU optimization
+    - Add model download and configuration automation
+    - Create configuration management for hybrid deployment
+    - Add health checks and monitoring for both providers
     - _Requirements: 6.5_
+
+  - [ ] 12.6 Create research documentation and analysis tools
+    - Generate automated comparison reports
+    - Create visualization tools for performance metrics
+    - Document findings for thesis research
+    - Create reproducible experiment configurations
+    - _Requirements: Research objectives_
 
 - [ ] 13. Final Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
