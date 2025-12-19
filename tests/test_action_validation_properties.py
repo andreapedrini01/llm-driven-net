@@ -1,7 +1,7 @@
 """Property-based tests for action validation functionality."""
 
 import pytest
-from hypothesis import given, strategies as st, assume, settings
+from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from typing import Dict, Any, List
 from src.models.actions import (
@@ -195,7 +195,7 @@ class TestActionValidationProperties:
             ))
         )
     
-    @settings(max_examples=100)
+    @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     @given(action_sequence=action_sequence())
     def test_action_validation_and_formatting(self, action_sequence):
         """

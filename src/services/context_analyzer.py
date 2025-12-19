@@ -3,6 +3,7 @@
 import asyncio
 import threading
 import time
+import copy
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass
@@ -104,7 +105,7 @@ class NetworkStateCache:
                 return None
             
             self._current_state.mark_accessed()
-            return self._current_state.state
+            return copy.deepcopy(self._current_state.state)
 
     def get_state_by_timestamp(self, timestamp: datetime) -> Optional[NetworkState]:
         """
@@ -131,7 +132,7 @@ class NetworkStateCache:
             
             if closest_entry:
                 closest_entry.mark_accessed()
-                return closest_entry.state
+                return copy.deepcopy(closest_entry.state)
             
             return None
 
