@@ -276,7 +276,8 @@ temp/
 *.sqlite3
 
 # Model files (if using local LLM models)
-models/
+# Exclude LLM model files but not source code models
+/models/
 *.bin
 *.safetensors
 *.gguf
