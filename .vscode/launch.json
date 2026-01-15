@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "Python: Test Basic",
-            "type": "debugpy",
+            "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/tests/test_basic.py",
             "console": "integratedTerminal",
@@ -11,14 +11,14 @@
         },
         {
             "name": "Python: Mock Controller",
-            "type": "debugpy",
+            "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/tests/mock_controller.py",
             "console": "integratedTerminal"
         },
         {
             "name": "Python: Current File",
-            "type": "debugpy",
+            "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
