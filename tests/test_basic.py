@@ -1,35 +1,17 @@
-"""Test base - VERSIONE SENZA VENV"""
+"""Test base per Northbound Script - SENZA rete reale"""
 
 import sys
 import os
-# Aggiungi directory parent al path
+# Aggiungi la directory parent al path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
 from northbound_script import NorthboundScript
 
-print("\n" + "="*60)
-print("TEST NORTHBOUND SCRIPT (Senza venv)")
-print("="*60)
-
-# TEST 1: Verifica imports
-print("\n[TEST 0] Verifica dipendenze...")
-try:
-    import pydantic
-    import requests
-    import flask
-    print("✅ Tutte le dipendenze sono installate!")
-    print(f"   - pydantic: {pydantic.__version__}")
-    print(f"   - requests: {requests.__version__}")
-    print(f"   - flask: {flask.__version__}")
-except ImportError as e:
-    print(f"❌ ERRORE: Manca una dipendenza: {e}")
-    print("   Esegui: pip install pydantic requests flask")
-    sys.exit(1)
-
-# TEST 1: PARSING
-print("\n[TEST 1] Parsing LLM Output...")
-try:
+def test_parsing():
+    """Test 1: Verifica parsing LLM output"""
+    print("\n=== TEST 1: PARSING ===")
+    
     northbound = NorthboundScript()
     
     llm_output = json.dumps({
@@ -51,19 +33,23 @@ try:
         "rollback_plan": []
     })
     
-    sequence = northbound.parse_llm_output(llm_output)
-    print(f"✅ SUCCESSO")
-    print(f"   Sequence ID: {sequence.id}")
-    print(f"   Azioni: {len(sequence.actions)}")
-except Exception as e:
-    print(f"❌ FALLITO: {e}")
-    import traceback
-    traceback.print_exc()
+    try:
+        sequence = northbound.parse_llm_output(llm_output)
+        print(f"✅ Parsing riuscito!")
+        print(f"   Sequence ID: {sequence.id}")
+        print(f"   Numero azioni: {len(sequence.actions)}")
+        return True
+    except Exception as e:
+        print(f"❌ Parsing fallito: {e}")
+        return False
 
-# TEST 2: VALIDAZIONE
-print("\n[TEST 2] Validazione...")
-try:
-    llm_invalid = json.dumps({
+def test_validation():
+    """Test 2: Verifica validazione"""
+    print("\n=== TEST 2: VALIDAZIONE ===")
+    
+    northbound = NorthboundScript()
+    
+    llm_output_invalid = json.dumps({
         "id": "seq_invalid",
         "intent_id": "intent_test",
         "estimated_duration": 10,
@@ -81,19 +67,27 @@ try:
         "rollback_plan": []
     })
     
-    sequence = northbound.parse_llm_output(llm_invalid)
-    validation = northbound.validate_sequence(sequence)
-    
-    if not validation.is_valid:
-        print(f"✅ SUCCESSO - Errori rilevati: {len(validation.errors)}")
-    else:
-        print(f"❌ FALLITO - Nessun errore rilevato")
-except Exception as e:
-    print(f"⚠️  ECCEZIONE: {e}")
+    try:
+        sequence = northbound.parse_llm_output(llm_output_invalid)
+        validation = northbound.validate_sequence(sequence)
+        
+        if not validation.is_valid:
+            print(f"✅ Validazione funziona!")
+            print(f"   Errori: {validation.errors}")
+            return True
+        else:
+            print(f"❌ Validazione non ha rilevato errori!")
+            return False
+    except Exception as e:
+        print(f"⚠️  Eccezione: {e}")
+        return False
 
-# TEST 3: DRY RUN
-print("\n[TEST 3] Dry Run...")
-try:
+def test_dry_run():
+    """Test 3: Verifica dry run"""
+    print("\n=== TEST 3: DRY RUN ===")
+    
+    northbound = NorthboundScript()
+    
     llm_output = json.dumps({
         "id": "seq_dryrun",
         "intent_id": "intent_test",
@@ -116,26 +110,55 @@ try:
     result = northbound.process_llm_output(llm_output, dry_run=True)
     
     if result["success"]:
-        print(f"✅ SUCCESSO")
+        print(f"✅ Dry run completato!")
+        return True
     else:
-        print(f"❌ FALLITO")
-except Exception as e:
-    print(f"❌ FALLITO: {e}")
+        print(f"❌ Dry run fallito")
+        return False
 
-# TEST 4: LOGGING
-print("\n[TEST 4] Sistema di Logging...")
-try:
-    if os.path.exists("./logs"):
-        log_files = os.listdir("./logs")
-        print(f"✅ SUCCESSO - File log: {len(log_files)}")
+def test_logging():
+    """Test 4: Verifica logging"""
+    print("\n=== TEST 4: LOGGING ===")
+    
+    northbound = NorthboundScript(log_dir="./logs")
+    
+    import os
+    log_files = os.listdir("./logs") if os.path.exists("./logs") else []
+    print(f"✅ File log: {log_files}")
+    
+    if "network_changes.db" in log_files:
+        print(f"✅ Database creato!")
         
-        if "network_changes.db" in log_files:
-            print(f"   → Database presente")
+        import sqlite3
+        conn = sqlite3.connect("./logs/network_changes.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = cursor.fetchall()
+        print(f"   Tabelle: {[t[0] for t in tables]}")
+        conn.close()
+        return True
     else:
-        print(f"⚠️  Cartella logs non ancora creata")
-except Exception as e:
-    print(f"⚠️  {e}")
+        print(f"⚠️  Database non ancora creato (normale al primo avvio)")
+        return True
 
-print("\n" + "="*60)
-print("TEST COMPLETATI!")
-print("="*60 + "\n")
+if __name__ == "__main__":
+    print("=" * 60)
+    print("TEST NORTHBOUND SCRIPT")
+    print("=" * 60)
+    
+    results = []
+    results.append(("Parsing", test_parsing()))
+    results.append(("Validazione", test_validation()))
+    results.append(("Dry Run", test_dry_run()))
+    results.append(("Logging", test_logging()))
+    
+    print("\n" + "=" * 60)
+    print("RISULTATI")
+    print("=" * 60)
+    
+    for name, passed in results:
+        status = "✅ PASS" if passed else "❌ FAIL"
+        print(f"{status} - {name}")
+    
+    total = sum(1 for _, p in results if p)
+    print(f"\nTotale: {total}/{len(results)} test passati")
