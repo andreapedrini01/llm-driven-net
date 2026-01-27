@@ -1,0 +1,161 @@
+2026-01-27 17:03:55,341 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:03:55,343 - NorthboundScript - INFO - Parsed sequence seq_test_001 with 1 actions
+2026-01-27 17:03:55,346 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:03:55,346 - NorthboundScript - INFO - Parsed sequence seq_invalid with 1 actions
+2026-01-27 17:03:55,351 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:03:55,352 - NorthboundScript - INFO - Parsed sequence seq_dryrun with 1 actions
+2026-01-27 17:03:55,353 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:03:55,353 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-01-27 17:03:55,521 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:03:55,522 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:03:55,523 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:03:55,523 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:03:55,526 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,299 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,299 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,300 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:10,301 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:10,306 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,306 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,307 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:10,307 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:10,311 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,313 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,314 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,315 - RYUNetworkInterface - ERROR - Failed to get network state for switch-1: Connection refused
+2026-01-27 17:06:10,316 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:10,316 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:10,324 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,324 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,325 - NorthboundScript - INFO - Parsed sequence seq_integration_test with 1 actions
+2026-01-27 17:06:10,326 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:06:10,326 - NorthboundScript - INFO - Starting execution of sequence seq_integration_test
+2026-01-27 17:06:10,326 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,327 - NorthboundScript - INFO - Executing action action_flow_001 (attempt 1/3)
+2026-01-27 17:06:10,327 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:10,327 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,328 - NorthboundScript - INFO - Action action_flow_001: success - Action executed successfully: Flow rule added successfully (Duration: 0.00s)
+2026-01-27 17:06:10,354 - NorthboundScript - INFO - Sequence seq_integration_test completed: 1/1 actions successful
+2026-01-27 17:06:10,355 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:10,355 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:10,360 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,360 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,361 - NorthboundScript - INFO - Parsed sequence seq_retry_test with 1 actions
+2026-01-27 17:06:10,361 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:06:10,362 - NorthboundScript - INFO - Starting execution of sequence seq_retry_test
+2026-01-27 17:06:10,362 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,363 - NorthboundScript - INFO - Executing action action_retry_001 (attempt 1/3)
+2026-01-27 17:06:10,363 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:10,364 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: Connection timeout
+2026-01-27 17:06:10,364 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,365 - NorthboundScript - INFO - Action action_retry_001: success - Action executed successfully: Flow modification failed: Connection timeout (Duration: 0.00s)
+2026-01-27 17:06:10,382 - NorthboundScript - INFO - Sequence seq_retry_test completed: 1/1 actions successful
+2026-01-27 17:06:10,384 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:10,384 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:10,389 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,390 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,390 - NorthboundScript - INFO - Parsed sequence seq_multiple_test with 2 actions
+2026-01-27 17:06:10,390 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:06:10,391 - NorthboundScript - INFO - Starting execution of sequence seq_multiple_test
+2026-01-27 17:06:10,391 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,391 - NorthboundScript - INFO - Executing action action_001 (attempt 1/3)
+2026-01-27 17:06:10,392 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:10,392 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,393 - NorthboundScript - INFO - Action action_001: success - Action executed successfully: Flow rule added successfully (Duration: 0.00s)
+2026-01-27 17:06:10,401 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,402 - NorthboundScript - INFO - Executing action action_002 (attempt 1/3)
+2026-01-27 17:06:10,402 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:10,403 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,403 - NorthboundScript - INFO - Action action_002: success - Action executed successfully: Flow rule added successfully (Duration: 0.00s)
+2026-01-27 17:06:10,424 - NorthboundScript - INFO - Sequence seq_multiple_test completed: 2/2 actions successful
+2026-01-27 17:06:10,424 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:10,425 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:10,430 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,430 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,431 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,432 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:10,432 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:10,435 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,436 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,436 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:10,436 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:10,439 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:10,439 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:10,440 - NorthboundScript - INFO - Parsed sequence seq_rollback_test with 2 actions
+2026-01-27 17:06:10,441 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:06:10,441 - NorthboundScript - INFO - Starting execution of sequence seq_rollback_test
+2026-01-27 17:06:10,441 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,442 - NorthboundScript - INFO - Executing action action_001 (attempt 1/3)
+2026-01-27 17:06:10,442 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:10,442 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,443 - NorthboundScript - INFO - Action action_001: success - Action executed successfully: First flow rule added (Duration: 0.00s)
+2026-01-27 17:06:10,521 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:10,522 - NorthboundScript - INFO - Executing action action_002 (attempt 1/3)
+2026-01-27 17:06:10,522 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:10,522 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: Second action failed
+2026-01-27 17:06:10,523 - NorthboundScript - WARNING - Attempt 1 failed: Action applied but verification failed
+2026-01-27 17:06:12,523 - NorthboundScript - INFO - Executing action action_002 (attempt 2/3)
+2026-01-27 17:06:12,524 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:12,525 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:06:12,526 - RYUNetworkInterface - ERROR - Failed to verify action action_002: 
+2026-01-27 17:06:12,526 - NorthboundScript - WARNING - Attempt 2 failed: Action applied but verification failed
+2026-01-27 17:06:14,528 - NorthboundScript - INFO - Executing action action_002 (attempt 3/3)
+2026-01-27 17:06:14,528 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:14,529 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:06:14,530 - RYUNetworkInterface - ERROR - Failed to verify action action_002: 
+2026-01-27 17:06:14,530 - NorthboundScript - WARNING - Attempt 3 failed: Action applied but verification failed
+2026-01-27 17:06:14,532 - NorthboundScript - INFO - Action action_002: failed - Action failed after all retries (Duration: 4.01s)
+2026-01-27 17:06:14,532 - NorthboundScript - ERROR - Error in action_002: RuntimeError: Action applied but verification failed
+Traceback (most recent call last):
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script.py", line 464, in execute_action
+    raise RuntimeError("Action applied but verification failed")
+RuntimeError: Action applied but verification failed
+
+2026-01-27 17:06:14,556 - NorthboundScript - ERROR - Action action_002 failed, initiating rollback
+2026-01-27 17:06:14,557 - NorthboundScript - INFO - Executing rollback plan
+2026-01-27 17:06:14,557 - NorthboundScript - WARNING - Rolling back action rollback_001
+2026-01-27 17:06:14,557 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:06:14,558 - NorthboundScript - INFO - Executing action rollback_001 (attempt 1/3)
+2026-01-27 17:06:14,558 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:14,559 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:06:14,559 - RYUNetworkInterface - ERROR - Failed to verify action rollback_001: 
+2026-01-27 17:06:14,559 - NorthboundScript - WARNING - Attempt 1 failed: Action applied but verification failed
+2026-01-27 17:06:16,560 - NorthboundScript - INFO - Executing action rollback_001 (attempt 2/3)
+2026-01-27 17:06:16,560 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:16,561 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:06:16,563 - RYUNetworkInterface - ERROR - Failed to verify action rollback_001: 
+2026-01-27 17:06:16,563 - NorthboundScript - WARNING - Attempt 2 failed: Action applied but verification failed
+2026-01-27 17:06:18,564 - NorthboundScript - INFO - Executing action rollback_001 (attempt 3/3)
+2026-01-27 17:06:18,564 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:06:18,565 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:06:18,565 - RYUNetworkInterface - ERROR - Failed to verify action rollback_001: 
+2026-01-27 17:06:18,566 - NorthboundScript - WARNING - Attempt 3 failed: Action applied but verification failed
+2026-01-27 17:06:18,567 - NorthboundScript - INFO - Action rollback_001: rolled_back - Action failed after all retries (Duration: 4.01s)
+2026-01-27 17:06:18,567 - NorthboundScript - ERROR - Error in rollback_001: RuntimeError: Action applied but verification failed
+Traceback (most recent call last):
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script.py", line 464, in execute_action
+    raise RuntimeError("Action applied but verification failed")
+RuntimeError: Action applied but verification failed
+
+2026-01-27 17:06:18,594 - NorthboundScript - INFO - Sequence seq_rollback_test completed: 1/3 actions successful
+2026-01-27 17:06:18,596 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:18,596 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:18,602 - RYUNetworkInterface - INFO - Initialized RYU interface to 192.168.1.100:9090
+2026-01-27 17:06:18,602 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at 192.168.1.100:9090
+2026-01-27 17:06:18,603 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:18,603 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:06:18,608 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:06:18,609 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:06:18,609 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:06:18,609 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:07:35,001 - RYUConnector - INFO - Initializing connection to RYU at http://localhost:8080
+2026-01-27 17:07:39,101 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:07:39,101 - RYUConnector - ERROR - Failed to connect to RYU controller
+2026-01-27 17:07:39,102 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:07:39,102 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080
+2026-01-27 17:07:39,104 - NorthboundScript - INFO - Parsed sequence demo_seq_001 with 1 actions
+2026-01-27 17:07:39,105 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:07:39,105 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-01-27 17:07:39,118 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:07:39,119 - RYUNetworkInterface - INFO - Closing RYU network interface
+2026-01-27 17:07:39,119 - RYUConnector - INFO - Closing RYU connector

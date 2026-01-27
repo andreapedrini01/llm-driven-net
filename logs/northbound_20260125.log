@@ -15,3 +15,8 @@
 2026-01-25 15:40:02,354 - ComnetsEMUInterface - INFO - Getting state for switch-1
 2026-01-25 15:40:02,354 - NorthboundScript - INFO - Action action_001: success - Action executed successfully: Flow rule installed (Duration: 0.00s)
 2026-01-25 15:40:02,376 - NorthboundScript - INFO - Sequence seq_001 completed: 1/1 actions successful
+2026-01-25 16:16:53,849 - NorthboundScript - INFO - Parsed sequence seq_test_001 with 1 actions
+2026-01-25 16:16:53,853 - NorthboundScript - INFO - Parsed sequence seq_invalid with 1 actions
+2026-01-25 16:16:53,858 - NorthboundScript - INFO - Parsed sequence seq_dryrun with 1 actions
+2026-01-25 16:16:53,859 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-25 16:16:53,859 - NorthboundScript - INFO - Dry run mode - skipping execution

@@ -223,75 +223,179 @@ class NetworkLogger:
         conn.close()
 
 
-class ComnetsEMUInterface:
-    """Interface to ComnetsEMU network."""
+class RYUNetworkInterface:
+    """Real interface to RYU Controller and ComnetsEMU network."""
     
-    def __init__(self, controller_url: str = "http://localhost:8080"):
-        self.controller_url = controller_url
-        self.logger = logging.getLogger("ComnetsEMUInterface")
+    def __init__(self, ryu_host: str = "localhost", ryu_port: int = 8080, **ryu_config):
+        from ryu_connector import create_ryu_connector
+        
+        self.logger = logging.getLogger("RYUNetworkInterface")
+        
+        # Initialize real RYU connector
+        self.ryu_connector = create_ryu_connector(
+            host=ryu_host, 
+            port=ryu_port, 
+            **ryu_config
+        )
+        
+        self.logger.info(f"Initialized RYU interface to {ryu_host}:{ryu_port}")
     
     def get_network_state(self, target: str) -> Dict[str, Any]:
         """Get current state of network resource."""
-        # Placeholder - implementa con API reali di ComnetsEMU
-        self.logger.info(f"Getting state for {target}")
-        return {
-            "target": target,
-            "status": "active",
-            "timestamp": datetime.now().isoformat()
-        }
+        try:
+            self.logger.info(f"Getting network state for {target}")
+            
+            # Get comprehensive network state from RYU
+            if target.startswith("switch"):
+                # Extract switch ID from target (e.g., "switch-1" -> "1")
+                switch_id = target.split("-")[-1] if "-" in target else target
+                
+                # Get switch information
+                switches = self.ryu_connector.get_switches()
+                switch_info = None
+                for switch in switches:
+                    if str(switch.get("dpid", "")) == switch_id:
+                        switch_info = switch
+                        break
+                
+                if not switch_info:
+                    self.logger.warning(f"Switch {switch_id} not found")
+                    return {
+                        "target": target,
+                        "status": "not_found",
+                        "timestamp": datetime.now().isoformat()
+                    }
+                
+                # Get flows and port stats for the switch
+                flows = self.ryu_connector.get_flows(switch_id)
+                port_stats = self.ryu_connector.get_port_stats(switch_id)
+                
+                return {
+                    "target": target,
+                    "switch_id": switch_id,
+                    "switch_info": switch_info,
+                    "flows": flows,
+                    "port_stats": port_stats,
+                    "status": "active",
+                    "timestamp": datetime.now().isoformat()
+                }
+            else:
+                # For other targets, get general topology
+                topology = self.ryu_connector.get_network_topology()
+                return {
+                    "target": target,
+                    "topology": topology,
+                    "status": "active",
+                    "timestamp": datetime.now().isoformat()
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Failed to get network state for {target}: {e}")
+            return {
+                "target": target,
+                "status": "error",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
     
     def execute_flow_mod(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute flow modification."""
-        self.logger.info(f"Executing flow_mod on {action.target}")
-        
-        # Simulazione - sostituisci con chiamate reali
-        # Esempio: curl -X POST http://controller/flows -d {...}
-        
-        return {
-            "success": True,
-            "flow_id": f"flow_{action.id}",
-            "message": "Flow rule installed"
-        }
+        """Execute flow modification using real RYU API."""
+        try:
+            self.logger.info(f"Executing real flow_mod on {action.target}")
+            
+            # Use the real RYU connector to execute the flow modification
+            result = self.ryu_connector.execute_flow_mod(action)
+            
+            return {
+                "success": result["success"],
+                "flow_id": f"flow_{action.id}",
+                "message": result["message"],
+                "operation": result.get("operation", "unknown"),
+                "switch_id": result.get("switch_id"),
+                "details": result
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to execute flow_mod: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"Flow modification failed: {e}"
+            }
     
     def execute_slice_create(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute slice creation."""
-        self.logger.info(f"Creating slice: {action.parameters.get('slice_name')}")
+        """Execute slice creation (placeholder for future ComnetsEMU integration)."""
+        self.logger.warning("Slice creation not yet implemented with real ComnetsEMU integration")
         
-        # Implementa creazione slice
+        # For now, return a placeholder response
+        # TODO: Implement real ComnetsEMU slice creation API calls
         return {
-            "success": True,
+            "success": False,
             "slice_id": f"slice_{action.id}",
-            "message": "Slice created"
+            "message": "Slice creation not yet implemented",
+            "note": "This requires ComnetsEMU API integration"
         }
     
     def execute_config_change(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute configuration change."""
-        self.logger.info(f"Changing config on {action.target}")
+        """Execute configuration change (placeholder for future implementation)."""
+        self.logger.warning("Config change not yet implemented with real API integration")
         
-        # Implementa cambio configurazione
+        # For now, return a placeholder response
+        # TODO: Implement real configuration change API calls
         return {
-            "success": True,
-            "message": "Configuration updated"
+            "success": False,
+            "message": "Configuration change not yet implemented",
+            "note": "This requires specific API integration based on config type"
         }
     
     def verify_action_applied(self, action: NetworkAction) -> bool:
-        """Verify that action was successfully applied."""
-        # Implementa verifica stato rete
-        return True
+        """Verify that action was successfully applied using real RYU API."""
+        try:
+            return self.ryu_connector.verify_action_applied(action)
+        except Exception as e:
+            self.logger.error(f"Failed to verify action {action.id}: {e}")
+            return False
+    
+    def get_connection_status(self) -> Dict[str, Any]:
+        """Get RYU connection status and statistics."""
+        return self.ryu_connector.get_connection_status()
+    
+    def close(self):
+        """Close the network interface and clean up resources."""
+        self.logger.info("Closing RYU network interface")
+        self.ryu_connector.close()
 
 
 class NorthboundScript:
-    """Main Northbound Script orchestrator."""
+    """Main Northbound Script orchestrator with real RYU integration."""
     
-    def __init__(self, log_dir: str = "./logs"):
+    def __init__(self, log_dir: str = "./logs", ryu_host: str = "localhost", ryu_port: int = 8080, **ryu_config):
         self.logger_handler = NetworkLogger(log_dir)
-        self.network_interface = ComnetsEMUInterface()
+        
+        # Initialize real RYU network interface
+        self.network_interface = RYUNetworkInterface(
+            ryu_host=ryu_host, 
+            ryu_port=ryu_port, 
+            **ryu_config
+        )
+        
         self.logger = logging.getLogger("NorthboundScript")
         
         # Configuration
-        self.max_retries = 3
-        self.retry_delay = 2  # seconds
+        self.max_retries = ryu_config.get("max_retries", 3)
+        self.retry_delay = ryu_config.get("retry_delay", 2)  # seconds
         self.enable_rollback = True
+        
+        self.logger.info(f"Initialized NorthboundScript with RYU at {ryu_host}:{ryu_port}")
+    
+    def get_ryu_status(self) -> Dict[str, Any]:
+        """Get RYU connection status and statistics."""
+        return self.network_interface.get_connection_status()
+    
+    def close(self):
+        """Close the northbound script and clean up resources."""
+        self.logger.info("Closing NorthboundScript")
+        self.network_interface.close()
     
     def parse_llm_output(self, llm_output: str) -> ActionSequence:
         """Parse LLM output into ActionSequence."""
@@ -532,54 +636,72 @@ class NorthboundScript:
 
 # Example usage
 if __name__ == "__main__":
-    # Initialize Northbound Script
-    northbound = NorthboundScript(log_dir="./logs")
+    # Initialize Northbound Script with real RYU connection
+    northbound = NorthboundScript(
+        log_dir="./logs",
+        ryu_host="localhost",
+        ryu_port=8080,
+        timeout_seconds=30,
+        max_retries=3,
+        retry_delay=2.0
+    )
     
-    # Example LLM output
-    llm_output = json.dumps({
-        "id": "seq_001",
-        "intent_id": "intent_block_traffic",
-        "estimated_duration": 10,
-        "actions": [
-            {
-                "id": "action_001",
-                "type": "flow_mod",
-                "target": "switch-1",
-                "parameters": {
-                    "match": {
-                        "ip_src": "192.168.1.100"
+    try:
+        # Check RYU connection status
+        print("=== RYU CONNECTION STATUS ===")
+        status = northbound.get_ryu_status()
+        print(json.dumps(status, indent=2))
+        
+        # Example LLM output
+        llm_output = json.dumps({
+            "id": "seq_001",
+            "intent_id": "intent_block_traffic",
+            "estimated_duration": 10,
+            "actions": [
+                {
+                    "id": "action_001",
+                    "type": "flow_mod",
+                    "target": "switch-1",
+                    "parameters": {
+                        "operation": "add",
+                        "match": {
+                            "ip_src": "192.168.1.100"
+                        },
+                        "actions": ["drop"]
                     },
-                    "actions": ["drop"]
-                },
-                "priority": 1000,
-                "timeout": 30,
-                "description": "Block traffic from suspicious IP"
-            }
-        ],
-        "dependencies": [],
-        "rollback_plan": [
-            {
-                "id": "rollback_001",
-                "type": "flow_mod",
-                "target": "switch-1",
-                "parameters": {
-                    "match": {
-                        "ip_src": "192.168.1.100"
+                    "priority": 1000,
+                    "timeout": 30,
+                    "description": "Block traffic from suspicious IP"
+                }
+            ],
+            "dependencies": [],
+            "rollback_plan": [
+                {
+                    "id": "rollback_001",
+                    "type": "flow_mod",
+                    "target": "switch-1",
+                    "parameters": {
+                        "operation": "delete",
+                        "match": {
+                            "ip_src": "192.168.1.100"
+                        }
                     },
-                    "actions": ["normal"]
-                },
-                "priority": 1000,
-                "timeout": 30
-            }
-        ]
-    })
-    
-    # Process (dry run first)
-    print("=== DRY RUN ===")
-    result = northbound.process_llm_output(llm_output, dry_run=True)
-    print(json.dumps(result, indent=2))
-    
-    # Execute for real
-    print("\n=== ACTUAL EXECUTION ===")
-    result = northbound.process_llm_output(llm_output, dry_run=False)
-    print(json.dumps(result, indent=2))
+                    "priority": 1000,
+                    "timeout": 30
+                }
+            ]
+        })
+        
+        # Process (dry run first)
+        print("\n=== DRY RUN ===")
+        result = northbound.process_llm_output(llm_output, dry_run=True)
+        print(json.dumps(result, indent=2))
+        
+        # Execute for real (commented out to avoid actual network changes)
+        # print("\n=== ACTUAL EXECUTION ===")
+        # result = northbound.process_llm_output(llm_output, dry_run=False)
+        # print(json.dumps(result, indent=2))
+        
+    finally:
+        # Clean up
+        northbound.close()
