@@ -159,3 +159,472 @@ RuntimeError: Action applied but verification failed
 2026-01-27 17:07:39,118 - NorthboundScript - INFO - Closing NorthboundScript
 2026-01-27 17:07:39,119 - RYUNetworkInterface - INFO - Closing RYU network interface
 2026-01-27 17:07:39,119 - RYUConnector - INFO - Closing RYU connector
+2026-01-27 17:45:47,405 - RYUConnector - INFO - Initializing connection to RYU at http://localhost:8080
+2026-01-27 17:45:51,461 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:45:51,462 - RYUConnector - ERROR - Failed to connect to RYU controller
+2026-01-27 17:45:51,462 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:45:53,491 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:45:53,492 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:45:53,492 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:45:53,492 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:45:53,493 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:45:53,496 - NorthboundScript - INFO - Parsed sequence demo_comprehensive_001 with 4 actions
+2026-01-27 17:45:53,497 - NorthboundScript - ERROR - Validation failed: ["Action demo_qos_001: Configuration change requires 'config_data' parameter", "Action demo_topology_001: Configuration change requires 'config_data' parameter"]
+2026-01-27 17:45:53,502 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:45:53,502 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:45:53,503 - RYUConnector - INFO - Closing RYU connector
+2026-01-27 17:45:53,503 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:46:48,947 - RYUConnector - INFO - Initializing connection to RYU at http://localhost:8080
+2026-01-27 17:46:52,994 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:46:52,994 - RYUConnector - ERROR - Failed to connect to RYU controller
+2026-01-27 17:46:52,995 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:46:55,030 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:46:55,031 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:46:55,031 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:46:55,031 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:46:55,032 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:46:55,036 - NorthboundScript - INFO - Parsed sequence demo_comprehensive_001 with 4 actions
+2026-01-27 17:46:55,037 - NorthboundScript - WARNING - Validation warnings: ['Multiple different action types on target switch-1', 'Multiple different action types on target network', "Rollback plan doesn't cover targets: {'network'}"]
+2026-01-27 17:46:55,037 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-01-27 17:46:55,053 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:46:55,054 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:46:55,054 - RYUConnector - INFO - Closing RYU connector
+2026-01-27 17:46:55,054 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:29,120 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:31,168 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:31,169 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:31,170 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:31,170 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:31,170 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:31,172 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:31,172 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:31,173 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:31,176 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:33,200 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:33,201 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:33,202 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:33,202 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:33,202 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:33,203 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:33,203 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:33,204 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:33,207 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:35,235 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:35,236 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:35,237 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:35,237 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:35,238 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:35,239 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:35,239 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:35,239 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:47:35,240 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:47:35,240 - RYUNetworkInterface - WARNING - Failed to get RYU data for switch-1: Connection refused
+2026-01-27 17:47:35,242 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:35,243 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:35,243 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:35,248 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:37,273 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:37,273 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:37,274 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:37,274 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:37,274 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:37,275 - NorthboundScript - INFO - Parsed sequence seq_integration_test with 1 actions
+2026-01-27 17:47:37,276 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:47:37,276 - NorthboundScript - INFO - Starting execution of sequence seq_integration_test
+2026-01-27 17:47:37,276 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:37,276 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:37,277 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:47:37,277 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:47:37,278 - NorthboundScript - INFO - Executing action action_flow_001 (attempt 1/3)
+2026-01-27 17:47:37,278 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:37,278 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:37,279 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:37,279 - NorthboundScript - INFO - Action action_flow_001: success - Action executed successfully: Flow rule added successfully (Duration: 0.00s)
+2026-01-27 17:47:37,305 - NorthboundScript - INFO - Sequence seq_integration_test completed: 1/1 actions successful
+2026-01-27 17:47:37,306 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:37,306 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:37,307 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:37,311 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:39,358 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:39,359 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:39,359 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:39,359 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:39,360 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:39,361 - NorthboundScript - INFO - Parsed sequence seq_retry_test with 1 actions
+2026-01-27 17:47:39,361 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:47:39,361 - NorthboundScript - INFO - Starting execution of sequence seq_retry_test
+2026-01-27 17:47:39,362 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:39,362 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:39,362 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:47:39,362 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:47:39,363 - NorthboundScript - INFO - Executing action action_retry_001 (attempt 1/3)
+2026-01-27 17:47:39,363 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:39,364 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: Connection timeout
+2026-01-27 17:47:39,367 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:39,367 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:39,369 - NorthboundScript - INFO - Action action_retry_001: success - Action executed successfully: Flow modification failed: Connection timeout (Duration: 0.01s)
+2026-01-27 17:47:39,394 - NorthboundScript - INFO - Sequence seq_retry_test completed: 1/1 actions successful
+2026-01-27 17:47:39,404 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:39,404 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:39,405 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:39,410 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:41,437 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:41,438 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:41,438 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:41,439 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:41,439 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:41,440 - NorthboundScript - INFO - Parsed sequence seq_multiple_test with 2 actions
+2026-01-27 17:47:41,440 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:47:41,441 - NorthboundScript - INFO - Starting execution of sequence seq_multiple_test
+2026-01-27 17:47:41,441 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:41,441 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:41,441 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:47:41,442 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:47:41,442 - NorthboundScript - INFO - Executing action action_001 (attempt 1/3)
+2026-01-27 17:47:41,442 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:41,443 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:41,443 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:41,443 - NorthboundScript - INFO - Action action_001: success - Action executed successfully: Flow rule added successfully (Duration: 0.00s)
+2026-01-27 17:47:41,461 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:41,461 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:41,462 - NorthboundScript - INFO - Executing action action_002 (attempt 1/3)
+2026-01-27 17:47:41,462 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:41,463 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:41,463 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:41,464 - NorthboundScript - INFO - Action action_002: success - Action executed successfully: Flow rule added successfully (Duration: 0.00s)
+2026-01-27 17:47:41,481 - NorthboundScript - INFO - Sequence seq_multiple_test completed: 2/2 actions successful
+2026-01-27 17:47:41,482 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:41,482 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:41,483 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:41,488 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:43,532 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:43,533 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:43,533 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:43,534 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:43,534 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:43,535 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:43,535 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:43,535 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:47:43,535 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:47:43,537 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:43,537 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:43,538 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:43,542 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:45,574 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:45,575 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:45,575 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:45,575 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:45,576 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:45,577 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:45,578 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:45,578 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:45,581 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:47,624 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:47,625 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:47,625 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:47,625 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:47,626 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:47,626 - NorthboundScript - INFO - Parsed sequence seq_rollback_test with 2 actions
+2026-01-27 17:47:47,627 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 17:47:47,627 - NorthboundScript - INFO - Starting execution of sequence seq_rollback_test
+2026-01-27 17:47:47,627 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:47,627 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:47,628 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:47:47,628 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:47:47,629 - NorthboundScript - INFO - Executing action action_001 (attempt 1/3)
+2026-01-27 17:47:47,629 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:47,629 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:47,629 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:47,630 - NorthboundScript - INFO - Action action_001: success - Action executed successfully: First flow rule added (Duration: 0.00s)
+2026-01-27 17:47:47,654 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:47,654 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:47,655 - NorthboundScript - INFO - Executing action action_002 (attempt 1/3)
+2026-01-27 17:47:47,655 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:47,655 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: Second action failed
+2026-01-27 17:47:47,656 - NorthboundScript - WARNING - Attempt 1 failed: Action applied but verification failed
+2026-01-27 17:47:49,656 - NorthboundScript - INFO - Executing action action_002 (attempt 2/3)
+2026-01-27 17:47:49,657 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:49,657 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:47:49,658 - RYUNetworkInterface - ERROR - Failed to verify action action_002: 
+2026-01-27 17:47:49,658 - NorthboundScript - WARNING - Attempt 2 failed: Action applied but verification failed
+2026-01-27 17:47:51,659 - NorthboundScript - INFO - Executing action action_002 (attempt 3/3)
+2026-01-27 17:47:51,659 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:51,660 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:47:51,660 - RYUNetworkInterface - ERROR - Failed to verify action action_002: 
+2026-01-27 17:47:51,661 - NorthboundScript - WARNING - Attempt 3 failed: Action applied but verification failed
+2026-01-27 17:47:51,663 - NorthboundScript - INFO - Action action_002: failed - Action failed after all retries (Duration: 4.01s)
+2026-01-27 17:47:51,663 - NorthboundScript - ERROR - Error in action_002: RuntimeError: Action applied but verification failed
+Traceback (most recent call last):
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script.py", line 548, in execute_action
+    raise RuntimeError("Action applied but verification failed")
+RuntimeError: Action applied but verification failed
+
+2026-01-27 17:47:51,680 - NorthboundScript - ERROR - Action action_002 failed, initiating rollback
+2026-01-27 17:47:51,681 - NorthboundScript - INFO - Executing rollback plan
+2026-01-27 17:47:51,681 - NorthboundScript - WARNING - Rolling back action rollback_001
+2026-01-27 17:47:51,682 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:47:51,683 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:47:51,684 - NorthboundScript - INFO - Executing action rollback_001 (attempt 1/3)
+2026-01-27 17:47:51,684 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:51,684 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:47:51,685 - RYUNetworkInterface - ERROR - Failed to verify action rollback_001: 
+2026-01-27 17:47:51,685 - NorthboundScript - WARNING - Attempt 1 failed: Action applied but verification failed
+2026-01-27 17:47:53,685 - NorthboundScript - INFO - Executing action rollback_001 (attempt 2/3)
+2026-01-27 17:47:53,686 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:53,686 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:47:53,686 - RYUNetworkInterface - ERROR - Failed to verify action rollback_001: 
+2026-01-27 17:47:53,687 - NorthboundScript - WARNING - Attempt 2 failed: Action applied but verification failed
+2026-01-27 17:47:55,687 - NorthboundScript - INFO - Executing action rollback_001 (attempt 3/3)
+2026-01-27 17:47:55,688 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:47:55,688 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: 
+2026-01-27 17:47:55,689 - RYUNetworkInterface - ERROR - Failed to verify action rollback_001: 
+2026-01-27 17:47:55,689 - NorthboundScript - WARNING - Attempt 3 failed: Action applied but verification failed
+2026-01-27 17:47:55,690 - NorthboundScript - INFO - Action rollback_001: rolled_back - Action failed after all retries (Duration: 4.01s)
+2026-01-27 17:47:55,690 - NorthboundScript - ERROR - Error in rollback_001: RuntimeError: Action applied but verification failed
+Traceback (most recent call last):
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script.py", line 548, in execute_action
+    raise RuntimeError("Action applied but verification failed")
+RuntimeError: Action applied but verification failed
+
+2026-01-27 17:47:55,727 - NorthboundScript - INFO - Sequence seq_rollback_test completed: 1/3 actions successful
+2026-01-27 17:47:55,728 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:55,728 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:55,729 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:55,733 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:57,766 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:57,767 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:57,767 - RYUNetworkInterface - INFO - Initialized RYU interface to 192.168.1.100:9090
+2026-01-27 17:47:57,768 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:57,769 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at 192.168.1.100:9090 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:57,769 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:57,770 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:57,771 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:47:57,774 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:47:59,798 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:47:59,799 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:47:59,800 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:47:59,801 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:47:59,802 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:47:59,802 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:47:59,802 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:47:59,803 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 17:49:18,296 - RYUConnector - INFO - Initializing connection to RYU at http://localhost:8080
+2026-01-27 17:49:22,372 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:49:22,373 - RYUConnector - ERROR - Failed to connect to RYU controller
+2026-01-27 17:49:22,373 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 17:49:24,385 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 17:49:24,385 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 17:49:24,386 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 17:49:24,386 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 17:49:24,386 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 17:49:24,388 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 17:49:24,388 - RYUConnector - INFO - Adding flow rule to switch switch-1: {'dpid': 'switch-1', 'table_id': 0, 'priority': 1000, 'match': {'ip_src': '192.168.1.100'}, 'actions': ['drop'], 'idle_timeout': 0, 'hard_timeout': 0}
+2026-01-27 17:49:28,433 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:49:32,480 - RYUConnectionPool - ERROR - Connection error for POST http://localhost:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:49:32,480 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 2.0s...
+2026-01-27 17:49:38,563 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:49:42,600 - RYUConnectionPool - ERROR - Connection error for POST http://localhost:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:49:42,601 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 4.0s...
+2026-01-27 17:49:50,649 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:49:54,681 - RYUConnectionPool - ERROR - Connection error for POST http://localhost:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:49:54,682 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 8.0s...
+2026-01-27 17:50:06,767 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:10,818 - RYUConnectionPool - ERROR - Connection error for POST http://localhost:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:10,819 - RYUConnector - ERROR - Request failed after 4 attempts: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:10,819 - RYUConnector - ERROR - Failed to add flow rule to switch switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:10,819 - RYUConnector - ERROR - Failed to execute flow_mod action test_flow_001: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:10,820 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:10,820 - RYUNetworkInterface - INFO - Executing real slice creation on network
+2026-01-27 17:50:10,821 - ComnetsEMUConnector - INFO - Executing topology change on network
+2026-01-27 17:50:10,821 - ComnetsEMUConnector - INFO - Adding slice test_slice
+2026-01-27 17:50:10,821 - ComnetsEMUConnector - ERROR - Failed to add slice test_slice: Unknown element type: slice
+2026-01-27 17:50:10,821 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:50:10,822 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:50:10,822 - RYUNetworkInterface - INFO - Executing real config change on switch-1
+2026-01-27 17:50:10,822 - ComnetsEMUConnector - INFO - Executing QoS policy on switch-1
+2026-01-27 17:50:10,822 - ComnetsEMUConnector - INFO - Applying QoS policy test_qos to switch s1
+2026-01-27 17:50:10,823 - RYUNetworkInterface - INFO - Executing real config change on network
+2026-01-27 17:50:10,823 - ComnetsEMUConnector - INFO - Executing topology change on network
+2026-01-27 17:50:10,824 - ComnetsEMUConnector - INFO - Modifying link s1-s2-link
+2026-01-27 17:50:10,824 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:50:10,824 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:50:10,825 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 17:50:10,826 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 17:50:14,888 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:18,927 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:18,927 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 2.0s...
+2026-01-27 17:50:24,972 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:29,040 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:29,040 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 4.0s...
+2026-01-27 17:50:37,122 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:41,170 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:41,170 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 8.0s...
+2026-01-27 17:50:53,228 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:57,275 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:57,276 - RYUConnector - ERROR - Request failed after 4 attempts: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:57,276 - RYUConnector - ERROR - Failed to get switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:50:57,277 - RYUNetworkInterface - WARNING - Failed to get RYU data for switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:01,335 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:05,388 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/flow/switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:05,389 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 2.0s...
+2026-01-27 17:51:11,451 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:15,534 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/flow/switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:15,535 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 4.0s...
+2026-01-27 17:51:23,593 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:27,657 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/flow/switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:27,658 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 8.0s...
+2026-01-27 17:51:39,708 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:43,760 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/flow/switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:43,761 - RYUConnector - ERROR - Request failed after 4 attempts: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:43,761 - RYUConnector - ERROR - Failed to get flows for switch switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:43,761 - RYUConnector - ERROR - Failed to verify flow_mod for action test_flow_001: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 17:51:43,762 - ComnetsEMUConnector - INFO - Verifying network state for action test_slice_001
+2026-01-27 17:51:43,762 - ComnetsEMUConnector - INFO - Getting network state for network
+2026-01-27 17:51:43,762 - ComnetsEMUConnector - INFO - Discovering network topology
+2026-01-27 17:51:43,762 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 17:51:43,763 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 17:51:43,763 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 17:51:43,763 - RYUConnector - INFO - Closing RYU connector
+2026-01-27 17:51:43,763 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 18:26:24,902 - RYUConnector - INFO - Initializing connection to RYU at http://localhost:8080
+2026-01-27 18:26:28,976 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:26:28,976 - RYUConnector - ERROR - Failed to connect to RYU controller
+2026-01-27 18:26:28,977 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 18:26:31,009 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 18:26:31,010 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 18:26:31,010 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 18:26:31,011 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 18:26:31,011 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:26:31,012 - RYUNetworkInterface - INFO - Executing real flow_mod on switch-1
+2026-01-27 18:26:31,013 - RYUConnector - INFO - Adding flow rule to switch switch-1: {'dpid': 'switch-1', 'table_id': 0, 'priority': 1000, 'match': {'ip_src': '192.168.1.100'}, 'actions': ['drop'], 'idle_timeout': 0, 'hard_timeout': 0}
+2026-01-27 18:26:35,076 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:26:39,111 - RYUConnectionPool - ERROR - Connection error for POST http://localhost:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:26:39,112 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 2.0s...
+2026-01-27 18:26:45,162 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:26:49,204 - RYUConnectionPool - ERROR - Connection error for POST http://localhost:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:26:49,205 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 4.0s...
+2026-01-27 18:26:57,261 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:01,327 - RYUConnectionPool - ERROR - Connection error for POST http://localhost:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:01,328 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 8.0s...
+2026-01-27 18:27:13,374 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:17,433 - RYUConnectionPool - ERROR - Connection error for POST http://localhost:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:17,434 - RYUConnector - ERROR - Request failed after 4 attempts: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:17,435 - RYUConnector - ERROR - Failed to add flow rule to switch switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:17,436 - RYUConnector - ERROR - Failed to execute flow_mod action test_flow_001: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:17,436 - RYUNetworkInterface - ERROR - Failed to execute flow_mod: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:17,437 - RYUNetworkInterface - INFO - Executing real slice creation on network
+2026-01-27 18:27:17,438 - ComnetsEMUConnector - INFO - Executing topology change on network
+2026-01-27 18:27:17,438 - ComnetsEMUConnector - INFO - Adding slice test_slice
+2026-01-27 18:27:17,439 - ComnetsEMUConnector - INFO - Discovering network topology from ComnetsEMU
+2026-01-27 18:27:21,490 - ComnetsEMUConnector - WARNING - Failed to get switches via API: HTTPConnectionPool(host='localhost', port=8181): Max retries exceeded with url: /stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8181): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:21,491 - ComnetsEMUConnector - WARNING - REST API discovery failed, falling back to CLI
+2026-01-27 18:27:21,491 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 18:27:21,491 - ComnetsEMUConnector - INFO - Creating slice test_slice with 2 hosts and 0 switches
+2026-01-27 18:27:21,492 - ComnetsEMUConnector - INFO - Discovering network topology from ComnetsEMU
+2026-01-27 18:27:25,545 - ComnetsEMUConnector - WARNING - Failed to get switches via API: HTTPConnectionPool(host='localhost', port=8181): Max retries exceeded with url: /stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8181): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:25,546 - ComnetsEMUConnector - WARNING - REST API discovery failed, falling back to CLI
+2026-01-27 18:27:25,546 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 18:27:25,547 - RYUNetworkInterface - INFO - Executing real config change on switch-1
+2026-01-27 18:27:25,547 - ComnetsEMUConnector - INFO - Executing QoS policy on switch-1
+2026-01-27 18:27:25,547 - ComnetsEMUConnector - INFO - Applying QoS policy test_qos to switch s1
+2026-01-27 18:27:25,548 - ComnetsEMUConnector - INFO - QoS configuration for test_qos:
+2026-01-27 18:27:25,649 - RYUNetworkInterface - INFO - Executing real config change on network
+2026-01-27 18:27:25,649 - ComnetsEMUConnector - INFO - Executing topology change on network
+2026-01-27 18:27:25,650 - ComnetsEMUConnector - INFO - Modifying link s1-s2-link
+2026-01-27 18:27:25,650 - ComnetsEMUConnector - INFO - Discovering network topology from ComnetsEMU
+2026-01-27 18:27:29,695 - ComnetsEMUConnector - WARNING - Failed to get switches via API: HTTPConnectionPool(host='localhost', port=8181): Max retries exceeded with url: /stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8181): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:29,696 - ComnetsEMUConnector - WARNING - REST API discovery failed, falling back to CLI
+2026-01-27 18:27:29,696 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 18:27:29,697 - RYUNetworkInterface - INFO - Getting network state for switch-1
+2026-01-27 18:27:29,697 - ComnetsEMUConnector - INFO - Getting network state for switch-1
+2026-01-27 18:27:33,728 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:37,812 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:37,812 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 2.0s...
+2026-01-27 18:27:43,862 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:47,945 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:27:47,945 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 4.0s...
+2026-01-27 18:27:55,998 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:00,083 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:00,084 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 8.0s...
+2026-01-27 18:28:12,134 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:16,218 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:16,219 - RYUConnector - ERROR - Request failed after 4 attempts: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:16,219 - RYUConnector - ERROR - Failed to get switches: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:16,220 - RYUNetworkInterface - WARNING - Failed to get RYU data for switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:20,269 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:24,307 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/flow/switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:24,308 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 2.0s...
+2026-01-27 18:28:30,385 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:34,419 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/flow/switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:34,419 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 4.0s...
+2026-01-27 18:28:42,464 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:46,531 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/flow/switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:28:46,532 - RYUConnector - WARNING - Request failed (HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))), retrying in 8.0s...
+2026-01-27 18:28:58,573 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:29:02,599 - RYUConnectionPool - ERROR - Connection error for GET http://localhost:8080/v1.0/stats/flow/switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:29:02,600 - RYUConnector - ERROR - Request failed after 4 attempts: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:29:02,600 - RYUConnector - ERROR - Failed to get flows for switch switch-1: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:29:02,600 - RYUConnector - ERROR - Failed to verify flow_mod for action test_flow_001: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/flow/switch-1 (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:29:02,601 - ComnetsEMUConnector - INFO - Verifying network state for action test_slice_001
+2026-01-27 18:29:02,601 - ComnetsEMUConnector - INFO - Getting network state for network
+2026-01-27 18:29:02,602 - ComnetsEMUConnector - INFO - Discovering network topology from ComnetsEMU
+2026-01-27 18:29:06,648 - ComnetsEMUConnector - WARNING - Failed to get switches via API: HTTPConnectionPool(host='localhost', port=8181): Max retries exceeded with url: /stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8181): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:29:06,649 - ComnetsEMUConnector - WARNING - REST API discovery failed, falling back to CLI
+2026-01-27 18:29:06,649 - ComnetsEMUConnector - INFO - Discovered topology: 3 switches, 5 hosts, 3 links
+2026-01-27 18:29:06,650 - ComnetsEMUConnector - INFO - Slice test_slice bandwidth allocation verified: 100Mbps
+2026-01-27 18:29:06,650 - ComnetsEMUConnector - INFO - Slice test_slice creation verified successfully
+2026-01-27 18:29:06,651 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 18:29:06,651 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 18:29:06,652 - RYUConnector - INFO - Closing RYU connector
+2026-01-27 18:29:06,652 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 18:29:06,652 - ComnetsEMUConnector - INFO - ComnetsEMU connector closed successfully
+2026-01-27 18:29:07,403 - RYUConnector - INFO - Initializing connection to RYU at http://localhost:8080
+2026-01-27 18:29:11,466 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-27 18:29:11,467 - RYUConnector - ERROR - Failed to connect to RYU controller
+2026-01-27 18:29:11,467 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 18:29:13,483 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 18:29:13,484 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 18:29:13,485 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 18:29:13,487 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 18:29:13,487 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:29:13,491 - NorthboundScript - INFO - Parsed sequence demo_comprehensive_001 with 4 actions
+2026-01-27 18:29:13,491 - NorthboundScript - WARNING - Validation warnings: ['Multiple different action types on target switch-1', 'Multiple different action types on target network', "Rollback plan doesn't cover targets: {'network'}"]
+2026-01-27 18:29:13,492 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-01-27 18:29:13,497 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 18:29:13,497 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 18:29:13,497 - RYUConnector - INFO - Closing RYU connector
+2026-01-27 18:29:13,497 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 18:29:13,497 - ComnetsEMUConnector - INFO - ComnetsEMU connector closed successfully
+2026-01-27 18:30:20,815 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:30:20,816 - NorthboundScript - INFO - Parsed sequence seq_test_001 with 1 actions
+2026-01-27 18:30:20,820 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:30:20,821 - NorthboundScript - INFO - Parsed sequence seq_invalid with 1 actions
+2026-01-27 18:30:20,824 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:30:20,824 - NorthboundScript - INFO - Parsed sequence seq_dryrun with 1 actions
+2026-01-27 18:30:20,824 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 18:30:20,825 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-01-27 18:30:20,993 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 18:30:23,050 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 18:30:23,050 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 18:30:23,051 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 18:30:23,051 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 18:30:23,051 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:31:24,165 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:31:24,167 - NorthboundScript - INFO - Parsed sequence seq_test_001 with 1 actions
+2026-01-27 18:31:24,170 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:31:24,171 - NorthboundScript - INFO - Parsed sequence seq_invalid with 1 actions
+2026-01-27 18:31:24,173 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:31:24,174 - NorthboundScript - INFO - Parsed sequence seq_dryrun with 1 actions
+2026-01-27 18:31:24,174 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-01-27 18:31:24,175 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-01-27 18:31:24,338 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-27 18:31:26,382 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-27 18:31:26,384 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-27 18:31:26,384 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-27 18:31:26,384 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-27 18:31:26,385 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-27 18:31:26,386 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-27 18:31:26,386 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-27 18:31:26,387 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-27 18:31:26,387 - ComnetsEMUConnector - INFO - ComnetsEMU connector closed successfully
+2026-01-27 18:31:26,390 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653

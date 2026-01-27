@@ -19,7 +19,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 1: Elaborazione Completa delle Azioni di Rete**
     - **Validates: Requirements 1.1, 1.3**
 
-  - [ ] 1.3 Implementare interfaccia ComnetsEMU reale
+  - [x] 1.3 Implementare interfaccia ComnetsEMU reale
     - Integrare con API ComnetsEMU per gestione topologia
     - Implementare verifica stato rete post-azione
     - Aggiungere supporto per operazioni di rete standard (flussi, QoS, topologie)

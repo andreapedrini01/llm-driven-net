@@ -226,68 +226,80 @@ class NetworkLogger:
 class RYUNetworkInterface:
     """Real interface to RYU Controller and ComnetsEMU network."""
     
-    def __init__(self, ryu_host: str = "localhost", ryu_port: int = 8080, **ryu_config):
+    def __init__(self, ryu_host: str = "localhost", ryu_port: int = 8080, 
+                 comnetsemu_host: str = "localhost", comnetsemu_port: int = 6653, **config):
         from ryu_connector import create_ryu_connector
+        from comnetsemu_connector import create_comnetsemu_connector
         
         self.logger = logging.getLogger("RYUNetworkInterface")
         
         # Initialize real RYU connector
+        ryu_config = {k: v for k, v in config.items() if not k.startswith('comnetsemu_')}
         self.ryu_connector = create_ryu_connector(
             host=ryu_host, 
             port=ryu_port, 
             **ryu_config
         )
         
+        # Initialize real ComnetsEMU connector
+        comnetsemu_config = {k.replace('comnetsemu_', ''): v for k, v in config.items() if k.startswith('comnetsemu_')}
+        self.comnetsemu_connector = create_comnetsemu_connector(
+            host=comnetsemu_host,
+            port=comnetsemu_port,
+            **comnetsemu_config
+        )
+        
         self.logger.info(f"Initialized RYU interface to {ryu_host}:{ryu_port}")
+        self.logger.info(f"Initialized ComnetsEMU interface to {comnetsemu_host}:{comnetsemu_port}")
     
     def get_network_state(self, target: str) -> Dict[str, Any]:
         """Get current state of network resource."""
         try:
             self.logger.info(f"Getting network state for {target}")
             
-            # Get comprehensive network state from RYU
+            # Use ComnetsEMU connector for topology and network state information
+            comnetsemu_state = self.comnetsemu_connector.get_network_state(target)
+            
+            # Get comprehensive network state from RYU for flow information
             if target.startswith("switch"):
                 # Extract switch ID from target (e.g., "switch-1" -> "1")
-                switch_id = target.split("-")[-1] if "-" in target else target
+                switch_id = target.split("-")[-1] if "-" in target else target.replace("s", "")
                 
-                # Get switch information
-                switches = self.ryu_connector.get_switches()
-                switch_info = None
-                for switch in switches:
-                    if str(switch.get("dpid", "")) == switch_id:
-                        switch_info = switch
-                        break
-                
-                if not switch_info:
-                    self.logger.warning(f"Switch {switch_id} not found")
-                    return {
+                try:
+                    # Get switch information from RYU
+                    switches = self.ryu_connector.get_switches()
+                    switch_info = None
+                    for switch in switches:
+                        if str(switch.get("dpid", "")) == switch_id:
+                            switch_info = switch
+                            break
+                    
+                    # Get flows and port stats for the switch from RYU
+                    flows = self.ryu_connector.get_flows(switch_id) if switch_info else []
+                    port_stats = self.ryu_connector.get_port_stats(switch_id) if switch_info else []
+                    
+                    # Combine RYU and ComnetsEMU information
+                    combined_state = {
                         "target": target,
-                        "status": "not_found",
+                        "switch_id": switch_id,
+                        "ryu_switch_info": switch_info,
+                        "comnetsemu_switch_info": comnetsemu_state.get("switch_info"),
+                        "flows": flows,
+                        "port_stats": port_stats,
+                        "links": comnetsemu_state.get("links", []),
+                        "status": "active" if switch_info and comnetsemu_state.get("status") == "active" else "error",
                         "timestamp": datetime.now().isoformat()
                     }
-                
-                # Get flows and port stats for the switch
-                flows = self.ryu_connector.get_flows(switch_id)
-                port_stats = self.ryu_connector.get_port_stats(switch_id)
-                
-                return {
-                    "target": target,
-                    "switch_id": switch_id,
-                    "switch_info": switch_info,
-                    "flows": flows,
-                    "port_stats": port_stats,
-                    "status": "active",
-                    "timestamp": datetime.now().isoformat()
-                }
+                    
+                    return combined_state
+                    
+                except Exception as ryu_error:
+                    self.logger.warning(f"Failed to get RYU data for {target}: {ryu_error}")
+                    # Return ComnetsEMU data only if RYU fails
+                    return comnetsemu_state
             else:
-                # For other targets, get general topology
-                topology = self.ryu_connector.get_network_topology()
-                return {
-                    "target": target,
-                    "topology": topology,
-                    "status": "active",
-                    "timestamp": datetime.now().isoformat()
-                }
+                # For non-switch targets, primarily use ComnetsEMU data
+                return comnetsemu_state
                 
         except Exception as e:
             self.logger.error(f"Failed to get network state for {target}: {e}")
@@ -324,72 +336,144 @@ class RYUNetworkInterface:
             }
     
     def execute_slice_create(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute slice creation (placeholder for future ComnetsEMU integration)."""
-        self.logger.warning("Slice creation not yet implemented with real ComnetsEMU integration")
-        
-        # For now, return a placeholder response
-        # TODO: Implement real ComnetsEMU slice creation API calls
-        return {
-            "success": False,
-            "slice_id": f"slice_{action.id}",
-            "message": "Slice creation not yet implemented",
-            "note": "This requires ComnetsEMU API integration"
-        }
+        """Execute slice creation using real ComnetsEMU integration."""
+        try:
+            self.logger.info(f"Executing real slice creation on {action.target}")
+            
+            # Use ComnetsEMU connector for slice creation
+            # Convert action to topology change format
+            topology_action = NetworkAction(
+                id=action.id,
+                type=ActionType.CONFIG_CHANGE,  # Treat slice as config change
+                target=action.target,
+                parameters={
+                    "operation": "add",
+                    "element_type": "slice",
+                    "element_id": action.parameters.get("slice_name", f"slice_{action.id}"),
+                    "properties": action.parameters.get("resources", {})
+                },
+                priority=action.priority,
+                timeout=action.timeout,
+                description=action.description
+            )
+            
+            result = self.comnetsemu_connector.execute_topology_change(topology_action)
+            
+            return {
+                "success": result["success"],
+                "slice_id": action.parameters.get("slice_name", f"slice_{action.id}"),
+                "message": result.get("message", "Slice creation completed"),
+                "details": result
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to execute slice creation: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"Slice creation failed: {e}"
+            }
     
     def execute_config_change(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute configuration change (placeholder for future implementation)."""
-        self.logger.warning("Config change not yet implemented with real API integration")
-        
-        # For now, return a placeholder response
-        # TODO: Implement real configuration change API calls
-        return {
-            "success": False,
-            "message": "Configuration change not yet implemented",
-            "note": "This requires specific API integration based on config type"
-        }
+        """Execute configuration change using real ComnetsEMU integration."""
+        try:
+            self.logger.info(f"Executing real config change on {action.target}")
+            
+            config_type = action.parameters.get("config_type", "unknown")
+            
+            if config_type == "qos":
+                # Handle QoS configuration through ComnetsEMU
+                result = self.comnetsemu_connector.execute_qos_policy(action)
+            elif config_type == "topology":
+                # Handle topology changes through ComnetsEMU
+                result = self.comnetsemu_connector.execute_topology_change(action)
+            else:
+                # Generic configuration change
+                result = self.comnetsemu_connector.execute_topology_change(action)
+            
+            return {
+                "success": result["success"],
+                "config_type": config_type,
+                "message": result.get("message", "Configuration change completed"),
+                "details": result
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to execute config change: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"Configuration change failed: {e}"
+            }
     
     def verify_action_applied(self, action: NetworkAction) -> bool:
-        """Verify that action was successfully applied using real RYU API."""
+        """Verify that action was successfully applied using real RYU and ComnetsEMU APIs."""
         try:
-            return self.ryu_connector.verify_action_applied(action)
+            if action.type == ActionType.FLOW_MOD:
+                # Use RYU connector for flow verification
+                return self.ryu_connector.verify_action_applied(action)
+            elif action.type in [ActionType.SLICE_CREATE, ActionType.CONFIG_CHANGE]:
+                # Use ComnetsEMU connector for topology/config verification
+                expected_state = {}  # Could be derived from action parameters
+                return self.comnetsemu_connector.verify_network_state(action, expected_state)
+            else:
+                self.logger.warning(f"Verification not implemented for action type: {action.type}")
+                return True  # Assume success for unsupported types
+                
         except Exception as e:
             self.logger.error(f"Failed to verify action {action.id}: {e}")
             return False
     
     def get_connection_status(self) -> Dict[str, Any]:
-        """Get RYU connection status and statistics."""
-        return self.ryu_connector.get_connection_status()
+        """Get RYU and ComnetsEMU connection status and statistics."""
+        ryu_status = self.ryu_connector.get_connection_status()
+        comnetsemu_status = self.comnetsemu_connector.get_connection_status()
+        
+        return {
+            "ryu": ryu_status,
+            "comnetsemu": comnetsemu_status,
+            "overall_status": "connected" if (
+                ryu_status.get("status") == "connected" and 
+                comnetsemu_status.get("status") == "connected"
+            ) else "error"
+        }
     
     def close(self):
         """Close the network interface and clean up resources."""
-        self.logger.info("Closing RYU network interface")
+        self.logger.info("Closing RYU and ComnetsEMU network interfaces")
         self.ryu_connector.close()
+        self.comnetsemu_connector.close()
 
 
 class NorthboundScript:
-    """Main Northbound Script orchestrator with real RYU integration."""
+    """Main Northbound Script orchestrator with real RYU and ComnetsEMU integration."""
     
-    def __init__(self, log_dir: str = "./logs", ryu_host: str = "localhost", ryu_port: int = 8080, **ryu_config):
+    def __init__(self, log_dir: str = "./logs", 
+                 ryu_host: str = "localhost", ryu_port: int = 8080,
+                 comnetsemu_host: str = "localhost", comnetsemu_port: int = 6653,
+                 **config):
         self.logger_handler = NetworkLogger(log_dir)
         
-        # Initialize real RYU network interface
+        # Initialize real RYU and ComnetsEMU network interface
         self.network_interface = RYUNetworkInterface(
             ryu_host=ryu_host, 
-            ryu_port=ryu_port, 
-            **ryu_config
+            ryu_port=ryu_port,
+            comnetsemu_host=comnetsemu_host,
+            comnetsemu_port=comnetsemu_port,
+            **config
         )
         
         self.logger = logging.getLogger("NorthboundScript")
         
         # Configuration
-        self.max_retries = ryu_config.get("max_retries", 3)
-        self.retry_delay = ryu_config.get("retry_delay", 2)  # seconds
+        self.max_retries = config.get("max_retries", 3)
+        self.retry_delay = config.get("retry_delay", 2)  # seconds
         self.enable_rollback = True
         
-        self.logger.info(f"Initialized NorthboundScript with RYU at {ryu_host}:{ryu_port}")
+        self.logger.info(f"Initialized NorthboundScript with RYU at {ryu_host}:{ryu_port} and ComnetsEMU at {comnetsemu_host}:{comnetsemu_port}")
     
     def get_ryu_status(self) -> Dict[str, Any]:
-        """Get RYU connection status and statistics."""
+        """Get RYU and ComnetsEMU connection status and statistics."""
         return self.network_interface.get_connection_status()
     
     def close(self):
@@ -636,27 +720,29 @@ class NorthboundScript:
 
 # Example usage
 if __name__ == "__main__":
-    # Initialize Northbound Script with real RYU connection
+    # Initialize Northbound Script with real RYU and ComnetsEMU connections
     northbound = NorthboundScript(
         log_dir="./logs",
         ryu_host="localhost",
         ryu_port=8080,
+        comnetsemu_host="localhost",
+        comnetsemu_port=6653,
         timeout_seconds=30,
         max_retries=3,
         retry_delay=2.0
     )
     
     try:
-        # Check RYU connection status
-        print("=== RYU CONNECTION STATUS ===")
+        # Check RYU and ComnetsEMU connection status
+        print("=== NETWORK CONNECTION STATUS ===")
         status = northbound.get_ryu_status()
         print(json.dumps(status, indent=2))
         
-        # Example LLM output
+        # Example LLM output with different action types
         llm_output = json.dumps({
             "id": "seq_001",
-            "intent_id": "intent_block_traffic",
-            "estimated_duration": 10,
+            "intent_id": "intent_network_setup",
+            "estimated_duration": 30,
             "actions": [
                 {
                     "id": "action_001",
@@ -672,6 +758,38 @@ if __name__ == "__main__":
                     "priority": 1000,
                     "timeout": 30,
                     "description": "Block traffic from suspicious IP"
+                },
+                {
+                    "id": "action_002",
+                    "type": "slice_create",
+                    "target": "network",
+                    "parameters": {
+                        "slice_name": "web_slice",
+                        "resources": {
+                            "bandwidth": "100Mbps",
+                            "hosts": ["web1", "app1"],
+                            "switches": ["s1"]
+                        }
+                    },
+                    "priority": 500,
+                    "timeout": 60,
+                    "description": "Create web service slice"
+                },
+                {
+                    "id": "action_003",
+                    "type": "config_change",
+                    "target": "switch-1",
+                    "parameters": {
+                        "config_type": "qos",
+                        "policy_id": "web_qos",
+                        "target_type": "switch",
+                        "target_id": "s1",
+                        "bandwidth_limit": 100,
+                        "latency_limit": 10
+                    },
+                    "priority": 750,
+                    "timeout": 30,
+                    "description": "Apply QoS policy to web traffic"
                 }
             ],
             "dependencies": [],

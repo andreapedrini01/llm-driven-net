@@ -150,15 +150,22 @@ def test_ryu_integration():
         # Test connection status
         status = northbound.get_ryu_status()
         
-        if status["status"] == "connected":
+        if status.get("overall_status") == "connected":
             print(f"✅ Integrazione RYU funziona!")
-            print(f"   Host: {status['config']['host']}")
-            print(f"   Port: {status['config']['port']}")
-            print(f"   Status: {status['status']}")
+            ryu_status = status.get("ryu", {})
+            print(f"   Host: {ryu_status.get('config', {}).get('host', 'unknown')}")
+            print(f"   Port: {ryu_status.get('config', {}).get('port', 'unknown')}")
+            print(f"   RYU Status: {ryu_status.get('status', 'unknown')}")
+            print(f"   Overall Status: {status.get('overall_status', 'unknown')}")
             northbound.close()
             return True
         else:
             print(f"❌ Integrazione RYU fallita")
+            print(f"   Overall Status: {status.get('overall_status', 'unknown')}")
+            ryu_status = status.get("ryu", {})
+            comnetsemu_status = status.get("comnetsemu", {})
+            print(f"   RYU Status: {ryu_status.get('status', 'unknown')}")
+            print(f"   ComnetsEMU Status: {comnetsemu_status.get('status', 'unknown')}")
             northbound.close()
             return False
 
