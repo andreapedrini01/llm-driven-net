@@ -7,7 +7,13 @@ Demonstrates the real RYU Controller integration with connection pooling and err
 import json
 import time
 from datetime import datetime
-from northbound_script import NorthboundScript
+import sys
+import os
+
+# Add src to path for imports
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+from core.northbound_script import NorthboundScript
 
 
 def demo_ryu_connector():
@@ -103,57 +109,6 @@ def demo_ryu_connector():
         print(f"   - Match: {sample_action['actions'][0]['parameters']['match']}")
         print(f"   - Priority: {sample_action['actions'][0]['priority']}")
         
-        # Perform dry run validation
-        print("\n4. Performing Dry Run Validation...")
-        
-        dry_run_result = northbound.process_llm_output(llm_output, dry_run=True)
-        
-        if dry_run_result["success"]:
-            print("   ✅ Dry run successful!")
-            print(f"   - Sequence ID: {dry_run_result['sequence_id']}")
-            print(f"   - Intent ID: {dry_run_result.get('intent_id', 'N/A')}")
-            
-            if 'validation' in dry_run_result:
-                validation = dry_run_result['validation']
-                if validation.get('warnings'):
-                    print(f"   - Warnings: {len(validation['warnings'])}")
-                    for warning in validation['warnings'][:3]:  # Show first 3 warnings
-                        print(f"     • {warning}")
-        else:
-            print("   ❌ Dry run failed!")
-            if 'validation' in dry_run_result:
-                validation = dry_run_result['validation']
-                if validation.get('errors'):
-                    print(f"   - Errors: {len(validation['errors'])}")
-                    for error in validation['errors']:
-                        print(f"     • {error}")
-        
-        # Show connection pooling configuration
-        print("\n5. Connection Pooling Configuration:")
-        print("   - Pool Size: 10 connections")
-        print("   - Max Connections per Host: 5")
-        print("   - Automatic retry with exponential backoff")
-        print("   - Circuit breaker pattern for fault tolerance")
-        print("   - Health checks every 5 minutes")
-        print("   - Connection statistics tracking")
-        
-        # Show error handling capabilities
-        print("\n6. Error Handling Features:")
-        print("   - Network timeout handling with configurable timeouts")
-        print("   - Automatic retry with exponential backoff")
-        print("   - Connection pooling for improved performance")
-        print("   - Graceful degradation on RYU controller unavailability")
-        print("   - Comprehensive logging and monitoring")
-        print("   - Action verification after execution")
-        
-        print("\n7. RYU API Integration:")
-        print("   - Real HTTP calls to RYU REST API")
-        print("   - Support for flow table operations (add/modify/delete)")
-        print("   - Network topology discovery")
-        print("   - Port statistics collection")
-        print("   - Switch information retrieval")
-        print("   - Flow rule verification")
-        
         print("\n" + "=" * 60)
         print("DEMONSTRATION COMPLETED SUCCESSFULLY")
         print("=" * 60)
@@ -168,7 +123,7 @@ def demo_ryu_connector():
         print("✅ Configurable timeouts and retry policies")
         
         print(f"\nNote: This demo runs in simulation mode.")
-        print(f"To connect to a real RYU controller, ensure RYU is running at {status['config']['host']}:{status['config']['port']}")
+        print(f"To connect to a real RYU controller, ensure RYU is running at localhost:8080")
         
     except Exception as e:
         print(f"\n❌ Demo failed with error: {e}")

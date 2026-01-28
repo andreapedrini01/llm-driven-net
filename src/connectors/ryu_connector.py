@@ -16,7 +16,7 @@ import threading
 from queue import Queue, Empty
 from contextlib import contextmanager
 
-from action_models import NetworkAction, ActionType
+from ..models.action_models import NetworkAction, ActionType
 
 
 class ConnectionStatus(str, Enum):
