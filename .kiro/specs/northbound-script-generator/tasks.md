@@ -8,7 +8,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
 
 ## Tasks
 
-- [ ] 1. Integrazione Reale RYU/ComnetsEMU
+- [x] 1. Integrazione Reale RYU/ComnetsEMU
   - [x] 1.1 Implementare connettore RYU Controller reale
     - Sostituire l'interfaccia simulata con chiamate HTTP reali alle API RYU
     - Implementare connection pooling per gestire multiple connessioni

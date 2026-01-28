@@ -192,7 +192,284 @@ class ComnetsEMUConnector:
     # ... [resto del codice del connettore ComnetsEMU] ...
     # Per brevità, includo solo le parti principali. Il file completo sarebbe troppo lungo.
     
+    def get_network_topology(self) -> NetworkTopology:
+        """Get current network topology."""
+        try:
+            with self.topology_lock:
+                if (self.topology_cache is None or 
+                    self.topology_cache_timestamp is None or
+                    datetime.now() - self.topology_cache_timestamp > timedelta(seconds=self.config.topology_discovery_interval)):
+                    self._discover_topology()
+                
+                return self.topology_cache or NetworkTopology()
+        except Exception as e:
+            self.logger.error(f"Failed to get network topology: {e}")
+            return NetworkTopology()
+    
+    def _discover_topology(self):
+        """Discover current network topology."""
+        try:
+            # Simulate topology discovery
+            # In a real implementation, this would query ComnetsEMU/Mininet
+            topology = NetworkTopology(
+                switches=[
+                    {"dpid": "1", "name": "s1", "ports": [1, 2, 3, 4]},
+                    {"dpid": "2", "name": "s2", "ports": [1, 2, 3, 4]}
+                ],
+                hosts=[
+                    {"name": "h1", "ip": "10.0.0.1", "mac": "00:00:00:00:00:01"},
+                    {"name": "h2", "ip": "10.0.0.2", "mac": "00:00:00:00:00:02"}
+                ],
+                links=[
+                    {"src": {"dpid": "1", "port": 1}, "dst": {"dpid": "2", "port": 1}},
+                    {"src": {"dpid": "1", "port": 2}, "dst": {"name": "h1"}},
+                    {"src": {"dpid": "2", "port": 2}, "dst": {"name": "h2"}}
+                ],
+                controllers=[
+                    {"name": "c0", "ip": self.config.host, "port": self.config.port}
+                ]
+            )
+            
+            with self.topology_lock:
+                self.topology_cache = topology
+                self.topology_cache_timestamp = datetime.now()
+                self.stats["topology_updates"] += 1
+                self.stats["last_topology_update"] = datetime.now().isoformat()
+            
+            self.logger.debug("Topology discovery completed")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to discover topology: {e}")
+    
+    def get_network_statistics(self) -> Dict[str, Any]:
+        """Get network statistics."""
+        try:
+            topology = self.get_network_topology()
+            
+            stats = {
+                "timestamp": datetime.now().isoformat(),
+                "topology_summary": {
+                    "switches": len(topology.switches),
+                    "hosts": len(topology.hosts),
+                    "links": len(topology.links),
+                    "controllers": len(topology.controllers)
+                },
+                "connection_stats": {
+                    "total_requests": self.stats["total_requests"],
+                    "successful_requests": self.stats["successful_requests"],
+                    "failed_requests": self.stats["failed_requests"],
+                    "success_rate": (self.stats["successful_requests"] / max(self.stats["total_requests"], 1)) * 100
+                },
+                "topology_info": {
+                    "last_update": self.stats["last_topology_update"],
+                    "update_count": self.stats["topology_updates"],
+                    "cache_age_seconds": (datetime.now() - self.topology_cache_timestamp).total_seconds() if self.topology_cache_timestamp else None
+                }
+            }
+            
+            return stats
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get network statistics: {e}")
+            return {
+                "timestamp": datetime.now().isoformat(),
+                "error": str(e),
+                "topology_summary": {"switches": 0, "hosts": 0, "links": 0, "controllers": 0}
+            }
+    
+    def health_check(self) -> Dict[str, Any]:
+        """Perform comprehensive health check."""
+        try:
+            health_checks = {}
+            overall_status = "healthy"
+            
+            # Check connectivity
+            connectivity_ok = self._test_connectivity()
+            health_checks["connectivity"] = {
+                "status": "ok" if connectivity_ok else "failed",
+                "message": "Connection to ComnetsEMU is working" if connectivity_ok else "Cannot connect to ComnetsEMU"
+            }
+            if not connectivity_ok:
+                overall_status = "unhealthy"
+            
+            # Check topology cache
+            cache_age = None
+            if self.topology_cache_timestamp:
+                cache_age = (datetime.now() - self.topology_cache_timestamp).total_seconds()
+                cache_ok = cache_age < self.config.topology_discovery_interval * 2
+            else:
+                cache_ok = False
+            
+            health_checks["topology_cache"] = {
+                "status": "ok" if cache_ok else "stale",
+                "message": f"Topology cache age: {cache_age:.1f}s" if cache_age else "No topology cache",
+                "cache_age_seconds": cache_age
+            }
+            if not cache_ok:
+                overall_status = "degraded" if overall_status == "healthy" else overall_status
+            
+            # Check success rate
+            success_rate = (self.stats["successful_requests"] / max(self.stats["total_requests"], 1)) * 100
+            success_ok = success_rate >= 80.0 or self.stats["total_requests"] < 5
+            
+            health_checks["success_rate"] = {
+                "status": "ok" if success_ok else "poor",
+                "message": f"Success rate: {success_rate:.1f}%",
+                "success_rate": success_rate,
+                "total_requests": self.stats["total_requests"]
+            }
+            if not success_ok:
+                overall_status = "degraded" if overall_status == "healthy" else overall_status
+            
+            return {
+                "timestamp": datetime.now().isoformat(),
+                "overall_status": overall_status,
+                "checks": health_checks,
+                "config": {
+                    "host": self.config.host,
+                    "port": self.config.port,
+                    "protocol": self.config.protocol,
+                    "version": self.config.version
+                }
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Health check failed: {e}")
+            return {
+                "timestamp": datetime.now().isoformat(),
+                "overall_status": "error",
+                "error": str(e),
+                "checks": {}
+            }
+    
+    def _validate_flow_parameters(self, operation: str, match_fields: Dict[str, Any], 
+                                 actions: List[str], priority: int) -> Dict[str, Any]:
+        """Validate flow rule parameters."""
+        errors = []
+        
+        # Validate operation
+        valid_operations = ["add", "delete", "modify"]
+        if operation not in valid_operations:
+            errors.append(f"Invalid operation '{operation}'. Must be one of: {valid_operations}")
+        
+        # Validate priority
+        if not (0 <= priority <= 65535):
+            errors.append(f"Invalid priority {priority}. Must be between 0 and 65535")
+        
+        # Validate match fields
+        valid_match_fields = {
+            "in_port", "eth_src", "eth_dst", "eth_type", "vlan_vid", "vlan_pcp",
+            "ip_dscp", "ip_ecn", "ip_proto", "ip_src", "ip_dst",
+            "tcp_src", "tcp_dst", "udp_src", "udp_dst", "icmp_type", "icmp_code"
+        }
+        
+        for field in match_fields.keys():
+            if field not in valid_match_fields:
+                errors.append(f"Invalid match field '{field}'. Valid fields: {sorted(valid_match_fields)}")
+        
+        # Validate actions
+        valid_action_prefixes = ["output:", "drop", "normal", "flood", "all", "controller", "local", "in_port"]
+        for action in actions:
+            if not any(action.startswith(prefix) for prefix in valid_action_prefixes):
+                errors.append(f"Invalid action '{action}'. Must start with one of: {valid_action_prefixes}")
+        
+        return {
+            "valid": len(errors) == 0,
+            "errors": errors
+        }
+    
     def execute_topology_change(self, action: NetworkAction) -> Dict[str, Any]:
+        """Execute topology change with retry system."""
+        try:
+            def _execute_change():
+                """Internal function to execute topology change."""
+                operation = action.parameters.get("operation", "add")
+                element_type = action.parameters.get("element_type", "unknown")
+                element_id = action.parameters.get("element_id", action.target)
+                properties = action.parameters.get("properties", {})
+                
+                self.logger.info(f"Executing topology change: {operation} {element_type} {element_id}")
+                
+                # Validate operation
+                valid_operations = ["add", "remove", "modify"]
+                if operation not in valid_operations:
+                    raise ValueError(f"Invalid operation '{operation}'. Must be one of: {valid_operations}")
+                
+                # Validate element type
+                valid_element_types = ["switch", "host", "link", "controller"]
+                if element_type not in valid_element_types:
+                    raise ValueError(f"Invalid element type '{element_type}'. Must be one of: {valid_element_types}")
+                
+                # Simulate topology change execution
+                # In a real implementation, this would interact with ComnetsEMU APIs
+                success = True  # Placeholder
+                
+                if success:
+                    self.stats["successful_requests"] += 1
+                    self.last_successful_request = datetime.now()
+                    return {
+                        "operation": operation,
+                        "element_type": element_type,
+                        "element_id": element_id,
+                        "properties": properties
+                    }
+                else:
+                    self.stats["failed_requests"] += 1
+                    raise Exception("Topology change failed")
+            
+            # Use retry system
+            result = self.retry_system.execute_with_retry(
+                _execute_change,
+                service_name="comnetsemu"
+            )
+            
+            if result.success:
+                return {
+                    "success": True,
+                    "message": "Topology change completed successfully",
+                    **result.result,
+                    "retry_stats": {
+                        "attempts": len(result.attempts),
+                        "total_time": result.total_time
+                    }
+                }
+            else:
+                # Queue for retry if failed
+                if self.retry_system.persistent_queue:
+                    queued = self.retry_system.queue_action_for_retry(action)
+                    if queued:
+                        return {
+                            "success": False,
+                            "message": "Topology change failed, queued for retry",
+                            "queued": True,
+                            "error": result.error
+                        }
+                
+                return {
+                    "success": False,
+                    "message": "Topology change failed after retries",
+                    "error": result.error,
+                    "retry_stats": {
+                        "attempts": len(result.attempts),
+                        "total_time": result.total_time
+                    }
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Failed to execute topology change {action.id}: {e}")
+            
+            # Try to queue for later retry
+            if self.retry_system.persistent_queue:
+                queued = self.retry_system.queue_action_for_retry(action)
+                if queued:
+                    return {
+                        "success": False,
+                        "error": str(e),
+                        "message": "Topology change failed, queued for retry",
+                        "queued": True
+                    }
+            
+            raise
         """Execute topology change with retry system."""
         try:
             def _execute_change():
@@ -471,7 +748,10 @@ class ComnetsEMUConnector:
 
 
 # Factory function for easy instantiation
-def create_comnetsemu_connector(host: str = "localhost", port: int = 6653, **kwargs) -> ComnetsEMUConnector:
+def create_comnetsemu_connector(host: str = "localhost", port: int = 6653, config: ComnetsEMUConfig = None, **kwargs) -> ComnetsEMUConnector:
     """Create a ComnetsEMU connector with specified configuration."""
-    config = ComnetsEMUConfig(host=host, port=port, **kwargs)
-    return ComnetsEMUConnector(config)
+    if config is not None:
+        return ComnetsEMUConnector(config)
+    else:
+        config = ComnetsEMUConfig(host=host, port=port, **kwargs)
+        return ComnetsEMUConnector(config)

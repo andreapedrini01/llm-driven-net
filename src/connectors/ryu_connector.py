@@ -662,7 +662,10 @@ class RYUConnector:
 
 
 # Factory function for easy instantiation
-def create_ryu_connector(host: str = "localhost", port: int = 8080, **kwargs) -> RYUConnector:
+def create_ryu_connector(host: str = "localhost", port: int = 8080, config: RYUConfig = None, **kwargs) -> RYUConnector:
     """Create a RYU connector with specified configuration."""
-    config = RYUConfig(host=host, port=port, **kwargs)
-    return RYUConnector(config)
+    if config is not None:
+        return RYUConnector(config)
+    else:
+        config = RYUConfig(host=host, port=port, **kwargs)
+        return RYUConnector(config)

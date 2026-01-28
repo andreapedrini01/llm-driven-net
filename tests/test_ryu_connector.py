@@ -14,12 +14,12 @@ from datetime import datetime, timedelta
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ryu_connector import (
+from src.connectors.ryu_connector import (
     RYUConnector, RYUConfig, RYUConnectionPool, 
     ConnectionStatus, ConnectionPoolStats,
     create_ryu_connector
 )
-from action_models import NetworkAction, ActionType
+from src.models.action_models import NetworkAction, ActionType
 
 
 class TestRYUConfig(unittest.TestCase):

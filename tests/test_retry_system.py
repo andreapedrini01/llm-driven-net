@@ -357,27 +357,32 @@ class TestAdvancedRetrySystem:
     
     def test_delay_calculation(self):
         """Test different delay calculation strategies."""
-        # Test exponential backoff
-        self.retry_system.config.strategy = RetryStrategy.EXPONENTIAL_BACKOFF
-        self.retry_system.config.base_delay = 1.0
-        self.retry_system.config.backoff_multiplier = 2.0
-        self.retry_system.config.jitter = False
+        # Create a fresh retry system with specific config for this test
+        test_config = RetryConfig(
+            strategy=RetryStrategy.EXPONENTIAL_BACKOFF,
+            base_delay=1.0,
+            backoff_multiplier=2.0,
+            jitter=False
+        )
+        test_retry_system = AdvancedRetrySystem(test_config)
         
-        assert self.retry_system.calculate_delay(1) == 1.0
-        assert self.retry_system.calculate_delay(2) == 2.0
-        assert self.retry_system.calculate_delay(3) == 4.0
+        # Test exponential backoff
+        # For exponential backoff: base_delay * (multiplier ** (attempt - 1))
+        assert test_retry_system.calculate_delay(1) == 1.0  # 1.0 * (2 ** 0) = 1.0
+        assert test_retry_system.calculate_delay(2) == 2.0  # 1.0 * (2 ** 1) = 2.0
+        assert test_retry_system.calculate_delay(3) == 4.0  # 1.0 * (2 ** 2) = 4.0
         
         # Test linear backoff
-        self.retry_system.config.strategy = RetryStrategy.LINEAR_BACKOFF
-        assert self.retry_system.calculate_delay(1) == 1.0
-        assert self.retry_system.calculate_delay(2) == 2.0
-        assert self.retry_system.calculate_delay(3) == 3.0
+        test_config.strategy = RetryStrategy.LINEAR_BACKOFF
+        assert test_retry_system.calculate_delay(1) == 1.0  # 1.0 * 1 = 1.0
+        assert test_retry_system.calculate_delay(2) == 2.0  # 1.0 * 2 = 2.0
+        assert test_retry_system.calculate_delay(3) == 3.0  # 1.0 * 3 = 3.0
         
         # Test fixed delay
-        self.retry_system.config.strategy = RetryStrategy.FIXED_DELAY
-        assert self.retry_system.calculate_delay(1) == 1.0
-        assert self.retry_system.calculate_delay(2) == 1.0
-        assert self.retry_system.calculate_delay(3) == 1.0
+        test_config.strategy = RetryStrategy.FIXED_DELAY
+        assert test_retry_system.calculate_delay(1) == 1.0
+        assert test_retry_system.calculate_delay(2) == 1.0
+        assert test_retry_system.calculate_delay(3) == 1.0
     
     def test_queue_action_for_retry(self):
         """Test queuing actions for later retry."""
