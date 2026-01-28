@@ -188,8 +188,13 @@ class RYUNetworkInterface:
         
         self.logger = logging.getLogger("RYUNetworkInterface")
         
+        # Filter config parameters for each connector
+        ryu_config = {k: v for k, v in config.items() 
+                     if not k.startswith('comnetsemu_') and k not in ['queue_processing_enabled', 'queue_processing_interval']}
+        comnetsemu_config = {k.replace('comnetsemu_', ''): v for k, v in config.items() 
+                           if k.startswith('comnetsemu_')}
+        
         # Initialize real RYU connector
-        ryu_config = {k: v for k, v in config.items() if not k.startswith('comnetsemu_')}
         self.ryu_connector = create_ryu_connector(
             host=ryu_host, 
             port=ryu_port, 
@@ -197,7 +202,6 @@ class RYUNetworkInterface:
         )
         
         # Initialize real ComnetsEMU connector
-        comnetsemu_config = {k.replace('comnetsemu_', ''): v for k, v in config.items() if k.startswith('comnetsemu_')}
         self.comnetsemu_connector = create_comnetsemu_connector(
             host=comnetsemu_host,
             port=comnetsemu_port,
@@ -425,15 +429,101 @@ class NorthboundScript:
         self.retry_delay = config.get("retry_delay", 2)  # seconds
         self.enable_rollback = True
         
+        # Queue processing configuration
+        self.queue_processing_enabled = config.get("queue_processing_enabled", True)
+        self.queue_processing_interval = config.get("queue_processing_interval", 30)  # seconds
+        
+        # Start background queue processing if enabled
+        if self.queue_processing_enabled:
+            self._start_queue_processing()
+        
         self.logger.info(f"Initialized NorthboundScript with RYU at {ryu_host}:{ryu_port} and ComnetsEMU at {comnetsemu_host}:{comnetsemu_port}")
+    
+    def _start_queue_processing(self):
+        """Start background thread for processing queued actions."""
+        import threading
+        
+        def queue_processor():
+            """Background thread function to process queued actions."""
+            while self.queue_processing_enabled:
+                try:
+                    # Process RYU queued actions
+                    ryu_result = self.network_interface.ryu_connector.process_queued_actions()
+                    if ryu_result["processed"] > 0:
+                        self.logger.info(f"Processed {ryu_result['processed']} RYU queued actions")
+                    
+                    # Process ComnetsEMU queued actions
+                    comnets_result = self.network_interface.comnetsemu_connector.process_queued_actions()
+                    if comnets_result["processed"] > 0:
+                        self.logger.info(f"Processed {comnets_result['processed']} ComnetsEMU queued actions")
+                    
+                    # Sleep before next processing cycle
+                    time.sleep(self.queue_processing_interval)
+                    
+                except Exception as e:
+                    self.logger.error(f"Error in queue processing: {e}")
+                    time.sleep(self.queue_processing_interval)
+        
+        self.queue_thread = threading.Thread(target=queue_processor, daemon=True)
+        self.queue_thread.start()
+        self.logger.info("Started background queue processing thread")
+    
+    def get_retry_system_status(self) -> Dict[str, Any]:
+        """Get comprehensive retry system status for all components."""
+        ryu_stats = self.network_interface.ryu_connector.get_retry_system_stats()
+        comnets_stats = self.network_interface.comnetsemu_connector.get_retry_system_stats()
+        
+        return {
+            "ryu_retry_system": ryu_stats,
+            "comnetsemu_retry_system": comnets_stats,
+            "queue_processing": {
+                "enabled": self.queue_processing_enabled,
+                "interval_seconds": self.queue_processing_interval
+            }
+        }
+    
+    def force_queue_processing(self) -> Dict[str, Any]:
+        """Force immediate processing of all queued actions."""
+        self.logger.info("Forcing immediate queue processing")
+        
+        # Process RYU queued actions
+        ryu_result = self.network_interface.ryu_connector.process_queued_actions()
+        
+        # Process ComnetsEMU queued actions  
+        comnets_result = self.network_interface.comnetsemu_connector.process_queued_actions()
+        
+        result = {
+            "ryu_queue_processing": ryu_result,
+            "comnetsemu_queue_processing": comnets_result,
+            "total_processed": ryu_result["processed"] + comnets_result["processed"],
+            "total_successful": ryu_result["successful"] + comnets_result["successful"],
+            "total_failed": ryu_result["failed"] + comnets_result["failed"],
+            "total_requeued": ryu_result["requeued"] + comnets_result["requeued"]
+        }
+        
+        self.logger.info(f"Queue processing completed: {result['total_processed']} processed, {result['total_successful']} successful")
+        
+        return result
     
     def get_ryu_status(self) -> Dict[str, Any]:
         """Get RYU and ComnetsEMU connection status and statistics."""
-        return self.network_interface.get_connection_status()
+        connection_status = self.network_interface.get_connection_status()
+        retry_status = self.get_retry_system_status()
+        
+        return {
+            "connection_status": connection_status,
+            "retry_system_status": retry_status
+        }
     
     def close(self):
         """Close the northbound script and clean up resources."""
         self.logger.info("Closing NorthboundScript")
+        
+        # Stop queue processing
+        self.queue_processing_enabled = False
+        if hasattr(self, 'queue_thread'):
+            self.queue_thread.join(timeout=5)
+        
         self.network_interface.close()
     
     # ... [resto dei metodi del NorthboundScript] ...

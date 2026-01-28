@@ -1,0 +1,175 @@
+2026-01-28 21:16:01,480 - PersistentActionQueue - INFO - Loaded 0 actions from persistent storage
+2026-01-28 21:16:01,481 - AdvancedRetrySystem - INFO - Advanced retry system initialized
+2026-01-28 21:16:01,482 - RYUConnector - INFO - Initializing connection to RYU at http://localhost:8080
+2026-01-28 21:16:05,545 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] Impossibile stabilire la connessione. Rifiuto persistente del computer di destinazione"))
+2026-01-28 21:16:05,551 - RYUConnector - ERROR - Failed to connect to RYU controller
+2026-01-28 21:16:05,554 - PersistentActionQueue - INFO - Loaded 0 actions from persistent storage
+2026-01-28 21:16:05,554 - AdvancedRetrySystem - INFO - Advanced retry system initialized
+2026-01-28 21:16:05,554 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-01-28 21:16:07,575 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-01-28 21:16:07,576 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-01-28 21:16:07,577 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-01-28 21:16:07,577 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-01-28 21:16:07,578 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-01-28 21:16:07,580 - NorthboundScript - INFO - Forcing immediate queue processing
+2026-01-28 21:16:08,025 - NorthboundScript - INFO - Queue processing completed: 0 processed, 0 successful
+2026-01-28 21:16:08,040 - NorthboundScript - INFO - Closing NorthboundScript
+2026-01-28 21:16:08,040 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-01-28 21:16:08,041 - RYUConnector - INFO - Closing RYU connector
+2026-01-28 21:16:08,042 - PersistentActionQueue - INFO - Cleaned up 0 old queue entries
+2026-01-28 21:16:08,042 - AdvancedRetrySystem - INFO - Advanced retry system cleanup completed
+2026-01-28 21:16:08,043 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-01-28 21:16:08,045 - PersistentActionQueue - INFO - Cleaned up 0 old queue entries
+2026-01-28 21:16:08,046 - AdvancedRetrySystem - INFO - Advanced retry system cleanup completed
+2026-01-28 21:16:08,048 - PersistentActionQueue - INFO - Loaded 0 actions from persistent storage
+2026-01-28 21:16:08,048 - AdvancedRetrySystem - INFO - Advanced retry system initialized
+2026-01-28 21:16:08,049 - RYUConnector - INFO - Initializing connection to RYU at http://nonexistent-host:8080
+2026-01-28 21:16:09,325 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:09,326 - RYUConnector - ERROR - Failed to connect to RYU controller
+2026-01-28 21:16:09,327 - RYUConnector - INFO - Adding flow rule to switch switch-1: {'dpid': 'switch-1', 'table_id': 0, 'priority': 1000, 'match': {'in_port': 1}, 'actions': ['output:2'], 'idle_timeout': 0, 'hard_timeout': 0}
+2026-01-28 21:16:10,165 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:11,015 - RYUConnectionPool - ERROR - Connection error for POST http://nonexistent-host:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:11,016 - AdvancedRetrySystem - WARNING - Attempt 1 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:13,582 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:14,432 - RYUConnectionPool - ERROR - Connection error for POST http://nonexistent-host:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:14,432 - AdvancedRetrySystem - WARNING - Attempt 2 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:14,433 - RYUConnector - WARNING - Request failed after 2 attempts in 5.11s: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:14,433 - RYUConnector - ERROR - Failed to add flow rule to switch switch-1: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:14,434 - AdvancedRetrySystem - WARNING - Attempt 1 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:16,791 - RYUConnector - INFO - Adding flow rule to switch switch-1: {'dpid': 'switch-1', 'table_id': 0, 'priority': 1000, 'match': {'in_port': 1}, 'actions': ['output:2'], 'idle_timeout': 0, 'hard_timeout': 0}
+2026-01-28 21:16:17,648 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:18,483 - RYUConnectionPool - ERROR - Connection error for POST http://nonexistent-host:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:18,483 - AdvancedRetrySystem - WARNING - Attempt 1 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:21,349 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:22,182 - RYUConnectionPool - ERROR - Connection error for POST http://nonexistent-host:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:22,183 - AdvancedRetrySystem - WARNING - Attempt 2 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:22,183 - RYUConnector - WARNING - Request failed after 2 attempts in 5.39s: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:22,184 - RYUConnector - ERROR - Failed to add flow rule to switch switch-1: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:22,184 - AdvancedRetrySystem - WARNING - Attempt 2 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:22,199 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 5b36e819-ab78-4275-9e70-c13c18feb1f7
+2026-01-28 21:16:22,199 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:22,200 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:22,200 - RYUConnector - INFO - Adding flow rule to switch switch-1: {'dpid': 'switch-1', 'table_id': 0, 'priority': 1000, 'match': {'in_port': 1}, 'actions': ['output:2'], 'idle_timeout': 0, 'hard_timeout': 0}
+2026-01-28 21:16:23,048 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:23,883 - RYUConnectionPool - ERROR - Connection error for POST http://nonexistent-host:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:23,884 - AdvancedRetrySystem - WARNING - Attempt 1 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:26,598 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:27,449 - RYUConnectionPool - ERROR - Connection error for POST http://nonexistent-host:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:27,449 - AdvancedRetrySystem - WARNING - Attempt 2 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:27,450 - RYUConnector - WARNING - Request failed after 2 attempts in 5.25s: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:27,450 - RYUConnector - ERROR - Failed to add flow rule to switch switch-1: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:27,451 - AdvancedRetrySystem - WARNING - Attempt 1 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:29,087 - RYUConnector - INFO - Adding flow rule to switch switch-1: {'dpid': 'switch-1', 'table_id': 0, 'priority': 1000, 'match': {'in_port': 1}, 'actions': ['output:2'], 'idle_timeout': 0, 'hard_timeout': 0}
+2026-01-28 21:16:29,950 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:30,782 - RYUConnectionPool - ERROR - Connection error for POST http://nonexistent-host:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:30,783 - AdvancedRetrySystem - WARNING - Attempt 1 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:33,632 - RYUConnectionPool - ERROR - Health check failed: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/switches (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:34,467 - RYUConnectionPool - ERROR - Connection error for POST http://nonexistent-host:8080/v1.0/stats/flowentry/add: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:34,468 - AdvancedRetrySystem - WARNING - Attempt 2 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:34,469 - CircuitBreaker-ryu_controller - WARNING - Circuit breaker ryu_controller transitioning to OPEN
+2026-01-28 21:16:34,469 - RYUConnector - WARNING - Request failed after 2 attempts in 5.38s: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:34,469 - RYUConnector - ERROR - Failed to add flow rule to switch switch-1: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:34,470 - AdvancedRetrySystem - WARNING - Attempt 2 failed for ryu_controller: HTTPConnectionPool(host='nonexistent-host', port=8080): Max retries exceeded with url: /v1.0/stats/flowentry/add (Caused by NameResolutionError("HTTPConnection(host='nonexistent-host', port=8080): Failed to resolve 'nonexistent-host' ([Errno 11001] getaddrinfo failed)"))
+2026-01-28 21:16:34,539 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 94e92782-63a1-4a2c-a0f1-b6a1be1c95c7
+2026-01-28 21:16:34,540 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,602 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 9c81ca6a-c05b-4430-9bcf-efb5c1a3bbe3
+2026-01-28 21:16:34,603 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,603 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,612 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 6e80f372-717c-41a3-9cb0-14483cec5b66
+2026-01-28 21:16:34,612 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,632 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 3a65a362-df07-4f15-9716-5d81c2b487cb
+2026-01-28 21:16:34,633 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,633 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,643 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 05022ac1-0562-4ed8-ba54-1497a8732127
+2026-01-28 21:16:34,643 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,660 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID e4441271-2d14-493e-9dd0-62e4934975e1
+2026-01-28 21:16:34,661 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,661 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,670 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID fcaf208b-bcde-40d0-9ad2-55150fe58732
+2026-01-28 21:16:34,670 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,687 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 3685e0ea-6eec-4ba2-9964-7ae324f742bc
+2026-01-28 21:16:34,687 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,688 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,697 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 91eeb297-6e5c-4d88-bce2-7a4f2b15e6e4
+2026-01-28 21:16:34,698 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,714 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 4fc032e2-b819-4390-b929-c9ea944cefe4
+2026-01-28 21:16:34,714 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,715 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,726 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 49a30110-e3dd-42cf-9037-987ed4ceb0ad
+2026-01-28 21:16:34,726 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,743 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID a8cbbc17-2c06-4591-b2bd-b0aac9f0d83f
+2026-01-28 21:16:34,743 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,744 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,754 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 7ef005f4-acb0-405d-95e5-44584fba2406
+2026-01-28 21:16:34,754 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,763 - PersistentActionQueue - WARNING - Marked action e4441271-2d14-493e-9dd0-62e4934975e1 as failed
+2026-01-28 21:16:34,763 - AdvancedRetrySystem - ERROR - Action test_flow_action failed after 0 attempts
+2026-01-28 21:16:34,763 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,773 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID cc5e72e4-cff6-4b0c-a155-4a9f7800876f
+2026-01-28 21:16:34,774 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,791 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 538683ca-d849-4eab-ab6c-c0dfcae3f185
+2026-01-28 21:16:34,791 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,792 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,801 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 55bc24b2-dbb8-4c5d-9cf7-ac2680da1e02
+2026-01-28 21:16:34,802 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,819 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID bde831d9-217c-4285-a432-85b87c217048
+2026-01-28 21:16:34,819 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,819 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,828 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 9b7c3f01-f8e0-4592-bc7d-bdc48c32368a
+2026-01-28 21:16:34,828 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,846 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID dbc7fd49-12c7-462e-a7bf-a7fb84b98ee4
+2026-01-28 21:16:34,846 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,846 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,856 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID e91c0d8e-6df9-487e-b324-e935245dc133
+2026-01-28 21:16:34,857 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,864 - PersistentActionQueue - WARNING - Marked action 4fc032e2-b819-4390-b929-c9ea944cefe4 as failed
+2026-01-28 21:16:34,865 - AdvancedRetrySystem - ERROR - Action test_flow_action failed after 0 attempts
+2026-01-28 21:16:34,865 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,876 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID bc6e551b-2e17-4709-b34d-8084df8019b8
+2026-01-28 21:16:34,876 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,893 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 47569522-92a1-400e-b717-305a140b6d24
+2026-01-28 21:16:34,893 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,894 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,903 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID c637a716-1e17-4195-aeb5-476c76a22059
+2026-01-28 21:16:34,903 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,920 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 9587f659-92d4-43a9-a0a6-228cacc27a38
+2026-01-28 21:16:34,920 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,921 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,929 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID d10c6a0d-5b9a-4c93-8e21-0cf5981114b7
+2026-01-28 21:16:34,929 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,947 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 28b3e2f5-a577-409e-a6e9-cfdaec6506cd
+2026-01-28 21:16:34,947 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,947 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,956 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID b6e76bcd-f21b-42ca-b354-aa4523e6917d
+2026-01-28 21:16:34,957 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,973 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID e2859857-c7c6-4d36-8098-3f3f46a44921
+2026-01-28 21:16:34,973 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:34,974 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:34,982 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 223af736-ca86-4a6c-8e9b-3b32e3500906
+2026-01-28 21:16:34,982 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:34,998 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 9866d838-9f4d-4f47-ae8d-9ae549bddb99
+2026-01-28 21:16:35,000 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:35,000 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:35,009 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 730e7f0c-7841-422e-934c-7928e4acead7
+2026-01-28 21:16:35,009 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:35,025 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 2eb05f72-7d8a-423d-b1a7-3ffd625cb0b9
+2026-01-28 21:16:35,025 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:35,026 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:35,034 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 937b3815-9c80-47d2-97cb-7ec30254a173
+2026-01-28 21:16:35,035 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:35,043 - PersistentActionQueue - WARNING - Marked action bde831d9-217c-4285-a432-85b87c217048 as failed
+2026-01-28 21:16:35,043 - AdvancedRetrySystem - ERROR - Action test_flow_action failed after 0 attempts
+2026-01-28 21:16:35,044 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:35,053 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 32fa98d9-86b4-4596-bb45-52ae54fdec4b
+2026-01-28 21:16:35,054 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:35,073 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 7d3ae349-6597-430a-8e1a-d011096525c6
+2026-01-28 21:16:35,073 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:35,073 - AdvancedRetrySystem - INFO - Processing queued action test_flow_action (attempt 1)
+2026-01-28 21:16:35,084 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 4b2c5b12-5229-42c0-9b24-0a569a60f15b
+2026-01-28 21:16:35,084 - AdvancedRetrySystem - INFO - Queued action test_flow_action for later retry
+2026-01-28 21:16:35,101 - PersistentActionQueue - INFO - Enqueued action test_flow_action with queue ID 6661d1a4-0d16-4df5-85c1-4b1e5a277640
+2026-01-28 21:16:35,101 - AdvancedRetrySystem - WARNING - Requeued action test_flow_action for retry
+2026-01-28 21:16:35,101 - AdvancedRetrySystem - INFO - Processed 20 queued actions: 0 successful, 3 failed, 17 requeued
+2026-01-28 21:16:35,102 - RYUConnector - INFO - Closing RYU connector
+2026-01-28 21:16:35,105 - PersistentActionQueue - INFO - Cleaned up 0 old queue entries
+2026-01-28 21:16:35,105 - AdvancedRetrySystem - INFO - Advanced retry system cleanup completed

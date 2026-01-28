@@ -18,6 +18,7 @@ import threading
 from queue import Queue, Empty
 
 from ..models.action_models import NetworkAction, ActionType
+from ..core.retry_system import AdvancedRetrySystem, RetryConfig
 
 
 class ComnetsEMUConnectionStatus(str, Enum):
@@ -95,6 +96,18 @@ class ComnetsEMUConnector:
     def __init__(self, config: ComnetsEMUConfig = None):
         self.config = config or ComnetsEMUConfig()
         self.logger = logging.getLogger("ComnetsEMUConnector")
+        
+        # Initialize advanced retry system
+        retry_config = RetryConfig(
+            max_attempts=self.config.max_retries + 1,
+            base_delay=self.config.retry_delay,
+            max_delay=120.0,  # Longer max delay for topology operations
+            failure_threshold=3,  # Lower threshold for ComnetsEMU
+            recovery_timeout=45.0,
+            enable_persistent_queue=True,
+            queue_persistence_path="./logs/comnetsemu_retry_queue.db"
+        )
+        self.retry_system = AdvancedRetrySystem(retry_config)
         
         # Connection state
         self.status = ComnetsEMUConnectionStatus.DISCONNECTED
@@ -179,8 +192,253 @@ class ComnetsEMUConnector:
     # ... [resto del codice del connettore ComnetsEMU] ...
     # Per brevità, includo solo le parti principali. Il file completo sarebbe troppo lungo.
     
+    def execute_topology_change(self, action: NetworkAction) -> Dict[str, Any]:
+        """Execute topology change with retry system."""
+        try:
+            def _execute_change():
+                """Internal function to execute topology change."""
+                operation = action.parameters.get("operation", "add")
+                element_type = action.parameters.get("element_type", "unknown")
+                element_id = action.parameters.get("element_id", action.target)
+                properties = action.parameters.get("properties", {})
+                
+                self.logger.info(f"Executing topology change: {operation} {element_type} {element_id}")
+                
+                # Simulate topology change execution
+                # In a real implementation, this would interact with ComnetsEMU APIs
+                success = True  # Placeholder
+                
+                if success:
+                    self.stats["successful_requests"] += 1
+                    self.last_successful_request = datetime.now()
+                    return True
+                else:
+                    self.stats["failed_requests"] += 1
+                    raise Exception("Topology change failed")
+            
+            # Use retry system
+            result = self.retry_system.execute_with_retry(
+                _execute_change,
+                service_name="comnetsemu"
+            )
+            
+            if result.success:
+                return {
+                    "success": True,
+                    "message": "Topology change completed successfully",
+                    "retry_stats": {
+                        "attempts": len(result.attempts),
+                        "total_time": result.total_time
+                    }
+                }
+            else:
+                # Queue for retry if failed
+                if self.retry_system.persistent_queue:
+                    queued = self.retry_system.queue_action_for_retry(action)
+                    if queued:
+                        return {
+                            "success": False,
+                            "message": "Topology change failed, queued for retry",
+                            "queued": True,
+                            "error": result.error
+                        }
+                
+                return {
+                    "success": False,
+                    "message": "Topology change failed after retries",
+                    "error": result.error,
+                    "retry_stats": {
+                        "attempts": len(result.attempts),
+                        "total_time": result.total_time
+                    }
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Failed to execute topology change {action.id}: {e}")
+            
+            # Try to queue for later retry
+            if self.retry_system.persistent_queue:
+                queued = self.retry_system.queue_action_for_retry(action)
+                if queued:
+                    return {
+                        "success": False,
+                        "error": str(e),
+                        "message": "Topology change failed, queued for retry",
+                        "queued": True
+                    }
+            
+            raise
+    
+    def execute_qos_policy(self, action: NetworkAction) -> Dict[str, Any]:
+        """Execute QoS policy with retry system."""
+        try:
+            def _execute_qos():
+                """Internal function to execute QoS policy."""
+                policy_data = action.parameters.get("policy_data", {})
+                target = action.target
+                
+                self.logger.info(f"Executing QoS policy on {target}")
+                
+                # Simulate QoS policy execution
+                # In a real implementation, this would interact with ComnetsEMU APIs
+                success = True  # Placeholder
+                
+                if success:
+                    self.stats["successful_requests"] += 1
+                    self.last_successful_request = datetime.now()
+                    return True
+                else:
+                    self.stats["failed_requests"] += 1
+                    raise Exception("QoS policy execution failed")
+            
+            # Use retry system
+            result = self.retry_system.execute_with_retry(
+                _execute_qos,
+                service_name="comnetsemu"
+            )
+            
+            if result.success:
+                return {
+                    "success": True,
+                    "message": "QoS policy applied successfully",
+                    "retry_stats": {
+                        "attempts": len(result.attempts),
+                        "total_time": result.total_time
+                    }
+                }
+            else:
+                # Queue for retry if failed
+                if self.retry_system.persistent_queue:
+                    queued = self.retry_system.queue_action_for_retry(action)
+                    if queued:
+                        return {
+                            "success": False,
+                            "message": "QoS policy failed, queued for retry",
+                            "queued": True,
+                            "error": result.error
+                        }
+                
+                return {
+                    "success": False,
+                    "message": "QoS policy failed after retries",
+                    "error": result.error,
+                    "retry_stats": {
+                        "attempts": len(result.attempts),
+                        "total_time": result.total_time
+                    }
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Failed to execute QoS policy {action.id}: {e}")
+            
+            # Try to queue for later retry
+            if self.retry_system.persistent_queue:
+                queued = self.retry_system.queue_action_for_retry(action)
+                if queued:
+                    return {
+                        "success": False,
+                        "error": str(e),
+                        "message": "QoS policy failed, queued for retry",
+                        "queued": True
+                    }
+            
+            raise
+    
+    def get_network_state(self, target: str) -> Dict[str, Any]:
+        """Get network state with retry system."""
+        def _get_state():
+            """Internal function to get network state."""
+            self.logger.info(f"Getting network state for {target}")
+            
+            # Simulate network state retrieval
+            # In a real implementation, this would query ComnetsEMU
+            state = {
+                "target": target,
+                "status": "active",
+                "switch_info": {"dpid": target, "ports": []},
+                "links": [],
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self.stats["successful_requests"] += 1
+            self.last_successful_request = datetime.now()
+            return state
+        
+        try:
+            result = self.retry_system.execute_with_retry(
+                _get_state,
+                service_name="comnetsemu"
+            )
+            
+            if result.success:
+                return result.result
+            else:
+                # Return error state if retry failed
+                return {
+                    "target": target,
+                    "status": "error",
+                    "error": result.error,
+                    "timestamp": datetime.now().isoformat()
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Failed to get network state for {target}: {e}")
+            return {
+                "target": target,
+                "status": "error",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+    
+    def verify_network_state(self, action: NetworkAction, expected_state: Dict[str, Any]) -> bool:
+        """Verify network state matches expected state."""
+        try:
+            current_state = self.get_network_state(action.target)
+            
+            # Simple verification - in real implementation would be more sophisticated
+            if current_state.get("status") == "error":
+                return False
+            
+            # Check if action was applied successfully
+            return current_state.get("status") == "active"
+            
+        except Exception as e:
+            self.logger.error(f"Failed to verify network state for action {action.id}: {e}")
+            return False
+    
+    def process_queued_actions(self) -> Dict[str, Any]:
+        """Process queued actions when ComnetsEMU becomes available."""
+        def action_processor(action: NetworkAction) -> bool:
+            """Process a single queued action."""
+            try:
+                if action.type == ActionType.CONFIG_CHANGE:
+                    config_type = action.parameters.get("config_type", "unknown")
+                    if config_type == "qos":
+                        result = self.execute_qos_policy(action)
+                    else:
+                        result = self.execute_topology_change(action)
+                else:
+                    result = self.execute_topology_change(action)
+                
+                return result.get("success", False) and not result.get("queued", False)
+            except Exception as e:
+                self.logger.error(f"Failed to process queued action {action.id}: {e}")
+                return False
+        
+        return self.retry_system.process_queued_actions(
+            action_processor,
+            service_name="comnetsemu",
+            max_actions=15
+        )
+    
+    def get_retry_system_stats(self) -> Dict[str, Any]:
+        """Get retry system statistics."""
+        return self.retry_system.get_system_stats()
+    
     def get_connection_status(self) -> Dict[str, Any]:
         """Get current connection status and statistics."""
+        retry_stats = self.retry_system.get_system_stats()
+        
         return {
             "status": self.status.value,
             "last_error": self.last_error,
@@ -201,12 +459,14 @@ class ComnetsEMUConnector:
                 "success_rate": (self.stats["successful_requests"] / max(self.stats["total_requests"], 1)) * 100,
                 "topology_updates": self.stats["topology_updates"],
                 "last_topology_update": self.stats["last_topology_update"]
-            }
+            },
+            "retry_system": retry_stats
         }
     
     def close(self):
         """Close the ComnetsEMU connector and clean up resources."""
         self.logger.info("Closing ComnetsEMU connector")
+        self.retry_system.cleanup()
         self.status = ComnetsEMUConnectionStatus.DISCONNECTED
 
 

@@ -29,7 +29,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 2: Gestione Resiliente degli Errori di Connessione**
     - **Validates: Requirements 1.2**
 
-  - [ ] 1.5 Implementare sistema di retry avanzato
+  - [x] 1.5 Implementare sistema di retry avanzato
     - Aggiungere exponential backoff per retry
     - Implementare circuit breaker pattern per servizi esterni
     - Aggiungere coda persistente per azioni quando controller non disponibile

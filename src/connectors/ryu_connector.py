@@ -17,6 +17,7 @@ from queue import Queue, Empty
 from contextlib import contextmanager
 
 from ..models.action_models import NetworkAction, ActionType
+from ..core.retry_system import AdvancedRetrySystem, RetryConfig
 
 
 class ConnectionStatus(str, Enum):
@@ -217,6 +218,18 @@ class RYUConnector:
         # Initialize connection pool
         self.connection_pool = RYUConnectionPool(self.config)
         
+        # Initialize advanced retry system
+        retry_config = RetryConfig(
+            max_attempts=self.config.max_retries + 1,
+            base_delay=self.config.retry_delay,
+            max_delay=60.0,
+            failure_threshold=5,
+            recovery_timeout=30.0,
+            enable_persistent_queue=True,
+            queue_persistence_path="./logs/ryu_retry_queue.db"
+        )
+        self.retry_system = AdvancedRetrySystem(retry_config)
+        
         # Track connection status
         self.status = ConnectionStatus.DISCONNECTED
         self.last_error = None
@@ -246,71 +259,62 @@ class RYUConnector:
     def _make_request_with_retry(self, method: str, endpoint: str, 
                                 data: Optional[Dict] = None, 
                                 params: Optional[Dict] = None) -> requests.Response:
-        """Make HTTP request with retry logic and exponential backoff."""
+        """Make HTTP request with advanced retry logic and circuit breaker protection."""
         url = urljoin(self.config.base_url, f"/{self.config.api_version}{endpoint}")
         
-        last_exception = None
-        
-        for attempt in range(self.config.max_retries + 1):
-            try:
-                self.logger.debug(f"Attempt {attempt + 1}/{self.config.max_retries + 1}: {method} {url}")
+        def _execute_request():
+            """Internal function to execute the HTTP request."""
+            with self.connection_pool.request(
+                method=method,
+                url=url,
+                json=data,
+                params=params,
+                timeout=self.config.timeout_seconds
+            ) as response:
                 
-                with self.connection_pool.request(
-                    method=method,
-                    url=url,
-                    json=data,
-                    params=params,
-                    timeout=self.config.timeout_seconds
-                ) as response:
-                    
-                    if response.status_code == 200:
-                        self.status = ConnectionStatus.CONNECTED
-                        self.last_successful_request = datetime.now()
-                        self.last_error = None
-                        return response
-                    
-                    elif response.status_code in [400, 404, 422]:
-                        # Client errors - don't retry
-                        self.logger.error(f"Client error {response.status_code}: {response.text}")
-                        response.raise_for_status()
-                    
-                    elif response.status_code >= 500:
-                        # Server errors - retry
-                        self.logger.warning(f"Server error {response.status_code}, will retry")
-                        if attempt < self.config.max_retries:
-                            time.sleep(self.config.retry_delay * (2 ** attempt))
-                            continue
-                        else:
-                            response.raise_for_status()
-                    
-                    else:
-                        # Other status codes
-                        response.raise_for_status()
-            
-            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-                last_exception = e
-                self.status = ConnectionStatus.TIMEOUT if isinstance(e, requests.exceptions.Timeout) else ConnectionStatus.ERROR
-                self.last_error = str(e)
+                if response.status_code == 200:
+                    self.status = ConnectionStatus.CONNECTED
+                    self.last_successful_request = datetime.now()
+                    self.last_error = None
+                    return response
                 
-                if attempt < self.config.max_retries:
-                    delay = self.config.retry_delay * (2 ** attempt)
-                    self.logger.warning(f"Request failed ({e}), retrying in {delay}s...")
-                    time.sleep(delay)
+                elif response.status_code in [400, 404, 422]:
+                    # Client errors - don't retry
+                    self.logger.error(f"Client error {response.status_code}: {response.text}")
+                    response.raise_for_status()
+                
+                elif response.status_code >= 500:
+                    # Server errors - will be retried by retry system
+                    self.logger.warning(f"Server error {response.status_code}, will be retried")
+                    response.raise_for_status()
+                
                 else:
-                    self.logger.error(f"Request failed after {self.config.max_retries + 1} attempts: {e}")
-                    raise
-            
-            except Exception as e:
-                self.status = ConnectionStatus.ERROR
-                self.last_error = str(e)
-                self.logger.error(f"Unexpected error in request: {e}")
-                raise
+                    # Other status codes
+                    response.raise_for_status()
         
-        # Should not reach here, but just in case
-        if last_exception:
-            raise last_exception
+        # Use advanced retry system
+        result = self.retry_system.execute_with_retry(
+            _execute_request,
+            service_name="ryu_controller"
+        )
+        
+        if result.success:
+            return result.result
         else:
-            raise RuntimeError("Request failed for unknown reason")
+            # Update connector status based on failure
+            if result.circuit_breaker_triggered:
+                self.status = ConnectionStatus.ERROR
+                self.last_error = "Circuit breaker is OPEN"
+            else:
+                self.status = ConnectionStatus.TIMEOUT if "timeout" in result.error.lower() else ConnectionStatus.ERROR
+                self.last_error = result.error
+            
+            # Log retry statistics
+            self.logger.warning(
+                f"Request failed after {len(result.attempts)} attempts in {result.total_time:.2f}s: {result.error}"
+            )
+            
+            raise requests.exceptions.RequestException(result.error)
     
     def get_switches(self) -> List[Dict[str, Any]]:
         """Get list of connected switches."""
@@ -462,7 +466,7 @@ class RYUConnector:
             raise
     
     def execute_flow_mod(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute flow modification action."""
+        """Execute flow modification action with retry and queue support."""
         try:
             switch_id = action.target
             parameters = action.parameters
@@ -480,25 +484,77 @@ class RYUConnector:
             # Determine operation type
             operation = parameters.get("operation", "add")
             
-            if operation == "add":
-                success = self.add_flow(switch_id, flow_rule)
-            elif operation == "delete":
-                success = self.delete_flow(switch_id, flow_rule)
-            elif operation == "modify":
-                success = self.modify_flow(switch_id, flow_rule)
-            else:
-                raise ValueError(f"Unknown flow operation: {operation}")
+            # Try to execute with retry system
+            def _execute_operation():
+                if operation == "add":
+                    return self.add_flow(switch_id, flow_rule)
+                elif operation == "delete":
+                    return self.delete_flow(switch_id, flow_rule)
+                elif operation == "modify":
+                    return self.modify_flow(switch_id, flow_rule)
+                else:
+                    raise ValueError(f"Unknown flow operation: {operation}")
             
-            return {
-                "success": success,
-                "operation": operation,
-                "switch_id": switch_id,
-                "flow_rule": flow_rule,
-                "message": f"Flow {operation} {'successful' if success else 'failed'}"
-            }
+            result = self.retry_system.execute_with_retry(
+                _execute_operation,
+                service_name="ryu_controller"
+            )
+            
+            if result.success:
+                return {
+                    "success": result.result,
+                    "operation": operation,
+                    "switch_id": switch_id,
+                    "flow_rule": flow_rule,
+                    "message": f"Flow {operation} {'successful' if result.result else 'failed'}",
+                    "retry_stats": {
+                        "attempts": len(result.attempts),
+                        "total_time": result.total_time
+                    }
+                }
+            else:
+                # If retry failed, queue for later processing
+                if self.retry_system.persistent_queue:
+                    queued = self.retry_system.queue_action_for_retry(action)
+                    if queued:
+                        return {
+                            "success": False,
+                            "operation": operation,
+                            "switch_id": switch_id,
+                            "flow_rule": flow_rule,
+                            "message": f"Flow {operation} failed, queued for retry",
+                            "queued": True,
+                            "error": result.error
+                        }
+                
+                # Return failure
+                return {
+                    "success": False,
+                    "operation": operation,
+                    "switch_id": switch_id,
+                    "flow_rule": flow_rule,
+                    "message": f"Flow {operation} failed after retries",
+                    "error": result.error,
+                    "retry_stats": {
+                        "attempts": len(result.attempts),
+                        "total_time": result.total_time
+                    }
+                }
             
         except Exception as e:
             self.logger.error(f"Failed to execute flow_mod action {action.id}: {e}")
+            
+            # Try to queue for later retry
+            if self.retry_system.persistent_queue:
+                queued = self.retry_system.queue_action_for_retry(action)
+                if queued:
+                    return {
+                        "success": False,
+                        "error": str(e),
+                        "message": f"Flow modification failed, queued for retry",
+                        "queued": True
+                    }
+            
             raise
     
     def verify_action_applied(self, action: NetworkAction) -> bool:
@@ -549,9 +605,31 @@ class RYUConnector:
                 return False
         return True
     
+    def process_queued_actions(self) -> Dict[str, Any]:
+        """Process queued actions when RYU controller becomes available."""
+        def action_processor(action: NetworkAction) -> bool:
+            """Process a single queued action."""
+            try:
+                result = self.execute_flow_mod(action)
+                return result.get("success", False) and not result.get("queued", False)
+            except Exception as e:
+                self.logger.error(f"Failed to process queued action {action.id}: {e}")
+                return False
+        
+        return self.retry_system.process_queued_actions(
+            action_processor,
+            service_name="ryu_controller",
+            max_actions=20
+        )
+    
+    def get_retry_system_stats(self) -> Dict[str, Any]:
+        """Get retry system statistics."""
+        return self.retry_system.get_system_stats()
+    
     def get_connection_status(self) -> Dict[str, Any]:
         """Get current connection status and statistics."""
         stats = self.connection_pool.get_stats()
+        retry_stats = self.retry_system.get_system_stats()
         
         return {
             "status": self.status.value,
@@ -571,13 +649,15 @@ class RYUConnector:
                 "success_rate": (stats.successful_requests / max(stats.total_requests, 1)) * 100,
                 "average_response_time": stats.average_response_time,
                 "last_updated": stats.last_updated.isoformat()
-            }
+            },
+            "retry_system": retry_stats
         }
     
     def close(self):
         """Close the RYU connector and clean up resources."""
         self.logger.info("Closing RYU connector")
         self.connection_pool.close()
+        self.retry_system.cleanup()
         self.status = ConnectionStatus.DISCONNECTED
 
 
