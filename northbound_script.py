@@ -14,13 +14,18 @@ import time
 import traceback
 from enum import Enum
 
+# Add src to path for imports
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
 # Import from organized modules
-from src.models.action_models import (
+from models.action_models import (
     NetworkAction, ActionSequence, ActionType,
     ValidationResult, SafetyReport, SimulationResult
 )
-from src.connectors.ryu_connector import create_ryu_connector
-from src.connectors.comnetsemu_connector import create_comnetsemu_connector
+from connectors.ryu_connector import create_ryu_connector
+from connectors.comnetsemu_connector import create_comnetsemu_connector
 
 
 class ExecutionStatus(str, Enum):

@@ -39,7 +39,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 3: Resilienza del Sistema con Controller Indisponibile**
     - **Validates: Requirements 1.4**
 
-- [ ] 2. Checkpoint - Verifica integrazione base
+- [x] 2. Checkpoint - Verifica integrazione base
   - Assicurarsi che tutti i test passino, chiedere all'utente se sorgono domande.
 
 - [ ] 3. API REST Gateway e Autenticazione
