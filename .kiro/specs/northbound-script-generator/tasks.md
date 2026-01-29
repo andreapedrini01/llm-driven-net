@@ -42,8 +42,8 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
 - [x] 2. Checkpoint - Verifica integrazione base
   - Assicurarsi che tutti i test passino, chiedere all'utente se sorgono domande.
 
-- [ ] 3. API REST Gateway e Autenticazione
-  - [ ] 3.1 Implementare API Gateway con FastAPI
+- [x] 3. API REST Gateway e Autenticazione
+  - [x] 3.1 Implementare API Gateway con FastAPI
     - Creare endpoints REST per ricezione comandi dal Validator
     - Implementare validazione richieste e gestione errori HTTP
     - Aggiungere supporto per operazioni batch e tracking azioni
@@ -54,13 +54,13 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 5: Gestione Errori delle Richieste Malformate**
     - **Validates: Requirements 2.1, 2.2, 2.3**
 
-  - [ ] 3.3 Implementare sistema di autenticazione JWT
+  - [x] 3.3 Implementare sistema di autenticazione JWT
     - Creare servizio autenticazione con JWT tokens
     - Implementare API key authentication per LLM
     - Aggiungere Role-Based Access Control (RBAC)
     - _Requirements: 2.4, 4.1, 4.3_
 
-  - [ ] 3.4 Implementare Multi-Factor Authentication
+  - [x] 3.4 Implementare Multi-Factor Authentication
     - Aggiungere supporto TOTP per amministratori
     - Implementare blocco account per tentativi falliti
     - Aggiungere gestione sessioni con timeout automatico
