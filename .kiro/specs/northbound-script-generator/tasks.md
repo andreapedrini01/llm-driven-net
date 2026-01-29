@@ -71,8 +71,8 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 9: Blocco Account per Tentativi Falliti**
     - **Validates: Requirements 4.1, 4.2, 4.3**
 
-- [ ] 4. Sistema di Monitoraggio e Metriche
-  - [ ] 4.1 Implementare raccolta metriche con Prometheus
+- [x] 4. Sistema di Monitoraggio e Metriche
+  - [x] 4.1 Implementare raccolta metriche con Prometheus
     - Integrare prometheus_client per esposizione metriche
     - Implementare raccolta metriche di sistema (CPU, memoria, rete)
     - Aggiungere metriche business (azioni/minuto, tasso successo)
@@ -82,7 +82,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 6: Raccolta Continua delle Metriche**
     - **Validates: Requirements 3.1**
 
-  - [ ] 4.3 Implementare sistema di alerting
+  - [x] 4.3 Implementare sistema di alerting
     - Creare motore di alert con soglie configurabili
     - Implementare notifiche via email/webhook per alert critici
     - Aggiungere dashboard per visualizzazione alert
@@ -92,7 +92,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 7: Generazione Automatica degli Alert**
     - **Validates: Requirements 3.2**
 
-  - [ ] 4.5 Implementare storage metriche con InfluxDB
+  - [x] 4.5 Implementare storage metriche con InfluxDB
     - Integrare InfluxDB per storage time-series delle metriche
     - Implementare retention policy per gestione spazio disco
     - Aggiungere query API per recupero dati storici
