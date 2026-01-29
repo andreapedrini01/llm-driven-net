@@ -98,14 +98,14 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - Aggiungere query API per recupero dati storici
     - _Requirements: 3.5_
 
-- [ ] 5. Interfaccia Web di Controllo
-  - [ ] 5.1 Creare backend API per dashboard web
+- [x] 5. Interfaccia Web di Controllo
+  - [x] 5.1 Creare backend API per dashboard web
     - Implementare endpoints per dashboard real-time
     - Aggiungere API per visualizzazione topologia di rete
     - Implementare WebSocket per aggiornamenti real-time
     - _Requirements: 5.1, 5.5_
 
-  - [ ] 5.2 Implementare frontend React per dashboard
+  - [x] 5.2 Implementare frontend React per dashboard
     - Creare dashboard con visualizzazione stato sistema
     - Implementare visualizzazione progress azioni con tempi stimati
     - Aggiungere log viewer con filtri avanzati
@@ -115,7 +115,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 10: Visualizzazione Progress delle Azioni**
     - **Validates: Requirements 5.2**
 
-  - [ ] 5.4 Implementare controlli operativi web
+  - [x] 5.4 Implementare controlli operativi web
     - Aggiungere funzionalità cancellazione azioni in corso
     - Implementare gestione utenti e permessi via web
     - Aggiungere notifiche prominenti per errori critici

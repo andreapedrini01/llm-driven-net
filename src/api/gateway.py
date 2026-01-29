@@ -6,7 +6,7 @@ from uuid import uuid4
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Depends, status, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends, status, BackgroundTasks, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
@@ -39,8 +39,27 @@ async def lifespan(app: FastAPI):
     try:
         northbound_instance = NorthboundScript()
         logger.info("Northbound Script instance initialized")
+        
+        # Initialize monitoring service for dashboard
+        from ..monitoring.monitoring_service import MonitoringService
+        monitoring = MonitoringService(
+            collection_interval=60,
+            enable_prometheus=True,
+            enable_influxdb=False,  # Disable for now
+            enable_alerting=True
+        )
+        await monitoring.start()
+        monitoring.configure_default_alerts()
+        
+        # Set dashboard dependencies
+        set_monitoring_service(monitoring)
+        set_northbound_instance(northbound_instance)
+        set_action_tracker(action_tracker)
+        
+        logger.info("Dashboard services initialized")
+        
     except Exception as e:
-        logger.error(f"Failed to initialize Northbound Script: {e}")
+        logger.error(f"Failed to initialize services: {e}")
         raise
     
     yield
@@ -70,6 +89,10 @@ app.add_middleware(
 
 # Include auth routes
 app.include_router(auth_router)
+
+# Include dashboard routes
+from .dashboard_routes import router as dashboard_router, set_monitoring_service, set_northbound_instance, set_action_tracker
+app.include_router(dashboard_router)
 
 # Security
 security = HTTPBearer()
