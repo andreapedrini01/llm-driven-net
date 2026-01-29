@@ -14,9 +14,9 @@ from datetime import datetime
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from northbound_script import NorthboundScript
-from ryu_connector import RYUConnector, RYUConfig, ConnectionStatus
-from action_models import NetworkAction, ActionType
+from src.core.northbound_script import NorthboundScript
+from src.connectors.ryu_connector import RYUConnector, RYUConfig, ConnectionStatus
+from src.models.action_models import NetworkAction, ActionType
 
 
 class TestRYUIntegration(unittest.TestCase):

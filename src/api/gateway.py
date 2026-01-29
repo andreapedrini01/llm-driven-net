@@ -11,15 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 
-from ..models.action_models import NetworkAction, ActionSequence, ActionType
-from .models import (
+from src.models.action_models import NetworkAction, ActionSequence, ActionType
+from src.api.models import (
     ActionRequest, ActionResponse, ActionStatus, ActionSummary,
     BatchActionRequest, BatchActionResponse, HealthStatus,
     ErrorResponse, ActionFilters
 )
-from .auth import AuthService, get_current_user, User
-from .auth_routes import router as auth_router
-from ..core.northbound_script import NorthboundScript
+from src.api.auth import AuthService, get_current_user, User
+from src.api.auth_routes import router as auth_router
+from src.core.northbound_script import NorthboundScript
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
         logger.info("Northbound Script instance initialized")
         
         # Initialize monitoring service for dashboard
-        from ..monitoring.monitoring_service import MonitoringService
+        from src.monitoring.monitoring_service import MonitoringService
         monitoring = MonitoringService(
             collection_interval=60,
             enable_prometheus=True,
@@ -91,7 +91,7 @@ app.add_middleware(
 app.include_router(auth_router)
 
 # Include dashboard routes
-from .dashboard_routes import router as dashboard_router, set_monitoring_service, set_northbound_instance, set_action_tracker
+from src.api.dashboard_routes import router as dashboard_router, set_monitoring_service, set_northbound_instance, set_action_tracker
 app.include_router(dashboard_router)
 
 # Security

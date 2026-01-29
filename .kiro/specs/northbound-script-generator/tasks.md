@@ -121,7 +121,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - Aggiungere notifiche prominenti per errori critici
     - _Requirements: 5.4, 5.6_
 
-- [ ] 6. Checkpoint - Verifica sistema base completo
+- [x] 6. Checkpoint - Verifica sistema base completo
   - Assicurarsi che tutti i test passino, chiedere all'utente se sorgono domande.
 
 - [ ] 7. Sistema di Backup e Recovery
