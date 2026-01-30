@@ -124,14 +124,14 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
 - [x] 6. Checkpoint - Verifica sistema base completo
   - Assicurarsi che tutti i test passino, chiedere all'utente se sorgono domande.
 
-- [ ] 7. Sistema di Backup e Recovery
-  - [ ] 7.1 Implementare backup automatico con PostgreSQL
+- [x] 7. Sistema di Backup e Recovery
+  - [x] 7.1 Implementare backup automatico con PostgreSQL
     - Migrare da SQLite a PostgreSQL per produzione
     - Implementare backup automatici ogni ora con pg_dump
     - Aggiungere compressione e crittografia dei backup
     - _Requirements: 6.1, 6.5_
 
-  - [ ] 7.2 Implementare sistema di recovery
+  - [x] 7.2 Implementare sistema di recovery
     - Creare interfaccia per selezione punti di ripristino
     - Implementare recovery automatico da guasti critici
     - Aggiungere verifica integrità backup durante creazione
@@ -142,7 +142,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - **Property 12: Selezione Punti di Ripristino**
     - **Validates: Requirements 6.1, 6.2, 6.3**
 
-  - [ ] 7.4 Implementare gestione retention e cleanup
+  - [x] 7.4 Implementare gestione retention e cleanup
     - Aggiungere rotazione automatica backup (7 giorni retention)
     - Implementare notifiche per backup falliti
     - Aggiungere monitoraggio spazio disco per backup
