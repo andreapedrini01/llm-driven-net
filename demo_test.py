@@ -3,10 +3,10 @@
 Demo Test per il Modulo di Integrazione LLM - Sistema di Networking Intent-Based
 
 Questo file dimostra le capacità del sistema di tradurre intent in linguaggio naturale
-in azioni concrete di configurazione di rete. Perfetto per presentazioni ai colleghi.
+in azioni concrete di configurazione di rete.
 
-Autore: Team LLM Integration
-Data: Dicembre 2024
+Autore: @andreapedrini01
+Data: Dicembre 2025
 """
 
 import sys
