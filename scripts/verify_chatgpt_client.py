@@ -15,7 +15,7 @@ async def verify_client():
     print("\n✓ Test 1: Client initialization")
     config = ChatGPTConfig(
         api_key="test-key",
-        model="gpt-4-turbo",
+        model="gpt-4o-mini",
         max_tokens=1000,
         temperature=0.1,
         timeout=30,
@@ -48,7 +48,7 @@ async def verify_client():
     # Test 5: Cost estimation
     print("\n✓ Test 5: Cost estimation")
     cost = client._estimate_cost(1000, 1000)
-    print(f"  - Cost for 2K tokens (GPT-4-turbo): ${cost:.4f}")
+    print(f"  - Cost for 2K tokens (GPT-4o-mini): ${cost:.4f}")
     
     # Test 6: Exponential backoff
     print("\n✓ Test 6: Exponential backoff calculation")

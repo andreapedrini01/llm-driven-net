@@ -103,6 +103,16 @@ class ActionSequencer:
                     "Slice must be created before modification"
                 )
         
+        # Flow modifications on a slice depend on slice creation
+        if (action1.type == ActionType.FLOW_MOD and 
+            action2.type == ActionType.SLICE_CREATE):
+            if action1.target == action2.target:
+                return ActionDependency(
+                    action1.id,
+                    action2.id,
+                    "Flow modification depends on slice creation"
+                )
+        
         # Flow modifications on same target should be ordered
         if (action1.type == ActionType.FLOW_MOD and 
             action2.type == ActionType.FLOW_MOD):
@@ -123,6 +133,16 @@ class ActionSequencer:
                     action1.id,
                     action2.id,
                     "Action depends on configuration change"
+                )
+        
+        # Any action on a target depends on CONFIG_CHANGE on the same target
+        if (action1.type != ActionType.CONFIG_CHANGE and 
+            action2.type == ActionType.CONFIG_CHANGE):
+            if action1.target == action2.target:
+                return ActionDependency(
+                    action1.id,
+                    action2.id,
+                    "Action depends on configuration of same target"
                 )
         
         return None
@@ -194,12 +214,36 @@ class ActionSequencer:
                 )
             
             # Different action types on same target
+            # Most cases can be resolved through dependency ordering, so treat as medium severity
+            # unless it's a known dependency relationship
             if action1.type != action2.type:
+                # Check if this is a known dependency relationship
+                dependency_pairs = [
+                    (ActionType.CONFIG_CHANGE, ActionType.FLOW_MOD),
+                    (ActionType.CONFIG_CHANGE, ActionType.SLICE_CREATE),
+                    (ActionType.CONFIG_CHANGE, ActionType.SLICE_MODIFY),
+                    (ActionType.SLICE_CREATE, ActionType.FLOW_MOD),
+                    (ActionType.SLICE_CREATE, ActionType.SLICE_MODIFY),
+                ]
+                
+                # Check if this pair is a dependency (in either order)
+                is_dependency = False
+                for dep_type1, dep_type2 in dependency_pairs:
+                    if ((action1.type == dep_type1 and action2.type == dep_type2) or
+                        (action1.type == dep_type2 and action2.type == dep_type1)):
+                        is_dependency = True
+                        break
+                
+                if is_dependency:
+                    # This is a dependency, not a conflict
+                    return None
+                
+                # Other combinations: treat as medium severity (can be resolved by ordering)
                 return ActionConflict(
                     action1.id,
                     action2.id,
                     "resource",
-                    "high",
+                    "medium",
                     f"Different action types on same target: {action1.target}"
                 )
         
@@ -344,32 +388,22 @@ class ActionSequencer:
             else:
                 return f"Removed action {action2.id} due to critical conflict (lower priority)"
         
-        # For high severity resource conflicts, remove lower priority action or adjust priorities
+        # For high severity resource conflicts, handle based on action types
         if conflict.severity == "high" and conflict.conflict_type == "resource":
-            # If different action types on same target, remove lower priority action
-            if action1.type != action2.type:
+            # For slices competing for resources, remove lower priority
+            if action1.type in [ActionType.SLICE_CREATE, ActionType.SLICE_MODIFY]:
                 if action1.priority < action2.priority:
-                    return f"Removed action {action1.id} due to high severity conflict (lower priority, different action types)"
+                    return f"Removed action {action1.id} due to resource competition (lower priority)"
                 elif action2.priority < action1.priority:
-                    return f"Removed action {action2.id} due to high severity conflict (lower priority, different action types)"
+                    return f"Removed action {action2.id} due to resource competition (lower priority)"
                 else:
-                    # Equal priority - remove the second one (arbitrary but consistent)
-                    return f"Removed action {action2.id} due to high severity conflict (equal priority, different action types)"
+                    # Equal priority - remove the second one
+                    return f"Removed action {action2.id} due to resource competition (equal priority)"
             else:
-                # Same action type - for slices competing for resources, remove lower priority
-                if action1.type in [ActionType.SLICE_CREATE, ActionType.SLICE_MODIFY]:
-                    if action1.priority < action2.priority:
-                        return f"Removed action {action1.id} due to resource competition (lower priority)"
-                    elif action2.priority < action1.priority:
-                        return f"Removed action {action2.id} due to resource competition (lower priority)"
-                    else:
-                        # Equal priority - remove the second one
-                        return f"Removed action {action2.id} due to resource competition (equal priority)"
-                else:
-                    # For other same-type conflicts, adjust priorities to ensure ordering
-                    if action1.priority == action2.priority:
-                        action2.priority = action1.priority - 1
-                        return f"Adjusted priority of {action2.id} to resolve resource conflict"
+                # For other high-severity conflicts, adjust priorities to ensure ordering
+                if action1.priority == action2.priority:
+                    action2.priority = action1.priority - 1
+                    return f"Adjusted priority of {action2.id} to resolve resource conflict"
         
         # For medium severity, log warning
         if conflict.severity == "medium":

@@ -34,7 +34,7 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
 
 ### Requisiti di Sistema
 
-- Python 3.10 o superiore
+- Python 3.11 o superiore
 - pip (package manager Python)
 - Connessione internet per accedere a ChatGPT API
 
@@ -116,7 +116,7 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
 
 **Test falliscono**
 - Verifica che tutte le dipendenze siano installate: `pip list`
-- Controlla che la versione di Python sia >= 3.10: `python --version`
+- Controlla che la versione di Python sia >= 3.11: `python --version`
 
 ## Esecuzione
 

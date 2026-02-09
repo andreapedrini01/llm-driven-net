@@ -290,12 +290,23 @@ class TestActionSequencingProperties:
     def test_priority_ordering_without_dependencies(self, actions):
         """Test that actions without dependencies are ordered by priority."""
         # Ensure actions have different targets to avoid dependencies
+        # Create new actions with unique targets (Pydantic objects are immutable)
+        actions_with_unique_targets = []
         for i, action in enumerate(actions):
-            action.target = f"unique_target_{i}"
+            new_action = NetworkAction(
+                id=action.id,
+                type=action.type,
+                target=f"unique_target_{i}",
+                parameters=action.parameters,
+                priority=action.priority,
+                timeout=action.timeout,
+                description=action.description
+            )
+            actions_with_unique_targets.append(new_action)
         
         # Sequence the actions
         sequence = self.sequencer.sequence_actions(
-            actions=actions,
+            actions=actions_with_unique_targets,
             intent_id="test_intent",
             sequence_id="test_sequence"
         )

@@ -109,7 +109,11 @@ class TestActionSequencer:
         assert conflicts[0].severity == "medium"
     
     def test_detect_conflicts_same_target_different_type(self):
-        """Test conflict detection for same target, different types."""
+        """Test conflict detection for same target, different types.
+        
+        Note: CONFIG_CHANGE with other action types is now treated as a dependency,
+        not a conflict, so this test verifies that no conflict is detected.
+        """
         action1 = NetworkAction(
             id="action_1",
             type=ActionType.FLOW_MOD,
@@ -126,9 +130,8 @@ class TestActionSequencer:
         
         conflicts = self.sequencer.detect_conflicts([action1, action2])
         
-        assert len(conflicts) == 1
-        assert conflicts[0].conflict_type == "resource"
-        assert conflicts[0].severity == "high"
+        # CONFIG_CHANGE creates a dependency, not a conflict
+        assert len(conflicts) == 0
     
     def test_detect_conflicts_overlapping_flows(self):
         """Test conflict detection for overlapping flow rules."""
