@@ -446,11 +446,17 @@ class RyuConnector:
         self.logger.debug(f"Fetching port statistics for switch {dpid}")
         
         try:
-            # Formatta il DPID per la richiesta
+            # Converte DPID in formato intero per Ryu (rimuove zeri iniziali)
+            # Ryu accetta solo formato decimale: "1" non "0000000000000001"
             if isinstance(dpid, int):
                 dpid_param = str(dpid)
             else:
-                dpid_param = str(dpid)
+                # Converte da hex string a int e poi a string decimale
+                try:
+                    dpid_int = int(str(dpid), 16) if isinstance(dpid, str) and len(str(dpid)) > 2 else int(str(dpid))
+                    dpid_param = str(dpid_int)
+                except (ValueError, TypeError):
+                    dpid_param = str(dpid)
             
             stats_data = self._make_request(f'/stats/port/{dpid_param}')
             
