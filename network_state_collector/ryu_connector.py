@@ -368,7 +368,7 @@ class RyuConnector:
         Recupera i link di topologia dal controller Ryu
         
         Fallback: se l'endpoint /v1.0/topology/links non è disponibile,
-        ritorna una lista vuota invece di fallire.
+        prova a inferire i link dalle port statistics analizzando il traffico.
         
         Returns:
             Lista di LinkInfo con DPID formattati e informazioni porte
@@ -417,10 +417,10 @@ class RyuConnector:
             return links
             
         except RyuConnectionError as e:
-            # Se l'endpoint non esiste (404), ritorna lista vuota invece di fallire
+            # Se l'endpoint non esiste (404), prova a inferire i link
             if "404" in str(e):
-                self.logger.warning("Topology API not available (404), returning empty links list")
-                return []
+                self.logger.warning("Topology API not available (404), attempting to infer links from port statistics")
+                return self._infer_links_from_ports()
             raise
         except (RyuTimeoutError, RyuDataError):
             raise
@@ -428,6 +428,94 @@ class RyuConnector:
             error_msg = f"Unexpected error getting links: {e}"
             self.logger.error(error_msg)
             raise RyuConnectionError(error_msg) from e
+    
+    def _infer_links_from_ports(self) -> List[LinkInfo]:
+        """
+        Inferisce i link di topologia analizzando le port statistics
+        
+        Logica: In una topologia lineare, le porte con traffico bidirezionale
+        simile sono probabilmente collegate tra loro.
+        
+        Returns:
+            Lista di LinkInfo inferiti
+        """
+        try:
+            # Ottieni tutti gli switch
+            switches_data = self._make_request('/stats/switches')
+            if not isinstance(switches_data, list):
+                return []
+            
+            # Raccogli le statistiche di tutte le porte
+            all_port_stats = {}
+            for switch_data in switches_data:
+                if isinstance(switch_data, dict):
+                    dpid = switch_data.get('dpid')
+                elif isinstance(switch_data, int):
+                    dpid = switch_data
+                else:
+                    continue
+                
+                if dpid is None:
+                    continue
+                
+                try:
+                    port_stats = self.get_port_stats(dpid)
+                    all_port_stats[dpid] = port_stats
+                except Exception as e:
+                    self.logger.warning(f"Failed to get port stats for switch {dpid}: {e}")
+                    continue
+            
+            # Inferisci i link analizzando il traffico
+            links = []
+            processed_pairs = set()
+            
+            for dpid1, stats1 in all_port_stats.items():
+                for port1 in stats1:
+                    # Salta porte senza traffico
+                    if port1.tx_packets == 0 and port1.rx_packets == 0:
+                        continue
+                    
+                    # Cerca porte su altri switch con traffico complementare
+                    for dpid2, stats2 in all_port_stats.items():
+                        if dpid1 == dpid2:
+                            continue
+                        
+                        # Evita duplicati
+                        pair_key = tuple(sorted([(dpid1, port1.port_no), (dpid2, 0)]))
+                        if pair_key in processed_pairs:
+                            continue
+                        
+                        for port2 in stats2:
+                            # Salta porte senza traffico
+                            if port2.tx_packets == 0 and port2.rx_packets == 0:
+                                continue
+                            
+                            # Verifica se il traffico è complementare (TX di uno = RX dell'altro)
+                            # Con una tolleranza del 20% per variazioni di timing
+                            tx_rx_match = abs(port1.tx_packets - port2.rx_packets) < (port1.tx_packets * 0.2 + 1)
+                            rx_tx_match = abs(port1.rx_packets - port2.tx_packets) < (port1.rx_packets * 0.2 + 1)
+                            
+                            if tx_rx_match and rx_tx_match and (port1.tx_packets > 10 or port1.rx_packets > 10):
+                                # Trovato un link probabile
+                                pair_key = tuple(sorted([(dpid1, port1.port_no), (dpid2, port2.port_no)]))
+                                if pair_key not in processed_pairs:
+                                    link = LinkInfo(
+                                        src_dpid=dpid1,
+                                        dst_dpid=dpid2,
+                                        src_port=port1.port_no,
+                                        dst_port=port2.port_no,
+                                        active=True
+                                    )
+                                    links.append(link)
+                                    processed_pairs.add(pair_key)
+                                    self.logger.debug(f"Inferred link: {dpid1}:{port1.port_no} <-> {dpid2}:{port2.port_no}")
+            
+            self.logger.info(f"Inferred {len(links)} topology links from port statistics")
+            return links
+            
+        except Exception as e:
+            self.logger.error(f"Failed to infer links from ports: {e}")
+            return []
     
     def get_port_stats(self, dpid: str) -> List[PortMetrics]:
         """
