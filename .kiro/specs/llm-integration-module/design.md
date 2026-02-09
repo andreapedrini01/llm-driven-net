@@ -2,9 +2,9 @@
 
 ## Overview
 
-Il modulo di integrazione LLM è progettato come un servizio middleware che funge da ponte intelligente tra gli intent degli utenti espressi in linguaggio naturale e le azioni concrete di configurazione di rete. Il modulo utilizza un Large Language Model per interpretare intent complessi, analizzare lo stato della rete fornito da RYU, e generare sequenze di azioni validate che vengono poi eseguite dal Northbound script.
+Il modulo di integrazione LLM è progettato come un servizio middleware che funge da ponte intelligente tra gli intent degli utenti espressi in linguaggio naturale e le azioni concrete di configurazione di rete. Il modulo utilizza ChatGPT API (OpenAI) per interpretare intent complessi, analizzare lo stato della rete fornito da RYU, e generare sequenze di azioni validate che vengono poi eseguite dal Northbound script.
 
-L'architettura è basata su un pattern di microservizi con comunicazione asincrona, garantendo scalabilità e resilienza. Il modulo mantiene una rappresentazione interna dello stato della rete e utilizza tecniche di prompt engineering e fine-tuning per ottimizzare le performance del modello LLM per il dominio networking.
+L'architettura è basata su un pattern di microservizi con comunicazione asincrona, garantendo scalabilità e resilienza. Il modulo mantiene una rappresentazione interna dello stato della rete e utilizza tecniche di prompt engineering ottimizzate per il dominio networking. L'utilizzo esclusivo di ChatGPT API semplifica l'implementazione, migliora la velocità di risposta e garantisce accuratezza superiore nell'interpretazione degli intent.
 
 ## Architecture
 
@@ -59,30 +59,24 @@ graph TB
 
 ## Components and Interfaces
 
-### LLM Provider Interface
-**Responsabilità**: Astrazione per diversi provider LLM (OpenAI, Ollama)
+### ChatGPT API Interface
+**Responsabilità**: Comunicazione con ChatGPT API per generazione risposte
 - **Input**: Prompt strutturato con contesto di rete
-- **Output**: Risposta LLM parsata e validata
+- **Output**: Risposta ChatGPT parsata e validata
 - **Interfacce**:
-  - `generateResponse(prompt: str, context: dict) -> LLMResponse`
+  - `generateResponse(prompt: str, context: dict) -> ChatGPTResponse`
   - `isAvailable() -> bool`
   - `getLatency() -> float`
-  - `getCost() -> float`
-  - `getCapabilities() -> ProviderCapabilities`
+  - `getRateLimitStatus() -> RateLimitInfo`
 
-#### OpenAI Provider
-- **Modelli supportati**: GPT-4, GPT-3.5-turbo
-- **Vantaggi**: Qualità superiore, context window ampio (128k token)
-- **Configurazione**: API key, rate limiting, retry logic
-- **Costi**: ~$0.01-0.03 per 1K token (dipende dal modello)
-
-#### Ollama Provider  
-**Modelli raccomandati per RTX 5080 16GB:**
-- **Llama 3.1 70B (Q4_K_M)**: ~40GB, eccellente per reasoning complesso
-- **Llama 3.1 8B (Q8_0)**: ~8GB, veloce per operazioni semplici
-- **CodeLlama 34B (Q4_K_M)**: ~20GB, ottimizzato per codice/configurazioni
-- **Mistral 7B (Q8_0)**: ~7GB, bilanciato qualità/velocità
-- **Configurazione**: Modello locale, GPU acceleration, context window ottimizzato
+**Configurazione**:
+- **Modelli supportati**: GPT-4, GPT-4-turbo, GPT-3.5-turbo
+- **Modello raccomandato**: GPT-4-turbo per bilanciamento qualità/velocità/costo
+- **Context window**: Fino a 128k token (GPT-4-turbo)
+- **Rate limiting**: Gestione automatica con retry e backoff esponenziale
+- **Costi stimati**: ~$0.01-0.03 per 1K token (dipende dal modello)
+- **Timeout**: 30 secondi default, configurabile
+- **Retry logic**: Max 3 tentativi con backoff esponenziale
 
 ### Intent Parser
 **Responsabilità**: Preprocessing e normalizzazione degli intent in linguaggio naturale
@@ -103,15 +97,13 @@ graph TB
   - `detectConflicts(intent: IntentObject, state: NetworkState) -> ConflictList`
 
 ### Action Generator
-**Responsabilità**: Generazione di azioni di rete concrete tramite LLM (supporto ibrido OpenAI/Ollama)
+**Responsabilità**: Generazione di azioni di rete concrete tramite ChatGPT API
 - **Input**: ContextualizedIntent
 - **Output**: ActionSequence con comandi strutturati
 - **Interfacce**:
   - `generateActions(contextIntent: ContextualizedIntent) -> ActionSequence`
   - `optimizeSequence(actions: ActionSequence) -> ActionSequence`
   - `estimateImpact(actions: ActionSequence) -> ImpactAssessment`
-  - `switchProvider(provider: LLMProviderType) -> void`
-  - `getProviderStatus() -> ProviderStatus`
 
 ### Validator
 **Responsabilità**: Validazione e verifica della sicurezza delle azioni generate
@@ -203,37 +195,30 @@ interface NetworkSlice {
 }
 ```
 
-### LLM Provider Models
+### ChatGPT Configuration Model
 ```typescript
-interface LLMProviderConfig {
-  type: 'openai' | 'ollama';
-  priority: number;
-  fallback: boolean;
-  config: OpenAIConfig | OllamaConfig;
-}
-
-interface OpenAIConfig {
+interface ChatGPTConfig {
   apiKey: string;
-  model: 'gpt-4' | 'gpt-3.5-turbo';
+  model: 'gpt-4' | 'gpt-4-turbo' | 'gpt-3.5-turbo';
   maxTokens: number;
   temperature: number;
   rateLimitRpm: number;
+  timeout: number;
+  maxRetries: number;
 }
 
-interface OllamaConfig {
-  baseUrl: string;
+interface ChatGPTResponse {
+  content: string;
   model: string;
-  contextWindow: number;
-  gpuLayers: number;
-  temperature: number;
+  tokensUsed: number;
+  latency: number;
+  finishReason: string;
 }
 
-interface ProviderStatus {
-  isAvailable: boolean;
-  latency: number;
-  cost: number;
-  errorRate: number;
-  lastUsed: Date;
+interface RateLimitInfo {
+  remainingRequests: number;
+  resetTime: Date;
+  isThrottled: boolean;
 }
 ```
 
@@ -335,9 +320,9 @@ Dopo aver analizzato tutti i criteri di accettazione, ho identificato alcune pro
 *For any* communication error with RYU_Controller, the retry mechanism should implement exponential backoff and eventually succeed or fail gracefully
 **Validates: Requirements 6.1**
 
-**Property 22: Fallback reliability**
-*For any* situation where the LLM model is unavailable, the system should operate in degraded mode while maintaining essential functionality
-**Validates: Requirements 6.2**
+**Property 22: API resilience**
+*For any* situation where ChatGPT API is temporarily unavailable or rate-limited, the system should implement retry logic and eventually operate in degraded mode while maintaining essential functionality
+**Validates: Requirements 6.1, 6.2**
 
 **Property 23: Input sanitization security**
 *For any* malformed or potentially malicious input, the sanitization process should neutralize threats while preserving legitimate functionality
@@ -351,60 +336,66 @@ Dopo aver analizzato tutti i criteri di accettazione, ho identificato alcune pro
 *For any* system restart after an error, the previous operational state should be fully recovered without data loss
 **Validates: Requirements 6.5**
 
-## LLM Provider Selection Strategy
+## ChatGPT API Integration Strategy
 
-Il sistema implementa una strategia intelligente per la selezione del provider LLM:
+Il sistema utilizza esclusivamente ChatGPT API per tutte le operazioni di interpretazione intent e generazione azioni.
 
-### Modalità di Selezione
+### Model Selection
 
-**1. Primary-Fallback Mode (Default)**
-- Provider primario: Configurabile (OpenAI o Ollama)
-- Fallback automatico al provider secondario in caso di errore
-- Retry logic con backoff esponenziale
+**GPT-4-turbo (Raccomandato)**:
+- Bilanciamento ottimale tra qualità, velocità e costo
+- Context window: 128k token
+- Latenza: ~2-5 secondi per richieste complesse
+- Costo: ~$0.01 per 1K input token, ~$0.03 per 1K output token
+- Ideale per: Tutti i casi d'uso del sistema
 
-**2. Cost-Optimized Mode**
-- Ollama per operazioni semplici (query stato, validazioni)
-- OpenAI per operazioni complesse (anomaly detection, slice orchestration)
-- Decisione basata su complessità dell'intent
+**GPT-4**:
+- Massima qualità e accuratezza
+- Context window: 8k-32k token (dipende dalla versione)
+- Latenza: ~5-10 secondi
+- Costo: ~$0.03 per 1K input token, ~$0.06 per 1K output token
+- Ideale per: Operazioni critiche che richiedono massima precisione
 
-**3. Performance-Optimized Mode**
-- Ollama per bassa latenza (<500ms)
-- OpenAI per alta qualità quando latenza non è critica
-- Monitoraggio continuo delle performance
+**GPT-3.5-turbo**:
+- Velocità massima, costo minimo
+- Context window: 16k token
+- Latenza: ~1-2 secondi
+- Costo: ~$0.0005 per 1K input token, ~$0.0015 per 1K output token
+- Ideale per: Operazioni semplici e validazioni rapide (se necessario ridurre costi)
 
-**4. Hybrid Comparison Mode (Per ricerca/tesi)**
-- Esecuzione parallela su entrambi i provider
-- Raccolta metriche comparative (latenza, qualità, costi)
-- Logging dettagliato per analisi
+### Prompt Engineering
 
-### Criteri di Selezione Automatica
+Il sistema utilizza prompt ottimizzati per il dominio networking:
 
 ```python
-def select_provider(intent: IntentObject, mode: SelectionMode) -> LLMProvider:
-    if mode == "primary-fallback":
-        return primary_provider if primary_provider.is_available() else fallback_provider
-    
-    elif mode == "cost-optimized":
-        complexity = estimate_complexity(intent)
-        return ollama_provider if complexity < THRESHOLD else openai_provider
-    
-    elif mode == "performance-optimized":
-        if intent.requires_low_latency():
-            return ollama_provider
-        return openai_provider
-    
-    elif mode == "hybrid-comparison":
-        return [openai_provider, ollama_provider]  # Esegui su entrambi
+def build_prompt(intent: IntentObject, network_state: NetworkState) -> str:
+    return f"""
+You are a network configuration expert. Analyze the following network intent and current state, 
+then generate appropriate network actions.
+
+Network Intent: {intent.rawText}
+Current Network State:
+- Topology: {network_state.topology}
+- Active Flows: {network_state.flows}
+- Network Slices: {network_state.slices}
+
+Generate a JSON response with:
+1. Interpreted intent
+2. Required network actions
+3. Potential conflicts or risks
+4. Execution sequence
+
+Response format: {ACTION_SCHEMA}
+"""
 ```
 
-### Metriche di Confronto
+### Rate Limiting and Cost Management
 
-Il sistema raccoglie metriche per confrontare i provider:
-- **Latenza**: Tempo di risposta end-to-end
-- **Qualità**: Validità delle azioni generate, tasso di errore
-- **Costi**: Token utilizzati, costo monetario (solo OpenAI)
-- **Affidabilità**: Uptime, tasso di fallimento
-- **Throughput**: Richieste al secondo gestite
+- **Rate Limits**: Rispetto automatico dei limiti API OpenAI
+- **Request Batching**: Aggregazione richieste quando possibile
+- **Caching**: Cache delle risposte per intent simili
+- **Cost Tracking**: Monitoraggio continuo dei costi per ottimizzazione
+- **Budget Alerts**: Notifiche quando si avvicinano soglie di costo
 
 ## Error Handling
 
@@ -416,12 +407,13 @@ Il sistema implementa una strategia di error handling a più livelli:
 - **Authentication Failures**: Logging sicuro e notifica amministratori
 
 ### Processing Errors  
-- **LLM Model Failures**: 
-  - OpenAI: Fallback automatico a Ollama
-  - Ollama: Fallback a OpenAI o modalità degradata con regole predefinite
-  - Retry con parametri semplificati (temperatura ridotta, prompt più semplici)
+- **ChatGPT API Failures**: 
+  - Retry automatico con backoff esponenziale (max 3 tentativi)
+  - Modalità degradata con regole predefinite se API non disponibile
+  - Notifica amministratori per outage prolungati
+- **Rate Limiting**: Gestione automatica con queue e retry scheduling
 - **Context Analysis Errors**: Utilizzo di stato cached o richiesta aggiornamenti
-- **Action Generation Failures**: Retry con provider alternativo prima del fallback completo
+- **Action Generation Failures**: Retry con parametri semplificati (temperatura ridotta, prompt più semplici)
 
 ### Communication Errors
 - **RYU Connection Issues**: Retry con backoff esponenziale, max 5 tentativi
@@ -449,13 +441,12 @@ Il sistema utilizza sia unit testing che property-based testing per garantire co
 - Utilizzo di **Hypothesis** (Python) per property-based testing
 - Ogni test property-based configurato per minimo **100 iterazioni**
 - Ogni property-based test taggato con formato: **Feature: llm-integration-module, Property {number}: {property_text}**
-- **Test comparativi tra provider**: Ogni property testata su entrambi OpenAI e Ollama
 - Generatori intelligenti per:
   - Intent in linguaggio naturale con varie complessità
   - Stati di rete con topologie diverse
   - Sequenze di azioni con dipendenze complesse
   - Scenari di anomalie e errori
-  - Configurazioni provider diverse
+  - Risposte ChatGPT simulate per testing offline
 
 **Test Data Generation**:
 - **Intent Generator**: Crea intent naturali con entità, ambiguità e complessità variabili
@@ -468,13 +459,13 @@ Il sistema utilizza sia unit testing che property-based testing per garantire co
 - Test di carico con multiple richieste concorrenti  
 - Test di resilienza con injection di errori
 - Test di performance con grandi stati di rete
-- **Test di failover**: Simulazione fallimenti provider e test di fallback
-- **Test di confronto**: Esecuzione parallela su OpenAI e Ollama per validazione qualità
+- **Test di rate limiting**: Simulazione limiti API e gestione throttling
+- **Test di costo**: Monitoraggio utilizzo token e ottimizzazione costi
 
 **Continuous Testing**:
 - Pipeline CI/CD con test automatici
 - Monitoring di regressioni nelle performance
 - Test di compatibilità con versioni diverse di RYU
 - Validazione continua delle proprietà di correttezza
-- **Benchmarking automatico**: Confronto continuo performance OpenAI vs Ollama
-- **Cost tracking**: Monitoraggio costi OpenAI in ambiente di test
+- **Cost tracking**: Monitoraggio costi ChatGPT API in ambiente di test
+- **Mock API**: Utilizzo di mock ChatGPT per test rapidi senza costi

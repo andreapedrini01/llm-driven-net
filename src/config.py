@@ -3,6 +3,10 @@
 import os
 from typing import Optional
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class Settings(BaseModel):
@@ -41,11 +45,11 @@ class Settings(BaseModel):
     northbound_timeout: int = 60
     
     # LLM settings
-    llm_provider: str = "openai"  # "openai" or "local"
-    openai_api_key: Optional[str] = None
-    openai_model: str = "gpt-4"
-    openai_max_tokens: int = 2000
-    openai_temperature: float = 0.1
+    llm_provider: str = os.getenv("LLM_PROVIDER", "openai")
+    openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
+    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4-turbo")
+    openai_max_tokens: int = int(os.getenv("OPENAI_MAX_TOKENS", "2000"))
+    openai_temperature: float = float(os.getenv("OPENAI_TEMPERATURE", "0.1"))
     
     # Local model settings (for transformers)
     local_model_name: str = "microsoft/DialoGPT-medium"

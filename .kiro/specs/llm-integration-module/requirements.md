@@ -2,11 +2,11 @@
 
 ## Introduction
 
-Il modulo di integrazione LLM è il componente centrale del sistema di networking intent-based che utilizza Large Language Models per interpretare intent di rete in linguaggio naturale e generare azioni di configurazione appropriate. Il modulo riceve dati di stato della rete dal controller RYU, processa gli intent degli utenti, e produce output strutturati che vengono poi applicati alla rete tramite script Northbound.
+Il modulo di integrazione LLM è il componente centrale del sistema di networking intent-based che utilizza ChatGPT API (OpenAI) per interpretare intent di rete in linguaggio naturale e generare azioni di configurazione appropriate. Il modulo riceve dati di stato della rete dal controller RYU, processa gli intent degli utenti tramite ChatGPT, e produce output strutturati che vengono poi applicati alla rete tramite script Northbound. L'utilizzo esclusivo di ChatGPT API garantisce velocità di risposta superiore e maggiore accuratezza nell'interpretazione degli intent.
 
 ## Glossary
 
-- **LLM_Module**: Il modulo software che integra il Large Language Model nel sistema di networking
+- **LLM_Module**: Il modulo software che integra ChatGPT API nel sistema di networking
 - **RYU_Controller**: Il controller SDN che gestisce la rete e fornisce dati di stato
 - **Network_Intent**: Una richiesta in linguaggio naturale che esprime un obiettivo di configurazione di rete
 - **Network_State**: I dati correnti sulla topologia, flussi, e stato della rete forniti da RYU
@@ -83,8 +83,8 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
 
 #### Acceptance Criteria
 
-1. WHEN il LLM_Module incontra errori di comunicazione con RYU_Controller, THE LLM_Module SHALL implementare retry logic con backoff esponenziale
-2. WHEN il modello LLM non è disponibile o non risponde, THE LLM_Module SHALL utilizzare fallback logic o modalità degradata
+1. WHEN il RYU_Controller o ChatGPT API non sono disponibili, THE LLM_Module SHALL implementare retry logic con backoff esponenziale
+2. WHEN ChatGPT API non risponde entro il timeout configurato, THE LLM_Module SHALL segnalare l'errore e utilizzare modalità degradata se disponibile
 3. WHEN input malformati o dannosi vengono ricevuti, THE LLM_Module SHALL sanitizzare e validare tutti gli input prima del processing
 4. WHEN errori critici si verificano, THE LLM_Module SHALL loggare dettagli completi per debugging e notificare gli amministratori
 5. WHEN il sistema si riavvia dopo un errore, THE LLM_Module SHALL recuperare lo stato precedente e continuare le operazioni senza perdita di dati

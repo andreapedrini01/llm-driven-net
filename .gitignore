@@ -270,6 +270,9 @@ temp/
 .env.production
 .env.development
 
+# Documentation folder (temporary)
+docs/
+
 # Database files
 *.db
 *.sqlite
