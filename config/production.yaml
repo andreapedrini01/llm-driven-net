@@ -1,0 +1,55 @@
+# Configurazione per ambiente di produzione
+# Network State Collector
+
+environment: production
+version: "1.0.0"
+
+# Configurazione connessione Ryu Controller
+ryu:
+  host: ryu-controller.local
+  port: 8080
+  base_path: "api/v1"
+  timeout: 15.0
+  use_https: true
+  verify_ssl: true
+
+# Configurazione retry e resilienza
+retry:
+  max_attempts: 5
+  initial_delay: 0.5
+  max_delay: 30.0
+  backoff_factor: 1.5
+  jitter: true
+
+# Configurazione output e file system
+output:
+  directory: "/var/lib/network-collector/data"
+  filename_pattern: "network_context_{timestamp}.json"
+  latest_filename: "network_context_latest.json"
+  history_directory: "network_context_history"
+  embeddings_directory: "embeddings"
+  metadata_directory: "metadata"
+  pretty_print: false
+  compress_old_files: true
+  max_history_files: 10000
+
+# Configurazione raccolta dati
+collection:
+  interval: 10.0
+  continuous_mode: true
+  detect_topology_changes: true
+  calculate_derived_metrics: true
+  validate_data: true
+  exclude_local_ports: true
+  parallel_collection: true
+  max_workers: 8
+
+# Configurazione logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "/var/log/network-collector/collector.log"
+  max_file_size: 52428800  # 50MB
+  backup_count: 10
+  console_output: false
+  structured_logging: true

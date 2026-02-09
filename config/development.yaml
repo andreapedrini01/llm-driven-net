@@ -1,0 +1,55 @@
+# Configurazione per ambiente di sviluppo
+# Network State Collector
+
+environment: development
+version: "1.0.0"
+
+# Configurazione connessione Ryu Controller
+ryu:
+  host: localhost
+  port: 8080
+  base_path: ""
+  timeout: 30.0
+  use_https: false
+  verify_ssl: true
+
+# Configurazione retry e resilienza
+retry:
+  max_attempts: 3
+  initial_delay: 1.0
+  max_delay: 60.0
+  backoff_factor: 2.0
+  jitter: true
+
+# Configurazione output e file system
+output:
+  directory: "data"
+  filename_pattern: "network_context_{timestamp}.json"
+  latest_filename: "network_context_latest.json"
+  history_directory: "network_context_history"
+  embeddings_directory: "embeddings"
+  metadata_directory: "metadata"
+  pretty_print: true
+  compress_old_files: false
+  max_history_files: 1000
+
+# Configurazione raccolta dati
+collection:
+  interval: 30.0
+  continuous_mode: false
+  detect_topology_changes: true
+  calculate_derived_metrics: true
+  validate_data: true
+  exclude_local_ports: true
+  parallel_collection: true
+  max_workers: 4
+
+# Configurazione logging
+logging:
+  level: "DEBUG"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "logs/network_collector_dev.log"
+  max_file_size: 10485760  # 10MB
+  backup_count: 5
+  console_output: true
+  structured_logging: true

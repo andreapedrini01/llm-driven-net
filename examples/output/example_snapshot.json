@@ -1,0 +1,85 @@
+{
+  "timestamp": 1770283543.2293398,
+  "topology": {
+    "switches": [
+      {
+        "dpid": "0000000000000001",
+        "ports": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "active": true
+      },
+      {
+        "dpid": "0000000000000002",
+        "ports": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "active": true
+      }
+    ],
+    "links": [
+      {
+        "src_dpid": "0000000000000001",
+        "dst_dpid": "0000000000000002",
+        "src_port": 1,
+        "dst_port": 1,
+        "active": true
+      }
+    ],
+    "graph_representation": {
+      "nodes": 2,
+      "edges": 1
+    }
+  },
+  "metrics": {
+    "port_statistics": {
+      "0000000000000001": [
+        {
+          "port_no": 1,
+          "rx_packets": 1000,
+          "tx_packets": 800,
+          "rx_bytes": 64000,
+          "tx_bytes": 51200,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        {
+          "port_no": 2,
+          "rx_packets": 500,
+          "tx_packets": 600,
+          "rx_bytes": 32000,
+          "tx_bytes": 38400,
+          "rx_errors": 1,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        }
+      ],
+      "0000000000000002": [
+        {
+          "port_no": 1,
+          "rx_packets": 800,
+          "tx_packets": 1000,
+          "rx_bytes": 51200,
+          "tx_bytes": 64000,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        }
+      ]
+    },
+    "aggregated_metrics": {},
+    "quality_indicators": null
+  },
+  "derived_metrics": null,
+  "metadata": null
+}

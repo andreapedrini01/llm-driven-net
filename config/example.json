@@ -1,0 +1,49 @@
+{
+  "environment": "example",
+  "version": "1.0.0",
+  "ryu": {
+    "host": "localhost",
+    "port": 8080,
+    "base_path": "",
+    "timeout": 30.0,
+    "use_https": false,
+    "verify_ssl": true
+  },
+  "retry": {
+    "max_attempts": 3,
+    "initial_delay": 1.0,
+    "max_delay": 60.0,
+    "backoff_factor": 2.0,
+    "jitter": true
+  },
+  "output": {
+    "directory": "data",
+    "filename_pattern": "network_context_{timestamp}.json",
+    "latest_filename": "network_context_latest.json",
+    "history_directory": "network_context_history",
+    "embeddings_directory": "embeddings",
+    "metadata_directory": "metadata",
+    "pretty_print": true,
+    "compress_old_files": false,
+    "max_history_files": 1000
+  },
+  "collection": {
+    "interval": 30.0,
+    "continuous_mode": false,
+    "detect_topology_changes": true,
+    "calculate_derived_metrics": true,
+    "validate_data": true,
+    "exclude_local_ports": true,
+    "parallel_collection": true,
+    "max_workers": 4
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file_path": null,
+    "max_file_size": 10485760,
+    "backup_count": 5,
+    "console_output": true,
+    "structured_logging": true
+  }
+}

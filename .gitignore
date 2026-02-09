@@ -1,0 +1,82 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.cache
+nosetests.xml
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/*.log
+
+# Data files (output del collector)
+data/llm_output/*.json
+data/history/*.json
+data/network_context_history/*.json
+!data/llm_output/.gitkeep
+!data/history/.gitkeep
+!data/network_context_history/.gitkeep
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+.~*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.tar.gz
+network-collector-*.tar.gz
+
+# Kiro (se non vuoi committare le spec)
+# .kiro/
+
+# Documentation builds
+docs/_build/
