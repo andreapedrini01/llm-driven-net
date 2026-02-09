@@ -24,8 +24,8 @@ def main():
     print("Setting up LLM Integration Module development environment...\n")
     
     # Check Python version
-    if sys.version_info < (3, 8):
-        print("❌ Python 3.8 or higher is required")
+    if sys.version_info < (3, 11):
+        print("❌ Python 3.11 or higher is required")
         sys.exit(1)
     
     print(f"✓ Python {sys.version_info.major}.{sys.version_info.minor} detected")
