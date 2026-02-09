@@ -2,6 +2,13 @@
 
 Il modulo di integrazione LLM è il componente centrale del sistema di networking intent-based che utilizza **ChatGPT API (OpenAI)** per interpretare intent di rete in linguaggio naturale e generare azioni di configurazione appropriate. L'utilizzo esclusivo di ChatGPT API garantisce velocità di risposta superiore e maggiore accuratezza nell'interpretazione degli intent.
 
+## 📚 Documentazione
+
+- **[QUICK_START.md](QUICK_START.md)** - Guida rapida per iniziare in 5 minuti ⚡
+- **[INSTALL.md](INSTALL.md)** - Guida completa all'installazione 📦
+- **[DEPENDENCIES.md](DEPENDENCIES.md)** - Gestione delle dipendenze 🔧
+- **[README.md](README.md)** - Questo documento (panoramica generale) 📖
+
 ## Struttura del Progetto
 
 ```
@@ -25,32 +32,91 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
 
 ## Installazione
 
-1. Clona il repository
-2. Crea un ambiente virtuale Python:
+### Requisiti di Sistema
+
+- Python 3.10 o superiore
+- pip (package manager Python)
+- Connessione internet per accedere a ChatGPT API
+
+### Installazione su Nuovo Dispositivo
+
+1. **Clona il repository**:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # oppure
-   venv\Scripts\activate     # Windows
+   git clone <repository-url>
+   cd llm-driven-net
    ```
 
-3. Installa le dipendenze:
+2. **Crea un ambiente virtuale Python**:
+   ```bash
+   # Linux/Mac
+   python3 -m venv venv
+   source venv/bin/activate
+   
+   # Windows
+   python -m venv venv
+   venv\Scripts\activate
+   ```
+
+3. **Aggiorna pip** (raccomandato):
+   ```bash
+   python -m pip install --upgrade pip
+   ```
+
+4. **Installa le dipendenze di produzione**:
    ```bash
    pip install -r requirements.txt
    ```
-
-4. **Configura ChatGPT API**:
    
-   Ottieni una API key da [OpenAI Platform](https://platform.openai.com/api-keys) e configurala nel file `.env`:
+   **Oppure**, per sviluppo (include tool di testing e linting):
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+5. **Configura le variabili d'ambiente**:
+   
+   Copia il file di esempio e modificalo:
+   ```bash
+   # Linux/Mac
+   cp .env.example .env
+   
+   # Windows
+   copy .env.example .env
+   ```
+   
+   Modifica `.env` con le tue configurazioni.
+
+6. **Configura ChatGPT API** (OBBLIGATORIO):
+   
+   - Ottieni una API key da [OpenAI Platform](https://platform.openai.com/api-keys)
+   - Aggiungi la chiave al file `.env`:
    
    ```env
    OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
    OPENAI_MODEL=gpt-4-turbo
    ```
-   
-   Vedi [docs/CHATGPT_SETUP.md](docs/CHATGPT_SETUP.md) per istruzioni dettagliate.
 
-5. Modifica il file `.env` con le altre configurazioni necessarie
+7. **Verifica l'installazione**:
+   ```bash
+   # Verifica connessione ChatGPT
+   python scripts/test_chatgpt_connection.py
+   
+   # Esegui i test
+   pytest tests/ -v
+   ```
+
+### Risoluzione Problemi Comuni
+
+**Errore: "No module named 'src'"**
+- Assicurati di essere nella directory root del progetto
+- Verifica che l'ambiente virtuale sia attivato
+
+**Errore: "OpenAI API key not found"**
+- Verifica che il file `.env` esista e contenga `OPENAI_API_KEY`
+- Controlla che la chiave API sia valida su [OpenAI Platform](https://platform.openai.com/api-keys)
+
+**Test falliscono**
+- Verifica che tutte le dipendenze siano installate: `pip list`
+- Controlla che la versione di Python sia >= 3.10: `python --version`
 
 ## Esecuzione
 

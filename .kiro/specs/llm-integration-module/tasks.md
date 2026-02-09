@@ -120,17 +120,17 @@
     - **Property 4: Action generation completeness**
     - **Validates: Requirements 1.4**
 
-  - [ ]* 6.5 Write property test for API resilience
+  - [x] 6.5 Write property test for API resilience
     - **Property 22: API resilience**
     - **Validates: Requirements 6.1, 6.2**
 
-  - [ ] 6.6 Implement action sequencing and optimization
+  - [x] 6.6 Implement action sequencing and optimization
     - Create dependency analysis for action ordering
     - Implement action sequence optimization
     - Add conflict detection and resolution
     - _Requirements: 3.2, 3.4_
 
-  - [ ]* 6.7 Write property test for action sequencing
+  - [x] 6.7 Write property test for action sequencing
     - **Property 10: Action sequencing logic**
     - **Validates: Requirements 3.4**
 
