@@ -1,110 +1,77 @@
-#!/usr/bin/env python3
-"""
-Persona 1  Network State Collector
-
-Interroga il controller Ryu tramite REST API e produce uno snapshot
-dello stato di rete in formato JSON:
-
-- lista degli switch (DPID)
-- flow stats per ogni switch
-- port stats (byte/packet/errori) per ogni switch
-- topologia logica (switch + link) da rest_topology
-"""
-
 import json
 import time
+import requests
 from pathlib import Path
 
-import requests
-
-# Endpoint REST di Ryu (di default 127.0.0.1:8080)
 RYU_REST_BASE = "http://127.0.0.1:8080"
-
-# Dove salvare gli snapshot localmente nel repo
 OUTPUT_DIR = Path("persona1/data")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+def format_dpid(dpid):
+    """Assicura che il DPID sia nel formato esadecimale a 16 cifre."""
+    return f"{int(dpid):016x}"
 
-def get_switches():
-    """Restituisce la lista dei DPID degli switch connessi al controller."""
-    url = f"{RYU_REST_BASE}/stats/switches"
-    resp = requests.get(url, timeout=2)
-    resp.raise_for_status()
-    return resp.json()  # es. [1, 2, 3]
-
-
-def get_flow_stats(dpid: int):
-    """Flow stats per uno switch (usa ryu.app.ofctl_rest)."""
-    url = f"{RYU_REST_BASE}/stats/flow/{dpid}"
-    resp = requests.get(url, timeout=3)
-    resp.raise_for_status()
-    return resp.json()
-
-
-def get_port_stats(dpid: int):
-    """Port stats (bytes, packets, errori) per uno switch."""
-    url = f"{RYU_REST_BASE}/stats/port/{dpid}"
-    resp = requests.get(url, timeout=3)
-    resp.raise_for_status()
-    return resp.json()
-
-
-def get_topology():
-    """
-    Topologia logica da ryu.app.rest_topology:
-    - /v1.0/topology/switches
-    - /v1.0/topology/links
-    """
-    topo = {}
+def get_network_data(endpoint):
     try:
-        sw_resp = requests.get(
-            f"{RYU_REST_BASE}/v1.0/topology/switches", timeout=3
-        )
-        links_resp = requests.get(
-            f"{RYU_REST_BASE}/v1.0/topology/links", timeout=3
-        )
-        sw_resp.raise_for_status()
-        links_resp.raise_for_status()
-        topo["switches"] = sw_resp.json()
-        topo["links"] = links_resp.json()
+        resp = requests.get(f"{RYU_REST_BASE}{endpoint}", timeout=3)
+        resp.raise_for_status()
+        return resp.json()
     except Exception as e:
-        topo["error"] = f"topology_request_failed: {e}"
-    return topo
+        print(f"Errore su {endpoint}: {e}")
+        return {}
 
-
-def collect_network_state() -> dict:
-    """Crea un dizionario con lo stato di rete corrente."""
+def collect_network_state():
+    # 1. Recupero dati grezzi
+    raw_switches = get_network_data("/stats/switches")
+    raw_links = get_network_data("/v1.0/topology/links")
+    
     snapshot = {
         "timestamp": time.time(),
-        "switches": [],
-        "flows": {},
-        "ports": {},
-        "topology": get_topology(),
+        "topology": [],
+        "performance": {}
     }
 
-    dpids = get_switches()
-    snapshot["switches"] = dpids
+    # 2. Costruzione Topologia Semplificata (per il grafo di Andrea)
+    for link in raw_links:
+        snapshot["topology"].append({
+            "src": format_dpid(link["src"]["dpid"]),
+            "dst": format_dpid(link["dst"]["dpid"]),
+            "port_out": link["src"]["port_no"],
+            "port_in": link["dst"]["port_no"]
+        })
 
-    for dpid in dpids:
-        key = str(dpid)
-        snapshot["flows"][key] = get_flow_stats(dpid)
-        snapshot["ports"][key] = get_port_stats(dpid)
-
+    # 3. Estrazione Metriche (per Anomaly Detection dell'LLM)
+    for dpid_int in raw_switches:
+        dpid_hex = format_dpid(dpid_int)
+        port_stats = get_network_data(f"/stats/port/{dpid_int}")
+        
+        # Prendiamo solo i dati che servono per calcolare congestione o errori
+        snapshot["performance"][dpid_hex] = []
+        if str(dpid_int) in port_stats:
+            for p in port_stats[str(dpid_int)]:
+                if p["port_no"] != "LOCAL": # Escludiamo la porta interna del controller
+                    snapshot["performance"][dpid_hex].append({
+                        "port": p["port_no"],
+                        "rx_packets": p["rx_packets"],
+                        "tx_packets": p["tx_packets"],
+                        "rx_errors": p["rx_errors"],
+                        "tx_errors": p["tx_errors"],
+                        "rx_bytes": p["rx_bytes"],
+                        "tx_bytes": p["tx_bytes"]
+                    })
+    
     return snapshot
-
 
 def main():
     state = collect_network_state()
-
-    # Stampa a schermo in modo leggibile
-    print(json.dumps(state, indent=2))
-
-    # Salva con timestamp
-    ts = time.strftime("%Y%m%d-%H%M%S")
-    out_path = OUTPUT_DIR / f"network_state_{ts}.json"
-    out_path.write_text(json.dumps(state, indent=2))
-    print(f"\n[INFO] Network state scritto in: {out_path}")
-
+    
+    # Salvataggio per il modulo di Andrea
+    file_name = f"network_context_latest.json"
+    with open(OUTPUT_DIR / file_name, "w") as f:
+        json.dump(state, f, indent=2)
+    
+    print(f"Snapshot creato alle {time.ctime(state['timestamp'])}")
+    print(f"Switch rilevati: {len(state['performance'])}")
 
 if __name__ == "__main__":
     main()

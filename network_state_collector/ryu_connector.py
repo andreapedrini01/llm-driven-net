@@ -288,7 +288,14 @@ class RyuConnector:
             switches = []
             for switch_data in switches_data:
                 try:
-                    dpid = switch_data.get('dpid')
+                    # Gestisce sia formato dict {"dpid": 1} che formato int 1
+                    if isinstance(switch_data, dict):
+                        dpid = switch_data.get('dpid')
+                    elif isinstance(switch_data, int):
+                        dpid = switch_data
+                    else:
+                        dpid = str(switch_data)
+                    
                     if dpid is None:
                         self.logger.warning("Switch without DPID found, skipping")
                         continue
@@ -360,11 +367,14 @@ class RyuConnector:
         """
         Recupera i link di topologia dal controller Ryu
         
+        Fallback: se l'endpoint /v1.0/topology/links non è disponibile,
+        ritorna una lista vuota invece di fallire.
+        
         Returns:
             Lista di LinkInfo con DPID formattati e informazioni porte
             
         Raises:
-            RyuConnectionError: Per errori di connessione
+            RyuConnectionError: Per errori di connessione critici
             RyuDataError: Per dati malformati
         """
         self.logger.debug("Fetching topology links from Ryu controller")
@@ -406,7 +416,13 @@ class RyuConnector:
             self.logger.info(f"Retrieved {len(links)} topology links")
             return links
             
-        except (RyuConnectionError, RyuTimeoutError, RyuDataError):
+        except RyuConnectionError as e:
+            # Se l'endpoint non esiste (404), ritorna lista vuota invece di fallire
+            if "404" in str(e):
+                self.logger.warning("Topology API not available (404), returning empty links list")
+                return []
+            raise
+        except (RyuTimeoutError, RyuDataError):
             raise
         except Exception as e:
             error_msg = f"Unexpected error getting links: {e}"
