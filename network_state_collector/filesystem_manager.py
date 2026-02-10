@@ -167,7 +167,6 @@ class FileSystemManager:
                     json.dump(llm_data, f, indent=2, ensure_ascii=False)
             else:
                 self.serializer.save_to_file(llm_data, file_path)
-            self.serializer.save_to_file(llm_data, file_path)
             
             # Imposta permessi
             self._set_file_permissions(file_path)
