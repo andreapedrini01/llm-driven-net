@@ -24,8 +24,7 @@ input()
 print("\n🔍 Raccolgo 3 snapshot dopo la disconnessione...")
 for i in range(3):
     snapshot = collector.collect_snapshot()
-    anomalies = len(snapshot.get('anomaly_indicators', []))
-    print(f"   ✓ Snapshot {i+1}/3 raccolto - Anomalie: {anomalies}")
+    print(f"   ✓ Snapshot {i+1}/3 raccolto")
     time.sleep(2)
 
 # Mostra anomalie finali
