@@ -59,15 +59,15 @@ class LLMIntegrator:
             'anomaly_detection': enable_anomaly_detection
         })
     
-    def format_for_llm(self, snapshot: NetworkSnapshot) -> LLMNetworkData:
+    def format_for_llm(self, snapshot: NetworkSnapshot) -> Dict[str, Any]:
         """
-        Converte un NetworkSnapshot in formato LLMNetworkData
+        Converte un NetworkSnapshot in formato JSON per LLM
         
         Args:
             snapshot: Snapshot della rete da convertire
             
         Returns:
-            Dati formattati per l'integrazione LLM
+            Dizionario con i dati formattati per l'integrazione LLM
             
         Raises:
             LLMIntegrationError: Se la conversione fallisce
@@ -78,40 +78,32 @@ class LLMIntegrator:
                 'timestamp': snapshot.timestamp
             })
             
-            # Crea contesto di rete
+            # Crea contesto di rete nel nuovo formato
             network_context = self._create_network_context(snapshot)
             
-            # Genera vettori di performance
-            performance_vectors = self._create_performance_vectors(snapshot.metrics)
-            
-            # Crea embedding topologico
-            topology_embedding = self._create_topology_embedding(snapshot.topology)
-            
-            # Genera features temporali
-            temporal_features = self._create_temporal_features(snapshot)
-            
-            # Rileva anomalie se abilitato
-            anomaly_indicators = []
+            # Aggiungi anomalie se abilitate
             if self.enable_anomaly_detection:
                 anomaly_indicators = self._detect_anomalies(snapshot)
-            
-            llm_data = LLMNetworkData(
-                network_context=network_context,
-                performance_vectors=performance_vectors,
-                topology_embedding=topology_embedding,
-                temporal_features=temporal_features,
-                anomaly_indicators=anomaly_indicators
-            )
+                network_context["anomalies"] = [
+                    {
+                        "type": a.type,
+                        "severity": a.severity,
+                        "description": a.description,
+                        "affected_components": a.affected_components,
+                        "timestamp": a.timestamp,
+                        "confidence": a.confidence
+                    }
+                    for a in anomaly_indicators
+                ]
             
             self.logger.info("LLM format conversion completed", extra={
                 'component': 'LLMIntegrator',
-                'nodes_count': len(network_context.get('topology', {}).get('nodes', [])),
-                'edges_count': len(network_context.get('topology', {}).get('edges', [])),
-                'performance_vectors_count': len(performance_vectors),
-                'anomalies_count': len(anomaly_indicators)
+                'switches_count': len(network_context.get('topology', {}).get('switches', [])),
+                'links_count': len(network_context.get('topology', {}).get('links', [])),
+                'anomalies_count': len(network_context.get('anomalies', []))
             })
             
-            return llm_data
+            return network_context
             
         except Exception as e:
             error_msg = f"Failed to format data for LLM: {e}"
@@ -210,39 +202,116 @@ class LLMIntegrator:
         )
     
     def _create_network_context(self, snapshot: NetworkSnapshot) -> Dict[str, Any]:
-        """Crea il contesto di rete per LLM"""
+        """Crea il contesto di rete per LLM nel nuovo formato"""
+        from datetime import datetime
+        
         topology_data = snapshot.topology
         metrics_data = snapshot.metrics
         
-        # Nodi (switch) con DPID formattati
-        nodes = [switch.dpid for switch in topology_data.switches]
+        # Formatta timestamp in ISO 8601
+        timestamp_iso = datetime.fromtimestamp(snapshot.timestamp).strftime('%Y-%m-%dT%H:%M:%S')
         
-        # Archi (link) con informazioni porte
-        edges = []
-        for link in topology_data.links:
-            edges.append({
-                "src": link.src_dpid,
-                "dst": link.dst_dpid,
-                "port_out": link.src_port,
-                "port_in": link.dst_port,
-                "active": link.active
+        # Switches con formato esteso
+        switches = []
+        for idx, switch in enumerate(topology_data.switches, 1):
+            # Formatta DPID con zeri iniziali se necessario
+            dpid_formatted = str(switch.dpid).zfill(16) if len(str(switch.dpid)) < 16 else str(switch.dpid)
+            
+            switches.append({
+                "id": f"switch_{dpid_formatted}",
+                "name": f"Switch {idx}",
+                "dpid": dpid_formatted,
+                "ports": switch.ports,
+                "status": "active" if switch.active else "inactive"
             })
         
-        # Dati di performance aggregati
-        performance_data = self._aggregate_performance_data(metrics_data)
+        # Links con formato esteso
+        links = []
+        for idx, link in enumerate(topology_data.links, 1):
+            # Formatta DPID con zeri iniziali
+            src_dpid = str(link.src_dpid).zfill(16) if len(str(link.src_dpid)) < 16 else str(link.src_dpid)
+            dst_dpid = str(link.dst_dpid).zfill(16) if len(str(link.dst_dpid)) < 16 else str(link.dst_dpid)
+            
+            # Calcola bandwidth e latency dalle metriche se disponibili
+            bandwidth = 1000  # Default 1Gbps
+            latency = 5.0     # Default 5ms
+            
+            links.append({
+                "id": f"link_{idx}",
+                "source_switch": f"switch_{src_dpid}",
+                "source_port": link.src_port,
+                "destination_switch": f"switch_{dst_dpid}",
+                "destination_port": link.dst_port,
+                "bandwidth": bandwidth,
+                "latency": latency,
+                "status": "active" if link.active else "inactive"
+            })
+        
+        # Hosts (vuoto per ora, da implementare se necessario)
+        hosts = []
+        
+        # Calcola metriche aggregate
+        total_bandwidth = 0
+        used_bandwidth = 0
+        total_ports = 0
+        total_errors = 0
+        latencies = []
+        
+        for dpid, port_metrics_list in metrics_data.port_statistics.items():
+            for port_metric in port_metrics_list:
+                total_ports += 1
+                port_bandwidth = 1000  # 1Gbps per porta
+                total_bandwidth += port_bandwidth
+                
+                # Calcola utilizzo
+                utilization = port_metric.calculate_utilization()
+                used_bandwidth += port_bandwidth * utilization
+                
+                # Errori
+                total_errors += port_metric.rx_errors + port_metric.tx_errors
+                
+                # Latenza stimata (basata su utilizzo)
+                estimated_latency = 5.0 + (utilization * 15.0)  # 5-20ms
+                latencies.append(estimated_latency)
+        
+        # Metriche aggregate
+        available_bandwidth = total_bandwidth - used_bandwidth
+        utilization_percentage = (used_bandwidth / total_bandwidth * 100) if total_bandwidth > 0 else 0.0
+        
+        avg_latency = sum(latencies) / len(latencies) if latencies else 0.0
+        min_latency = min(latencies) if latencies else 0.0
+        max_latency = max(latencies) if latencies else 0.0
+        jitter = (max_latency - min_latency) / 2 if latencies else 0.0
         
         return {
+            "timestamp": timestamp_iso,
             "topology": {
-                "nodes": nodes,
-                "edges": edges,
-                "node_count": len(nodes),
-                "edge_count": len(edges)
+                "switches": switches,
+                "links": links,
+                "hosts": hosts
             },
-            "performance": performance_data,
-            "metadata": {
-                "timestamp": snapshot.timestamp,
-                "collection_time": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(snapshot.timestamp))
-            }
+            "flows": [],
+            "slices": [],
+            "metrics": {
+                "bandwidth": {
+                    "total_capacity": int(total_bandwidth),
+                    "used_bandwidth": int(used_bandwidth),
+                    "available_bandwidth": int(available_bandwidth),
+                    "utilization_percentage": round(utilization_percentage, 1)
+                },
+                "latency": {
+                    "average_latency": round(avg_latency, 1),
+                    "min_latency": round(min_latency, 1),
+                    "max_latency": round(max_latency, 1),
+                    "jitter": round(jitter, 1)
+                },
+                "utilization": {
+                    "cpu_utilization": 0.0,  # Non disponibile da Ryu
+                    "memory_utilization": 0.0,  # Non disponibile da Ryu
+                    "disk_utilization": 0.0  # Non disponibile da Ryu
+                }
+            },
+            "anomalies": []
         }
     
     def _create_performance_vectors(self, metrics: MetricsData) -> List[List[float]]:

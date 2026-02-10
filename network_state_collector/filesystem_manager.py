@@ -117,14 +117,14 @@ class FileSystemManager:
             self.logger.error(error_msg, extra={'component': 'FileSystemManager'})
             raise FileSystemError(error_msg) from e
     
-    def save_llm_data(self, llm_data: LLMNetworkData, 
+    def save_llm_data(self, llm_data: Union[Dict[str, Any], 'LLMNetworkData'], 
                       filename: Optional[str] = None,
                       as_latest: bool = True) -> Path:
         """
         Salva dati LLM su file
         
         Args:
-            llm_data: Dati LLM da salvare
+            llm_data: Dati LLM da salvare (Dict o LLMNetworkData)
             filename: Nome file personalizzato (opzionale)
             as_latest: Se salvare anche come file "latest"
             
@@ -135,19 +135,38 @@ class FileSystemManager:
             FileSystemError: Se il salvataggio fallisce
         """
         try:
-            if filename is None:
+            # Gestisci sia Dict che LLMNetworkData
+            if isinstance(llm_data, dict):
+                timestamp = llm_data.get('timestamp')
+                if timestamp:
+                    # Converti da ISO string a timestamp se necessario
+                    if isinstance(timestamp, str):
+                        from datetime import datetime
+                        timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).timestamp()
+                else:
+                    timestamp = datetime.now().timestamp()
+            else:
+                # LLMNetworkData object
                 timestamp = llm_data.temporal_features.get('timestamp', datetime.now().timestamp())
+            
+            if filename is None:
                 filename = self._generate_llm_filename(timestamp)
             
             file_path = self._get_llm_output_path() / filename
             
-            self.logger.debug("Saving LLMNetworkData", extra={
+            self.logger.debug("Saving LLM data", extra={
                 'component': 'FileSystemManager',
                 'file_path': str(file_path),
                 'as_latest': as_latest
             })
             
-            # Salva usando il serializer
+            # Salva usando il serializer o JSON diretto
+            if isinstance(llm_data, dict):
+                import json
+                with open(file_path, 'w') as f:
+                    json.dump(llm_data, f, indent=2, ensure_ascii=False)
+            else:
+                self.serializer.save_to_file(llm_data, file_path)
             self.serializer.save_to_file(llm_data, file_path)
             
             # Imposta permessi
