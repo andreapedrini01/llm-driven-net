@@ -4,6 +4,9 @@ import asyncio
 import threading
 import time
 import copy
+import json
+import os
+from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass
@@ -40,18 +43,23 @@ class CacheEntry:
 
 
 class NetworkStateCache:
-    """Thread-safe cache for NetworkState with TTL support."""
+    """Thread-safe cache for NetworkState with TTL support and file reading."""
 
-    def __init__(self, default_ttl: int = 300, max_entries: int = 100):
+    def __init__(self, default_ttl: int = 300, max_entries: int = 100, 
+                 cache_folder: Optional[str] = None, state_file_name: Optional[str] = None):
         """
         Initialize NetworkState cache.
         
         Args:
             default_ttl: Default time-to-live in seconds
             max_entries: Maximum number of cache entries
+            cache_folder: Path to cache folder for JSON files
+            state_file_name: Name of the state JSON file
         """
         self.default_ttl = default_ttl
         self.max_entries = max_entries
+        self.cache_folder = cache_folder or "./cache"
+        self.state_file_name = state_file_name or "network_state.json"
         self._cache: Dict[str, CacheEntry] = {}
         self._lock = threading.RLock()
         self._current_state: Optional[CacheEntry] = None
@@ -210,6 +218,138 @@ class NetworkStateCache:
         
         if expired_keys:
             self._logger.debug(f"Cleaned up {len(expired_keys)} expired cache entries")
+
+    def load_state_from_file(self, file_path: Optional[str] = None, max_retries: int = 3) -> Optional[NetworkState]:
+        """
+        Load network state from JSON file with retry logic.
+        
+        Args:
+            file_path: Path to JSON file (uses default if None)
+            max_retries: Maximum number of retry attempts
+            
+        Returns:
+            NetworkState loaded from file or None if failed
+            
+        Raises:
+            FileNotFoundError: If file doesn't exist after retries
+            json.JSONDecodeError: If JSON is malformed after retries
+            ValueError: If JSON structure is invalid
+        """
+        if file_path is None:
+            file_path = os.path.join(self.cache_folder, self.state_file_name)
+        
+        retry_count = 0
+        last_error = None
+        
+        while retry_count < max_retries:
+            try:
+                # Check if file exists
+                if not os.path.exists(file_path):
+                    raise FileNotFoundError(f"State file not found: {file_path}")
+                
+                # Read and parse JSON file
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                # Convert JSON to NetworkState
+                state = self._parse_json_to_state(data)
+                
+                # Update cache with loaded state
+                self.update_state(state)
+                
+                self._logger.info(f"Successfully loaded state from {file_path}")
+                return state
+                
+            except FileNotFoundError as e:
+                last_error = e
+                self._logger.warning(f"File not found (attempt {retry_count + 1}/{max_retries}): {file_path}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    time.sleep(2 ** retry_count)  # Exponential backoff
+                    
+            except json.JSONDecodeError as e:
+                last_error = e
+                self._logger.error(f"JSON decode error (attempt {retry_count + 1}/{max_retries}): {e}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    time.sleep(2 ** retry_count)  # Exponential backoff
+                    
+            except (ValueError, KeyError) as e:
+                last_error = e
+                self._logger.error(f"Invalid JSON structure (attempt {retry_count + 1}/{max_retries}): {e}")
+                retry_count += 1
+                if retry_count < max_retries:
+                    time.sleep(2 ** retry_count)  # Exponential backoff
+        
+        # All retries failed
+        self._logger.error(f"Failed to load state after {max_retries} attempts: {last_error}")
+        raise last_error
+
+    def _parse_json_to_state(self, data: Dict[str, Any]) -> NetworkState:
+        """
+        Parse JSON data to NetworkState object.
+        
+        Args:
+            data: JSON data dictionary
+            
+        Returns:
+            NetworkState object
+            
+        Raises:
+            ValueError: If required fields are missing or invalid
+        """
+        try:
+            # Use Pydantic's model_validate to create NetworkState
+            return NetworkState.model_validate(data)
+            
+        except Exception as e:
+            raise ValueError(f"Failed to parse JSON to NetworkState: {e}")
+
+    def refresh_state(self, file_path: Optional[str] = None) -> Optional[NetworkState]:
+        """
+        Refresh network state by reloading from file.
+        
+        Args:
+            file_path: Path to JSON file (uses default if None)
+            
+        Returns:
+            Refreshed NetworkState or None if failed
+        """
+        self._logger.info("Refreshing network state from file")
+        try:
+            return self.load_state_from_file(file_path)
+        except Exception as e:
+            self._logger.error(f"Failed to refresh state: {e}")
+            return None
+
+    def get_state_age(self) -> Optional[float]:
+        """
+        Get age of current state in seconds.
+        
+        Returns:
+            Age in seconds or None if no state available
+        """
+        with self._lock:
+            if self._current_state is None:
+                return None
+            
+            return (datetime.now() - self._current_state.cached_at).total_seconds()
+
+    def is_state_stale(self, max_age: int = 300) -> bool:
+        """
+        Check if current state is stale (too old).
+        
+        Args:
+            max_age: Maximum acceptable age in seconds
+            
+        Returns:
+            True if state is stale or unavailable
+        """
+        age = self.get_state_age()
+        if age is None:
+            return True
+        
+        return age > max_age
 
 
 class ContextCorrelationEngine:

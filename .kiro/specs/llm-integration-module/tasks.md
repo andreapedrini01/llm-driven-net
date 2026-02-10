@@ -69,7 +69,7 @@
     - Add file watching for automatic state updates
     - _Requirements: 2.1, 2.3, 2.4_
 
-  - [x]* 4.2 Write property test for state file reading
+  - [x] 4.2 Write property test for state file reading
     - **Property 6: State file reading reliability**
     - **Validates: Requirements 2.1, 2.2**
 
@@ -79,7 +79,7 @@
     - Create context enrichment for LLM processing
     - _Requirements: 1.5, 2.4_
 
-  - [x]* 4.4 Write property test for state freshness
+  - [x] 4.4 Write property test for state freshness
     - **Property 5: State data freshness**
     - **Validates: Requirements 1.5, 2.3, 2.4**
 
@@ -89,7 +89,7 @@
     - Add automatic anomaly response generation
     - _Requirements: 4.1, 4.2, 4.3_
 
-  - [x]* 4.6 Write property test for anomaly detection
+  - [x] 4.6 Write property test for anomaly detection
     - **Property 12: Anomaly detection comprehensiveness**
     - **Validates: Requirements 4.1, 4.2**
 
@@ -169,14 +169,14 @@
     - _Requirements: 3.2_
 
 - [ ] 8. Develop communication interfaces
-  - [ ] 8.1 Create JSON file reader for network state
+  - [x] 8.1 Create JSON file reader for network state
     - Implement file reading with error handling
     - Add JSON parsing and validation
     - Create retry logic with exponential backoff for file access
     - Implement file watching for automatic updates
     - _Requirements: 2.1, 6.1_
 
-  - [ ]* 8.2 Write property test for file system resilience
+  - [x] 8.2 Write property test for file system resilience
     - **Property 21: File system resilience**
     - **Validates: Requirements 6.1**
 
