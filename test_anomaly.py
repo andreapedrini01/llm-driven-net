@@ -4,11 +4,9 @@
 import time
 import json
 from network_state_collector import NetworkStateCollector
-from network_state_collector.models.config import CollectorConfig
 
-# Carica config
-config = CollectorConfig.from_yaml('config/development.yaml')
-collector = NetworkStateCollector(config)
+# Usa config di default
+collector = NetworkStateCollector()
 
 print("🔍 Avvio monitoraggio anomalie...")
 print("   Raccolgo 3 snapshot prima della disconnessione...")
