@@ -149,13 +149,13 @@ Questo piano converte il design del Network State Collector in una serie di task
     - **Proprietà 8: Isolamento Errori per Switch**
     - **Valida: Requisiti 2.5**
 
-  - [~] 10.3 Implementare API per integrazione LLM
+  - [ ] 10.3 Implementare API per integrazione LLM
     - Creare LLMDataProvider con metodi per accesso dati
     - Implementare get_latest_context() e get_historical_data()
     - _Requisiti: 3.5_
 
 - [ ] 11. Finalizzazione e documentazione
-  - [~] 11.1 Creare script di esempio e configurazioni
+  - [ ] 11.1 Creare script di esempio e configurazioni
     - Implementare script main.py per utilizzo standalone
     - Creare file di configurazione per diversi ambienti
     - Aggiungere esempi di integrazione con repository LLM
@@ -172,7 +172,7 @@ Questo piano converte il design del Network State Collector in una serie di task
     - Finalizzare documentazione API e configurazione
     - _Requisiti: 4.5, 7.4_
 
-- [~] 12. Checkpoint finale - Verifica completa sistema
+- [x] 12. Checkpoint finale - Verifica completa sistema
   - Assicurarsi che tutti i test passino, verificare integrazione LLM, chiedere all'utente se sorgono domande.
 
 ## Note
