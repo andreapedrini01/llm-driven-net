@@ -23,6 +23,7 @@ MANIFEST
 
 # Virtual Environment
 venv/
+venv_test/
 env/
 ENV/
 env.bak/
@@ -54,12 +55,10 @@ nosetests.xml
 logs/*.log
 
 # Data files (output del collector)
-data/llm_output/*.json
 data/history/*.json
-data/network_context_history/*.json
-!data/llm_output/.gitkeep
 !data/history/.gitkeep
-!data/network_context_history/.gitkeep
+data/archive/
+data/network_context_history/
 
 # Temporary files
 *.tmp
