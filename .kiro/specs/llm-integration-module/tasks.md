@@ -57,19 +57,20 @@
     - Add interactive clarification handling
     - _Requirements: 1.3_
 
-  - [x]* 3.5 Write property test for clarification requests
+  - [x] 3.5 Write property test for clarification requests
     - **Property 3: Clarification request appropriateness**
     - **Validates: Requirements 1.3**
 
 - [x] 4. Build Context Analyzer component
-  - [x] 4.1 Implement NetworkState cache and management
+  - [x] 4.1 Implement NetworkState cache and file reading
     - Create thread-safe state cache with TTL
-    - Implement state update mechanisms from RYU
-    - Add state freshness validation
+    - Implement JSON file reading from cache folder
+    - Add state freshness validation and automatic refresh
+    - Add file watching for automatic state updates
     - _Requirements: 2.1, 2.3, 2.4_
 
-  - [x]* 4.2 Write property test for state synchronization
-    - **Property 6: State synchronization reliability**
+  - [x]* 4.2 Write property test for state file reading
+    - **Property 6: State file reading reliability**
     - **Validates: Requirements 2.1, 2.2**
 
   - [x] 4.3 Create context correlation engine
@@ -168,20 +169,22 @@
     - _Requirements: 3.2_
 
 - [ ] 8. Develop communication interfaces
-  - [ ] 8.1 Create RYU Controller interface
-    - Implement REST API client for RYU communication
-    - Add WebSocket support for real-time updates
-    - Create retry logic with exponential backoff
+  - [ ] 8.1 Create JSON file reader for network state
+    - Implement file reading with error handling
+    - Add JSON parsing and validation
+    - Create retry logic with exponential backoff for file access
+    - Implement file watching for automatic updates
     - _Requirements: 2.1, 6.1_
 
-  - [ ]* 8.2 Write property test for communication resilience
-    - **Property 21: Communication resilience**
+  - [ ]* 8.2 Write property test for file system resilience
+    - **Property 21: File system resilience**
     - **Validates: Requirements 6.1**
 
-  - [ ] 8.3 Build Northbound Script interface
-    - Create API for sending actions to Northbound Script
-    - Implement action status tracking and feedback
-    - Add execution result processing
+  - [ ] 8.3 Build action output interface (preparazione per futuro modulo Northbound)
+    - Create structured output format for validated actions
+    - Implement action serialization to JSON/file for future integration
+    - Add action logging and storage for traceability
+    - Design interface contract for future Northbound module integration
     - _Requirements: 3.3, 3.5_
 
   - [ ]* 8.4 Write property test for action traceability
@@ -199,6 +202,7 @@
     - Create error classification and handling strategies
     - Add graceful degradation for ChatGPT API failures
     - Implement circuit breaker patterns
+    - Add handling for file reading errors (missing file, corrupted JSON)
     - _Requirements: 6.2, 6.4_
 
   - [ ]* 9.2 Write property test for degraded mode operation
@@ -264,10 +268,11 @@
 
 - [ ] 12. Integration and system testing
   - [ ] 12.1 Create integration test suite
-    - Build end-to-end test scenarios
+    - Build end-to-end test scenarios with mock JSON files
     - Add load testing and performance validation
-    - Create chaos engineering tests
+    - Create chaos engineering tests (corrupted files, missing files)
     - Test rate limiting and cost management
+    - Test file watching and automatic state refresh
     - _Requirements: All_
 
   - [ ] 12.2 Implement ChatGPT API mocking for tests

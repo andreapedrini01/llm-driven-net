@@ -2,13 +2,15 @@
 
 ## Overview
 
-Il modulo di integrazione LLM è progettato come un servizio middleware che funge da ponte intelligente tra gli intent degli utenti espressi in linguaggio naturale e le azioni concrete di configurazione di rete. Il modulo utilizza ChatGPT API (OpenAI) per interpretare intent complessi, analizzare lo stato della rete fornito da RYU, e generare sequenze di azioni validate che vengono poi eseguite dal Northbound script.
+Il modulo di integrazione LLM è progettato come un servizio middleware che funge da ponte intelligente tra gli intent degli utenti espressi in linguaggio naturale e le azioni concrete di configurazione di rete. Il modulo utilizza ChatGPT API (OpenAI) per interpretare intent complessi, analizzare lo stato della rete letto da file JSON in cache, e generare sequenze di azioni validate.
 
-L'architettura è basata su un pattern di microservizi con comunicazione asincrona, garantendo scalabilità e resilienza. Il modulo mantiene una rappresentazione interna dello stato della rete e utilizza tecniche di prompt engineering ottimizzate per il dominio networking. L'utilizzo esclusivo di ChatGPT API semplifica l'implementazione, migliora la velocità di risposta e garantisce accuratezza superiore nell'interpretazione degli intent.
+L'architettura è basata su un pattern modulare con separazione chiara delle responsabilità. Un modulo esterno si occupa di connettersi al controller Ryu e salvare lo stato della rete come file JSON nella cartella cache. Il modulo LLM legge e analizza questo file JSON per ottenere lo stato corrente della rete. Le azioni generate vengono salvate in formato strutturato (JSON/file) pronte per la futura integrazione con il modulo Northbound che applicherà le modifiche alla rete. Il modulo mantiene una rappresentazione interna dello stato della rete e utilizza tecniche di prompt engineering ottimizzate per il dominio networking. L'utilizzo esclusivo di ChatGPT API semplifica l'implementazione, migliora la velocità di risposta e garantisce accuratezza superiore nell'interpretazione degli intent.
+
+**Nota**: Il sistema è progettato per esecuzione locale con l'unico collegamento esterno tramite internet all'API di ChatGPT. Il modulo Northbound per l'esecuzione delle azioni verrà integrato in futuro.
 
 ## Architecture
 
-Il sistema segue un'architettura a tre livelli:
+Il sistema segue un'architettura modulare con separazione chiara delle responsabilità:
 
 ```mermaid
 graph TB
@@ -17,8 +19,8 @@ graph TB
         API[REST API Gateway]
     end
     
-    subgraph "Processing Layer"
-        LLM[LLM Integration Module]
+    subgraph "LLM Integration Module"
+        LLM[LLM Core]
         subgraph "LLM Core Components"
             IP[Intent Parser]
             CA[Context Analyzer] 
@@ -29,9 +31,14 @@ graph TB
         Logger[Event Logger]
     end
     
+    subgraph "External Modules"
+        EM1[External Module 1:<br/>Ryu State Reader]
+        EM2[External Module 2:<br/>Northbound Executor]
+    end
+    
     subgraph "Data Layer"
         RYU[RYU Controller]
-        NS[Northbound Script]
+        JSON[JSON File<br/>in Cache Folder]
         DB[(Configuration DB)]
     end
     
@@ -41,8 +48,10 @@ graph TB
     IP --> CA
     CA --> AG
     AG --> V
-    V --> NS
-    RYU --> Cache
+    V --> EM2
+    RYU --> EM1
+    EM1 --> JSON
+    JSON --> Cache
     Cache --> CA
     LLM --> Logger
     Logger --> DB
@@ -50,12 +59,16 @@ graph TB
 
 ### Communication Flow
 
-1. **Intent Reception**: Gli intent arrivano tramite REST API o interfaccia web
-2. **State Synchronization**: Il modulo riceve aggiornamenti periodici da RYU
-3. **Intent Processing**: Il LLM analizza l'intent nel contesto dello stato corrente
-4. **Action Generation**: Vengono generate azioni strutturate e validate
-5. **Execution**: Le azioni vengono inviate al Northbound script per l'esecuzione
-6. **Feedback Loop**: I risultati vengono monitorati e utilizzati per migliorare future decisioni
+1. **State Collection** (External Module 1): Un modulo esterno si connette al controller Ryu, legge lo stato della rete e lo salva come file JSON nella cartella cache
+2. **Intent Reception**: Gli intent arrivano tramite REST API o interfaccia web al modulo LLM
+3. **State Loading**: Il modulo LLM legge il file JSON dalla cache per ottenere lo stato corrente della rete
+4. **Intent Processing**: Il LLM analizza l'intent nel contesto dello stato caricato
+5. **Action Generation**: Vengono generate azioni strutturate e validate
+6. **Action Output**: Le azioni vengono salvate in formato strutturato (JSON/file) per futura integrazione con il modulo Northbound
+7. **Future Execution** (External Module 2 - da integrare): Il modulo Northbound applicherà le azioni alla rete
+8. **Logging**: Tutte le operazioni vengono registrate per tracciabilità e debugging
+
+**Nota**: Il modulo Northbound (External Module 2) verrà integrato in futuro. Per ora, il sistema genera e valida le azioni, salvandole in formato strutturato pronto per l'integrazione futura.
 
 ## Components and Interfaces
 
@@ -114,16 +127,61 @@ graph TB
   - `checkSafety(actions: ActionSequence) -> SafetyReport`
   - `simulateExecution(actions: ActionSequence) -> SimulationResult`
 
+### External Module Interface
+**Responsabilità**: Output delle azioni validate per futura integrazione con modulo Northbound
+- **Input**: ValidatedActions
+- **Output**: Structured output (JSON/file) per future integration
+- **Interfacce**:
+  - `outputActions(actions: ValidatedActions) -> OutputResult`
+  - `serializeActions(actions: ValidatedActions) -> string`
+  - `saveActionsToFile(actions: ValidatedActions, path: string) -> bool`
+
+**Nota**: Questa interfaccia è progettata per facilitare la futura integrazione con il modulo Northbound che verrà sviluppato successivamente.
+
 ### State Cache
-**Responsabilità**: Mantenimento di una rappresentazione aggiornata dello stato della rete
-- **Input**: NetworkState updates da RYU
+**Responsabilità**: Lettura e mantenimento dello stato della rete da file JSON in cache
+- **Input**: Path al file JSON nella cartella cache
 - **Output**: Current NetworkState per Context Analyzer
 - **Interfacce**:
-  - `updateState(newState: NetworkState) -> void`
+  - `loadStateFromFile(filePath: string) -> NetworkState`
   - `getCurrentState() -> NetworkState`
-  - `getHistoricalState(timestamp: Date) -> NetworkState`
+  - `getStateAge() -> number` (secondi dall'ultimo caricamento)
+  - `refreshState() -> NetworkState` (ricarica il file JSON)
+  - `isStateStale(maxAge: number) -> bool` (verifica se lo stato è troppo vecchio)
 
 ## Data Models
+
+### Cache Configuration
+```typescript
+interface CacheConfig {
+  cacheFolder: string;           // Path alla cartella cache (es. "./cache")
+  stateFileName: string;          // Nome del file JSON (es. "network_state.json")
+  maxStateAge: number;            // Età massima dello stato in secondi prima di considerarlo stale
+  refreshInterval: number;        // Intervallo di refresh automatico in secondi (opzionale)
+  watchFile: boolean;             // Se true, monitora il file per cambiamenti automatici
+}
+```
+
+### JSON File Format
+Il file JSON nella cache deve seguire questo formato:
+```json
+{
+  "timestamp": "2024-01-15T10:30:00Z",
+  "topology": {
+    "switches": [...],
+    "links": [...],
+    "hosts": [...]
+  },
+  "flows": [...],
+  "slices": [...],
+  "metrics": {
+    "bandwidth": {...},
+    "latency": {...},
+    "utilization": {...}
+  },
+  "anomalies": [...]
+}
+```
 
 ### IntentObject
 ```typescript
@@ -253,11 +311,11 @@ Dopo aver analizzato tutti i criteri di accettazione, ho identificato alcune pro
 **Validates: Requirements 1.4**
 
 **Property 5: State data freshness**
-*For any* intent processing operation, the LLM_Module should use the most recent NetworkState data available and request updates when data exceeds the configured age threshold
+*For any* intent processing operation, the LLM_Module should load the most recent NetworkState data from the JSON file in cache and request a refresh when data exceeds the configured age threshold
 **Validates: Requirements 1.5, 2.3, 2.4**
 
-**Property 6: State synchronization reliability**
-*For any* NetworkState data received from RYU_Controller, the LLM_Module should correctly store valid data and properly handle corrupted or incomplete data with appropriate error signaling
+**Property 6: State file reading reliability**
+*For any* JSON file read operation, the LLM_Module should correctly parse valid JSON data and properly handle corrupted or malformed files with appropriate error signaling
 **Validates: Requirements 2.1, 2.2**
 
 **Property 7: Dynamic state adaptation**
@@ -265,7 +323,7 @@ Dopo aver analizzato tutti i criteri di accettazione, ho identificato alcune pro
 **Validates: Requirements 2.5**
 
 **Property 8: Action validation and formatting**
-*For any* generated NetworkAction sequence, all actions should be syntactically and semantically valid and formatted according to the Northbound_Script interface specification
+*For any* generated NetworkAction sequence, all actions should be syntactically and semantically valid and formatted according to the external module's interface specification
 **Validates: Requirements 3.1, 3.3**
 
 **Property 9: Conflict detection accuracy**
@@ -277,7 +335,7 @@ Dopo aver analizzato tutti i criteri di accettazione, ho identificato alcune pro
 **Validates: Requirements 3.4**
 
 **Property 11: Action traceability**
-*For any* NetworkAction sent to the Northbound_Script, a complete log entry should be created and maintained for audit and debugging purposes
+*For any* NetworkAction sent to the external execution module, a complete log entry should be created and maintained for audit and debugging purposes
 **Validates: Requirements 3.5**
 
 **Property 12: Anomaly detection comprehensiveness**
@@ -316,8 +374,8 @@ Dopo aver analizzato tutti i criteri di accettazione, ho identificato alcune pro
 *For any* change in NetworkSlice state, all dependent configurations should be automatically updated to maintain system consistency
 **Validates: Requirements 5.5**
 
-**Property 21: Communication resilience**
-*For any* communication error with RYU_Controller, the retry mechanism should implement exponential backoff and eventually succeed or fail gracefully
+**Property 21: File system resilience**
+*For any* file reading error when accessing the JSON cache file, the retry mechanism should implement exponential backoff and eventually succeed or fail gracefully with appropriate error reporting
 **Validates: Requirements 6.1**
 
 **Property 22: API resilience**
@@ -416,8 +474,10 @@ Il sistema implementa una strategia di error handling a più livelli:
 - **Action Generation Failures**: Retry con parametri semplificati (temperatura ridotta, prompt più semplici)
 
 ### Communication Errors
-- **RYU Connection Issues**: Retry con backoff esponenziale, max 5 tentativi
-- **Northbound Script Failures**: Rollback automatico e notifica errori
+- **JSON File Reading Issues**: Retry con backoff esponenziale, max 5 tentativi
+- **File Not Found**: Attesa e retry periodico, notifica se il file non viene creato entro timeout
+- **Malformed JSON**: Logging dettagliato dell'errore, notifica amministratori, attesa per file aggiornato
+- **External Module Communication Failures**: Retry con backoff esponenziale, queue delle azioni in attesa
 - **Database Errors**: Transazioni atomiche e recovery automatico
 
 ### System Errors
@@ -455,17 +515,18 @@ Il sistema utilizza sia unit testing che property-based testing per garantire co
 - **Error Scenario Generator**: Simula vari tipi di errori e condizioni di failure
 
 **Integration Testing**:
-- Test end-to-end con RYU simulato
+- Test end-to-end con file JSON simulati
 - Test di carico con multiple richieste concorrenti  
-- Test di resilienza con injection di errori
+- Test di resilienza con injection di errori (file corrotti, file mancanti)
 - Test di performance con grandi stati di rete
+- Test di file watching e refresh automatico dello stato
 - **Test di rate limiting**: Simulazione limiti API e gestione throttling
 - **Test di costo**: Monitoraggio utilizzo token e ottimizzazione costi
 
 **Continuous Testing**:
 - Pipeline CI/CD con test automatici
 - Monitoring di regressioni nelle performance
-- Test di compatibilità con versioni diverse di RYU
+- Test di compatibilità con diversi formati JSON
 - Validazione continua delle proprietà di correttezza
 - **Cost tracking**: Monitoraggio costi ChatGPT API in ambiente di test
 - **Mock API**: Utilizzo di mock ChatGPT per test rapidi senza costi
