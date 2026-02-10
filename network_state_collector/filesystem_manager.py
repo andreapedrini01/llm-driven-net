@@ -24,7 +24,7 @@ from .json_serializer import JSONSerializer
 class FileSystemConfig:
     """Configurazione per FileSystemManager"""
     base_output_dir: str = "data"
-    llm_output_dir: str = "llm_output"
+    llm_output_dir: str = "history"
     history_dir: str = "history"
     archive_dir: str = "archive"
     max_history_files: int = 100

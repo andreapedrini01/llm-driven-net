@@ -28,7 +28,7 @@ for i in range(3):
     time.sleep(2)
 
 # Mostra anomalie finali
-with open('data/llm_output/network_context_latest.json') as f:
+with open('data/history/network_context_latest.json') as f:
     data = json.load(f)
     
 print("\n📊 Anomalie rilevate:")

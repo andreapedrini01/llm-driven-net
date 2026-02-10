@@ -70,7 +70,7 @@ class NetworkStateCollector:
         # Crea configurazione filesystem
         fs_config = FileSystemConfig(
             base_output_dir=self.config.output.directory,
-            llm_output_dir="llm_output",
+            llm_output_dir="history",
             history_dir=self.config.output.history_directory,
             max_history_files=self.config.output.max_history_files,
             enable_compression=self.config.output.compress_old_files

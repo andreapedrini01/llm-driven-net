@@ -192,7 +192,7 @@ def main():
     
     # Salva output JSON
     print("\n9. Saving LLM-formatted data...")
-    output_dir = Path("data/llm_output")
+    output_dir = Path("data/history")
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # File principale

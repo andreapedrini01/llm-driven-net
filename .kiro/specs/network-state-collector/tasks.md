@@ -172,7 +172,7 @@ Questo piano converte il design del Network State Collector in una serie di task
     - Finalizzare documentazione API e configurazione
     - _Requisiti: 4.5, 7.4_
 
-- [x] 12. Checkpoint finale - Verifica completa sistema
+- [ ] 12. Checkpoint finale - Verifica completa sistema
   - Assicurarsi che tutti i test passino, verificare integrazione LLM, chiedere all'utente se sorgono domande.
 
 ## Note

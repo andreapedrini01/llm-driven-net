@@ -26,7 +26,7 @@ output:
   directory: "/var/lib/network-collector/data"
   filename_pattern: "network_context_{timestamp}.json"
   latest_filename: "network_context_latest.json"
-  history_directory: "network_context_history"
+  history_directory: "history"
   embeddings_directory: "embeddings"
   metadata_directory: "metadata"
   pretty_print: false
