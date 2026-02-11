@@ -1425,3 +1425,59 @@ class AnomalyDetectionSystem:
                 "flow_distribution": len(self._pattern_history["flow_distribution"])
             }
         }
+
+
+
+class ContextAnalyzer:
+    """
+    Unified context analyzer interface for API compatibility.
+    Combines NetworkStateCache, ContextCorrelationEngine, and AnomalyDetectionSystem.
+    """
+    
+    def __init__(self, state_reader=None):
+        """Initialize the context analyzer."""
+        self.state_cache = NetworkStateCache()
+        self.correlation_engine = ContextCorrelationEngine(self.state_cache)
+        self.anomaly_detector = AnomalyDetectionSystem(self.state_cache)
+        
+        # Load initial state if state_reader provided
+        if state_reader:
+            try:
+                state = state_reader.get_current_state()
+                if state:
+                    self.state_cache.update_state(state)
+            except Exception as e:
+                logger.error(f"Failed to load initial state: {e}")
+    
+    def analyze_context(self, intent: IntentObject) -> ContextualizedIntent:
+        """
+        Analyze context for an intent.
+        
+        Args:
+            intent: The intent to analyze
+            
+        Returns:
+            ContextualizedIntent with network context
+        """
+        return self.correlation_engine.correlate_intent_with_state(intent)
+    
+    def detect_anomalies(self) -> List[Anomaly]:
+        """
+        Detect anomalies in current network state.
+        
+        Returns:
+            List of detected anomalies
+        """
+        state = self.state_cache.get_current_state()
+        if not state:
+            return []
+        
+        return self.anomaly_detector.detect_anomalies(state)
+    
+    def get_current_state(self) -> Optional[NetworkState]:
+        """Get current network state."""
+        return self.state_cache.get_current_state()
+    
+    def refresh_state(self, file_path: Optional[str] = None) -> Optional[NetworkState]:
+        """Refresh network state from file."""
+        return self.state_cache.refresh_state(file_path)

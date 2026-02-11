@@ -180,18 +180,18 @@
     - **Property 21: File system resilience**
     - **Validates: Requirements 6.1**
 
-  - [ ] 8.3 Build action output interface (preparazione per futuro modulo Northbound)
+  - [x] 8.3 Build action output interface (preparazione per futuro modulo Northbound)
     - Create structured output format for validated actions
     - Implement action serialization to JSON/file for future integration
     - Add action logging and storage for traceability
     - Design interface contract for future Northbound module integration
     - _Requirements: 3.3, 3.5_
 
-  - [ ]* 8.4 Write property test for action traceability
+  - [x] 8.4 Write property test for action traceability
     - **Property 11: Action traceability**
     - **Validates: Requirements 3.5**
 
-  - [ ] 8.5 Implement user interface API
+  - [x] 8.5 Implement user interface API
     - Create REST API endpoints for intent submission
     - Add WebSocket support for real-time updates
     - Implement authentication and authorization

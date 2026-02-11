@@ -59,10 +59,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
-    # TODO: Add API routers here when they are implemented
-    # from .api.routes import intent_router, health_router
-    # app.include_router(intent_router, prefix=settings.api_prefix)
-    # app.include_router(health_router, prefix="/health")
+    # Add API routers
+    from .api.routes import intent_router, health_router
+    from .api.auth_routes import auth_router
+    
+    app.include_router(auth_router, prefix=settings.api_prefix)
+    app.include_router(intent_router, prefix=settings.api_prefix)
+    app.include_router(health_router)
     
     return app
 

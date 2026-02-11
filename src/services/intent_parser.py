@@ -1461,3 +1461,16 @@ class IntentParser:
                 'active_links': len([l for l in network_state.topology.links if l.status == "active"])
             }
         }
+
+    def generate_clarification_questions(self, intent: IntentObject) -> List[str]:
+        """
+        Generate clarification questions for an ambiguous intent (API compatibility wrapper).
+        
+        Args:
+            intent: The intent object to analyze
+            
+        Returns:
+            List of clarification questions
+        """
+        clarification_result = self.generate_clarification_requests(intent)
+        return clarification_result.get("clarification_questions", [])

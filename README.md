@@ -4,9 +4,10 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
 
 ## 📚 Documentazione
 
-- **[QUICK_START.md](QUICK_START.md)** - Guida rapida per iniziare in 5 minuti ⚡
-- **[INSTALL.md](INSTALL.md)** - Guida completa all'installazione 📦
-- **[DEPENDENCIES.md](DEPENDENCIES.md)** - Gestione delle dipendenze 🔧
+- **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** - Guida per iniziare e avviare il server ⚡
+- **[docs/API_USAGE.md](docs/API_USAGE.md)** - Guida completa all'uso dell'API REST e WebSocket 🌐
+- **[docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)** - Informazioni dettagliate sulle dipendenze 📦
+- **[CHANGELOG.md](CHANGELOG.md)** - Registro delle modifiche e versioni 📝
 - **[README.md](README.md)** - Questo documento (panoramica generale) 📖
 
 ## Struttura del Progetto
@@ -30,15 +31,15 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
 └── README.md          # This file
 ```
 
-## Installazione
+## Installazione Rapida
 
 ### Requisiti di Sistema
 
-- Python 3.11 o superiore
+- Python 3.8 o superiore
 - pip (package manager Python)
 - Connessione internet per accedere a ChatGPT API
 
-### Installazione su Nuovo Dispositivo
+### Installazione
 
 1. **Clona il repository**:
    ```bash
@@ -46,98 +47,78 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
    cd llm-driven-net
    ```
 
-2. **Crea un ambiente virtuale Python**:
-   ```bash
-   # Linux/Mac
-   python3 -m venv venv
-   source venv/bin/activate
+2. **Installa le dipendenze**:
    
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. **Aggiorna pip** (raccomandato):
-   ```bash
-   python -m pip install --upgrade pip
-   ```
-
-4. **Installa le dipendenze di produzione**:
+   Per uso normale:
    ```bash
    pip install -r requirements.txt
    ```
    
-   **Oppure**, per sviluppo (include tool di testing e linting):
+   Per sviluppo (include tool di testing, linting, ecc.):
    ```bash
    pip install -r requirements-dev.txt
    ```
 
-5. **Configura le variabili d'ambiente**:
+3. **Configura le variabili d'ambiente**:
    
    Copia il file di esempio e modificalo:
    ```bash
-   # Linux/Mac
-   cp .env.example .env
-   
    # Windows
    copy .env.example .env
+   
+   # Linux/Mac
+   cp .env.example .env
    ```
    
-   Modifica `.env` con le tue configurazioni.
+   Modifica `.env` con le tue configurazioni (specialmente `OPENAI_API_KEY`).
 
-6. **Configura ChatGPT API** (OBBLIGATORIO):
-   
-   - Ottieni una API key da [OpenAI Platform](https://platform.openai.com/api-keys)
-   - Aggiungi la chiave al file `.env`:
-   
-   ```env
-   OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
-   OPENAI_MODEL=gpt-4-turbo
-   ```
-
-7. **Verifica l'installazione**:
+4. **Avvia il server**:
    ```bash
-   # Verifica connessione ChatGPT
-   python scripts/test_chatgpt_connection.py
-   
-   # Esegui i test
-   pytest tests/ -v
+   python -m src.main
    ```
+   
+   Il server sarà disponibile su `http://localhost:8080`
 
-### Risoluzione Problemi Comuni
-
-**Errore: "No module named 'src'"**
-- Assicurati di essere nella directory root del progetto
-- Verifica che l'ambiente virtuale sia attivato
-
-**Errore: "OpenAI API key not found"**
-- Verifica che il file `.env` esista e contenga `OPENAI_API_KEY`
-- Controlla che la chiave API sia valida su [OpenAI Platform](https://platform.openai.com/api-keys)
-
-**Test falliscono**
-- Verifica che tutte le dipendenze siano installate: `pip list`
-- Controlla che la versione di Python sia >= 3.11: `python --version`
+Per istruzioni dettagliate, vedi [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 
 ## Esecuzione
 
-### Sviluppo
+### Avvio del Server
+
 ```bash
 python -m src.main
 ```
 
-### Produzione
+Il server sarà disponibile su:
+- API: http://localhost:8080
+- Metrics: http://localhost:8000
+- Docs: http://localhost:8080/docs
+
+### Test Rapido
+
 ```bash
-uvicorn src.main:app --host 0.0.0.0 --port 8080
+# Test health check
+curl http://localhost:8080/health
+
+# Login
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+```
+
+### Produzione
+
+Per produzione, usa uvicorn direttamente:
+```bash
+uvicorn src.main:app --host 0.0.0.0 --port 8080 --workers 4
 ```
 
 ## Test
 
-### Test della Connessione ChatGPT
-
-Prima di eseguire i test completi, verifica che la connessione a ChatGPT funzioni:
+### Test Rapido dell'API
 
 ```bash
-python scripts/test_chatgpt_connection.py
+python test_api_local.py
 ```
 
 ### Test Suite Completa
@@ -157,6 +138,8 @@ Esegui i test property-based:
 pytest -m property
 ```
 
+**Nota**: I test property-based possono richiedere più tempo per l'esecuzione.
+
 ## Monitoraggio
 
 Il modulo espone metriche Prometheus su `http://localhost:8000/metrics` (configurabile).
@@ -171,28 +154,46 @@ Metriche disponibili:
 
 Tutte le configurazioni sono gestite tramite variabili d'ambiente. Vedi `.env.example` per la lista completa.
 
-### Configurazioni ChatGPT API
+### Configurazioni Essenziali
 
-- `OPENAI_API_KEY`: La tua chiave API OpenAI (obbligatoria)
-- `OPENAI_MODEL`: Modello da utilizzare (raccomandato: `gpt-4-turbo`)
+#### ChatGPT API (Obbligatorio)
+- `OPENAI_API_KEY`: La tua chiave API OpenAI
+- `OPENAI_MODEL`: Modello da utilizzare (default: `gpt-4o-mini`)
+
+#### Autenticazione (Raccomandato cambiare in produzione)
+- `JWT_SECRET_KEY`: Chiave segreta per JWT
+- `ADMIN_PASSWORD`: Password utente admin
+- `OPERATOR_PASSWORD`: Password utente operator
+- `VIEWER_PASSWORD`: Password utente viewer
+
+#### Server
+- `API_HOST`: Host del server (default: `0.0.0.0`)
+- `API_PORT`: Porta del server (default: `8080`)
+
+### Configurazioni Avanzate
+
+#### ChatGPT API
 - `OPENAI_MAX_TOKENS`: Token massimi per risposta (default: 2000)
-- `OPENAI_TEMPERATURE`: Creatività delle risposte (0.0-1.0, raccomandato: 0.1)
+- `OPENAI_TEMPERATURE`: Creatività delle risposte (0.0-1.0, default: 0.1)
 - `OPENAI_RATE_LIMIT_RPM`: Richieste massime al minuto (default: 60)
 - `OPENAI_TIMEOUT`: Timeout richieste in secondi (default: 30)
 - `OPENAI_MAX_RETRIES`: Tentativi massimi in caso di errore (default: 3)
 
-### Altre Configurazioni
+#### Network State
+- `STATE_CACHE_TTL`: TTL della cache dello stato di rete (default: 300 secondi)
+- `STATE_REFRESH_INTERVAL`: Intervallo refresh automatico (default: 60 secondi)
 
-- `RYU_HOST`: Host del controller RYU
-- `NORTHBOUND_HOST`: Host dello script Northbound
-- `STATE_CACHE_TTL`: TTL della cache dello stato di rete (secondi)
-- `ANOMALY_DETECTION_ENABLED`: Abilita rilevamento anomalie
+#### Monitoring
+- `METRICS_PORT`: Porta per metriche Prometheus (default: 8000)
+- `ENABLE_METRICS`: Abilita server metriche (default: true)
 
-Vedi [docs/CHATGPT_SETUP.md](docs/CHATGPT_SETUP.md) per dettagli completi sulla configurazione ChatGPT.
+Vedi `.env.example` per tutte le opzioni disponibili.
 
 ## Architettura
 
-Il modulo segue un'architettura a microservizi con i seguenti componenti principali:
+Il modulo segue un'architettura modulare con i seguenti componenti principali:
+
+### Core Components
 
 1. **Intent Parser**: Analizza intent in linguaggio naturale
 2. **Context Analyzer**: Correla intent con stato della rete
@@ -200,9 +201,51 @@ Il modulo segue un'architettura a microservizi con i seguenti componenti princip
 4. **Validator**: Valida e verifica sicurezza delle azioni
 5. **ChatGPT Client**: Gestisce comunicazione con OpenAI API con retry logic e rate limiting
 
-## API
+### API Layer
 
-L'API REST sarà disponibile su `/api/v1/` (da implementare nei prossimi task).
+6. **REST API**: Endpoints per sottomissione intent e gestione
+7. **WebSocket**: Aggiornamenti real-time per client connessi
+8. **Authentication**: Sistema JWT con ruoli e permessi
+
+### Infrastructure
+
+9. **State Cache**: Cache thread-safe per stato della rete
+10. **Monitoring**: Metriche Prometheus e health checks
+11. **Logging**: Logging strutturato con correlation IDs
+
+Vedi [.kiro/specs/llm-integration-module/design.md](.kiro/specs/llm-integration-module/design.md) per dettagli completi.
+
+## API REST
+
+Il modulo espone un'API REST completa per la gestione degli intent di rete.
+
+### Endpoints Principali
+
+- `POST /api/v1/auth/login` - Autenticazione e ottenimento token JWT
+- `GET /api/v1/auth/me` - Informazioni utente corrente
+- `POST /api/v1/intents` - Sottomissione intent in linguaggio naturale
+- `GET /api/v1/intents/{id}/status` - Status di un intent
+- `WS /api/v1/ws` - WebSocket per aggiornamenti real-time
+- `GET /health` - Health check
+- `GET /health/ready` - Readiness check
+- `GET /health/live` - Liveness check
+
+### Documentazione Interattiva
+
+Una volta avviato il server, la documentazione interattiva è disponibile su:
+- **Swagger UI**: http://localhost:8080/docs
+- **ReDoc**: http://localhost:8080/redoc
+
+### Autenticazione
+
+L'API utilizza JWT (JSON Web Tokens) per l'autenticazione. Utenti predefiniti:
+- `admin` / `admin123` - Accesso completo
+- `operator` / `operator123` - Lettura e scrittura
+- `viewer` / `viewer123` - Solo lettura
+
+**Importante**: Cambia le password predefinite in produzione tramite variabili d'ambiente!
+
+Per dettagli completi, vedi [docs/API_USAGE.md](docs/API_USAGE.md)
 
 ## Logging
 
@@ -221,3 +264,40 @@ Per contribuire al progetto:
 3. Implementa test sia unitari che property-based
 4. Mantieni la copertura dei test alta
 5. Segui le convenzioni di logging e monitoraggio
+
+### Dipendenze di Sviluppo
+
+Per installare le dipendenze di sviluppo (linting, formatting, ecc.):
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Questo include:
+- black (code formatter)
+- flake8 (linter)
+- mypy (type checker)
+- pytest-cov (test coverage)
+- E altro (vedi requirements-dev.txt)
+
+## Versione
+
+Versione corrente: **0.1.0**
+
+Vedi [CHANGELOG.md](CHANGELOG.md) per la storia completa delle modifiche.
+
+## Licenza
+
+Questo progetto è sviluppato per scopi educativi e di ricerca.
+
+## Autori
+
+Sviluppato come parte del progetto LLM-Driven Network Management.
+
+## Supporto
+
+Per problemi o domande:
+- Consulta la documentazione in `docs/`
+- Controlla i log del server per errori dettagliati
+- Verifica la configurazione in `.env`
+- Rivedi i requisiti in `requirements.txt`

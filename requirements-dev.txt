@@ -4,19 +4,25 @@
 # Include production dependencies
 -r requirements.txt
 
-# Code formatting
-black>=23.11.0
+# Code quality
+black>=23.0.0                    # Code formatter
+flake8>=6.0.0                    # Linter
+mypy>=1.0.0                      # Static type checker
+isort>=5.12.0                    # Import sorter
+pylint>=3.0.0                    # Code analyzer
 
-# Linting
-flake8>=6.1.0
-pylint>=3.0.0
-
-# Type checking
-mypy>=1.7.1
-
-# Testing coverage
-pytest-cov>=4.1.0
+# Testing
+pytest-cov>=4.1.0                # Test coverage
+pytest-mock>=3.12.0              # Mocking support
+pytest-xdist>=3.5.0              # Parallel test execution
+faker>=20.0.0                    # Fake data generation
 
 # Documentation
-mkdocs>=1.5.0
-mkdocs-material>=9.4.0
+mkdocs>=1.5.0                    # Documentation generator
+mkdocs-material>=9.4.0           # Material theme for MkDocs
+mkdocstrings[python]>=0.24.0     # API documentation from docstrings
+
+# Development tools
+ipython>=8.18.0                  # Enhanced Python shell
+ipdb>=0.13.13                    # IPython debugger
+pre-commit>=3.5.0                # Git hooks

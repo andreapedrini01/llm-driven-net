@@ -628,3 +628,61 @@ class ActionSequencer:
             warnings=warnings,
             suggestions=suggestions
         )
+
+    def parse_actions_from_response(self, response_content: str) -> List[NetworkAction]:
+        """
+        Parse network actions from ChatGPT response content.
+        
+        Args:
+            response_content: The response content from ChatGPT
+            
+        Returns:
+            List of NetworkAction objects
+        """
+        import json
+        import re
+        
+        actions = []
+        
+        try:
+            # Try to parse as JSON first
+            if response_content.strip().startswith('{') or response_content.strip().startswith('['):
+                data = json.loads(response_content)
+                
+                # Handle different response formats
+                if isinstance(data, dict):
+                    actions_data = data.get('actions', [])
+                elif isinstance(data, list):
+                    actions_data = data
+                else:
+                    actions_data = []
+                
+                # Convert to NetworkAction objects
+                for action_data in actions_data:
+                    action = NetworkAction.from_dict(action_data)
+                    actions.append(action)
+            
+            else:
+                # Try to extract JSON from markdown code blocks
+                json_match = re.search(r'```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```', response_content, re.DOTALL)
+                if json_match:
+                    json_str = json_match.group(1)
+                    data = json.loads(json_str)
+                    
+                    if isinstance(data, dict):
+                        actions_data = data.get('actions', [])
+                    elif isinstance(data, list):
+                        actions_data = data
+                    else:
+                        actions_data = []
+                    
+                    for action_data in actions_data:
+                        action = NetworkAction.from_dict(action_data)
+                        actions.append(action)
+        
+        except Exception as e:
+            self.logger.error(f"Failed to parse actions from response: {e}")
+            # Return empty list on parse failure
+            return []
+        
+        return actions

@@ -1735,3 +1735,8 @@ class ImpactAssessor:
             workflow["estimated_review_time"] = 0
         
         return workflow
+
+
+
+# Alias for API compatibility
+Validator = ActionValidator

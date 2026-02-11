@@ -969,3 +969,8 @@ class PromptEngineeringSystem:
                 break
         
         return "\n".join(optimized_lines)
+
+
+
+# Alias for API compatibility
+PromptEngineer = PromptEngineeringSystem

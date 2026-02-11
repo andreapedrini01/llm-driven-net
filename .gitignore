@@ -302,3 +302,6 @@ test-results/
 test-reports/
 screenshots/
 videos/
+
+get-pip.py
+CHANGELOG.md
