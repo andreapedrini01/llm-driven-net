@@ -256,8 +256,12 @@ class LLMIntegrator:
         total_ports = 0
         total_errors = 0
         latencies = []
+        port_utilization = {}  # Dizionario per port_utilization
         
         for dpid, port_metrics_list in metrics_data.port_statistics.items():
+            # Formatta DPID con zeri iniziali
+            dpid_formatted = str(dpid).zfill(16) if len(str(dpid)) < 16 else str(dpid)
+            
             for port_metric in port_metrics_list:
                 total_ports += 1
                 port_bandwidth = 1000  # 1Gbps per porta
@@ -266,6 +270,10 @@ class LLMIntegrator:
                 # Calcola utilizzo
                 utilization = port_metric.calculate_utilization()
                 used_bandwidth += port_bandwidth * utilization
+                
+                # Aggiungi utilizzo porta al dizionario
+                port_key = f"switch_{dpid_formatted}:{port_metric.port_no}"
+                port_utilization[port_key] = round(utilization * 100, 1)  # Percentuale
                 
                 # Errori
                 total_errors += port_metric.rx_errors + port_metric.tx_errors
@@ -308,7 +316,7 @@ class LLMIntegrator:
                 "utilization": {
                     "cpu_utilization": 0.0,  # Non disponibile da Ryu
                     "memory_utilization": 0.0,  # Non disponibile da Ryu
-                    "disk_utilization": 0.0  # Non disponibile da Ryu
+                    "port_utilization": port_utilization  # Utilizzo per porta
                 }
             },
             "anomalies": []
