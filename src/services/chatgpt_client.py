@@ -12,6 +12,7 @@ from openai import AsyncOpenAI, OpenAIError, RateLimitError, APITimeoutError, AP
 from pydantic import BaseModel
 
 from src.config import get_settings
+from src.utils.logging import chatgpt_usage_logger, set_correlation_id, get_correlation_id
 
 
 logger = logging.getLogger(__name__)
@@ -140,6 +141,7 @@ class ChatGPTClient:
             OpenAIError: If API request fails after retries
         """
         start_time = time.time()
+        request_id = get_correlation_id() or set_correlation_id()
         
         # Check rate limits before making request
         await self._check_rate_limit()
@@ -156,6 +158,17 @@ class ChatGPTClient:
             full_prompt = f"{context_str}\n\n{prompt}"
         
         messages.append({"role": "user", "content": full_prompt})
+        
+        # Estimate prompt tokens (rough estimate)
+        estimated_prompt_tokens = len(full_prompt.split()) * 1.3
+        
+        # Log API request
+        chatgpt_usage_logger.log_api_request(
+            request_id=request_id,
+            model=self.config.model,
+            prompt_tokens=int(estimated_prompt_tokens),
+            correlation_id=request_id
+        )
         
         # Attempt request with retry logic
         last_error = None
@@ -177,14 +190,27 @@ class ChatGPTClient:
                 
                 # Track token usage
                 tokens_used = response.usage.total_tokens
+                prompt_tokens = response.usage.prompt_tokens
+                completion_tokens = response.usage.completion_tokens
                 self._total_tokens += tokens_used
                 
                 # Estimate cost (approximate rates for GPT-4-turbo)
-                cost = self._estimate_cost(
-                    response.usage.prompt_tokens,
-                    response.usage.completion_tokens
-                )
+                cost = self._estimate_cost(prompt_tokens, completion_tokens)
                 self._total_cost += cost
+                
+                # Log API response
+                chatgpt_usage_logger.log_api_response(
+                    request_id=request_id,
+                    model=response.model,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    total_tokens=tokens_used,
+                    latency_ms=latency * 1000,
+                    estimated_cost=cost,
+                    success=True,
+                    correlation_id=request_id,
+                    finish_reason=finish_reason
+                )
                 
                 # Check budget thresholds and trigger alerts
                 self._check_budget_thresholds()
@@ -207,6 +233,18 @@ class ChatGPTClient:
                 last_error = e
                 self._consecutive_failures += 1
                 wait_time = self._calculate_backoff(attempt)
+                
+                # Log rate limit error
+                chatgpt_usage_logger.log_api_error(
+                    request_id=request_id,
+                    model=self.config.model,
+                    error_type="RateLimitError",
+                    error_message=str(e),
+                    retry_attempt=attempt + 1,
+                    correlation_id=request_id,
+                    wait_time=wait_time
+                )
+                
                 logger.warning(
                     f"Rate limit hit (attempt {attempt + 1}/{self.config.max_retries}), "
                     f"waiting {wait_time}s"
@@ -217,6 +255,18 @@ class ChatGPTClient:
                 last_error = e
                 self._consecutive_failures += 1
                 wait_time = self._calculate_backoff(attempt)
+                
+                # Log timeout error
+                chatgpt_usage_logger.log_api_error(
+                    request_id=request_id,
+                    model=self.config.model,
+                    error_type="APITimeoutError",
+                    error_message=str(e),
+                    retry_attempt=attempt + 1,
+                    correlation_id=request_id,
+                    wait_time=wait_time
+                )
+                
                 logger.warning(
                     f"Request timeout (attempt {attempt + 1}/{self.config.max_retries}), "
                     f"waiting {wait_time}s"
@@ -227,6 +277,18 @@ class ChatGPTClient:
                 last_error = e
                 self._consecutive_failures += 1
                 wait_time = self._calculate_backoff(attempt)
+                
+                # Log connection error
+                chatgpt_usage_logger.log_api_error(
+                    request_id=request_id,
+                    model=self.config.model,
+                    error_type="APIConnectionError",
+                    error_message=str(e),
+                    retry_attempt=attempt + 1,
+                    correlation_id=request_id,
+                    wait_time=wait_time
+                )
+                
                 logger.warning(
                     f"Connection error (attempt {attempt + 1}/{self.config.max_retries}), "
                     f"waiting {wait_time}s"
@@ -236,11 +298,35 @@ class ChatGPTClient:
             except OpenAIError as e:
                 last_error = e
                 self._consecutive_failures += 1
+                
+                # Log general API error
+                chatgpt_usage_logger.log_api_error(
+                    request_id=request_id,
+                    model=self.config.model,
+                    error_type=type(e).__name__,
+                    error_message=str(e),
+                    retry_attempt=attempt + 1,
+                    correlation_id=request_id
+                )
+                
                 logger.error(f"OpenAI API error: {str(e)}")
                 # Don't retry on other errors
                 break
         
-        # All retries exhausted
+        # All retries exhausted - log final failure
+        chatgpt_usage_logger.log_api_response(
+            request_id=request_id,
+            model=self.config.model,
+            prompt_tokens=int(estimated_prompt_tokens),
+            completion_tokens=0,
+            total_tokens=int(estimated_prompt_tokens),
+            latency_ms=(time.time() - start_time) * 1000,
+            estimated_cost=0.0,
+            success=False,
+            correlation_id=request_id,
+            error=str(last_error)
+        )
+        
         logger.error(
             f"ChatGPT request failed after {self.config.max_retries} attempts: {last_error}"
         )
@@ -283,6 +369,16 @@ class ChatGPTClient:
             if wait_seconds > 0:
                 logger.warning(f"Rate limit reached, waiting {wait_seconds:.1f}s")
                 self._rate_limit_info.is_throttled = True
+                
+                # Log rate limit status
+                chatgpt_usage_logger.log_rate_limit(
+                    model=self.config.model,
+                    remaining_requests=0,
+                    reset_time=wait_until,
+                    is_throttled=True,
+                    wait_seconds=wait_seconds
+                )
+                
                 await asyncio.sleep(wait_seconds)
                 self._rate_limit_info.is_throttled = False
         
@@ -292,6 +388,15 @@ class ChatGPTClient:
             self.config.rate_limit_rpm - len(self._request_times)
         )
         self._rate_limit_info.reset_time = now + timedelta(minutes=1)
+        
+        # Log rate limit status periodically
+        if len(self._request_times) % 10 == 0:
+            chatgpt_usage_logger.log_rate_limit(
+                model=self.config.model,
+                remaining_requests=self._rate_limit_info.remaining_requests,
+                reset_time=self._rate_limit_info.reset_time,
+                is_throttled=False
+            )
     
     def _calculate_backoff(self, attempt: int) -> float:
         """Calculate exponential backoff wait time.
@@ -372,6 +477,15 @@ class ChatGPTClient:
             )
             self._budget_alerts.append(alert)
             logger.warning(alert.message)
+            
+            # Log budget alert
+            chatgpt_usage_logger.log_budget_alert(
+                alert_type="warning",
+                current_cost=self._total_cost,
+                threshold=self.config.budget_warning_threshold,
+                message=alert.message
+            )
+            
             self._trigger_alert_callbacks(alert)
         
         # Check critical threshold
@@ -387,6 +501,15 @@ class ChatGPTClient:
             )
             self._budget_alerts.append(alert)
             logger.critical(alert.message)
+            
+            # Log budget alert
+            chatgpt_usage_logger.log_budget_alert(
+                alert_type="critical",
+                current_cost=self._total_cost,
+                threshold=self.config.budget_critical_threshold,
+                message=alert.message
+            )
+            
             self._trigger_alert_callbacks(alert)
     
     def _trigger_alert_callbacks(self, alert: BudgetAlert) -> None:

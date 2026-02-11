@@ -86,6 +86,39 @@ class Settings(BaseModel):
     # Database settings (for future use)
     database_url: Optional[str] = None
     
+    # Notification settings
+    notifications_enabled: bool = True
+    
+    # Email notification settings
+    email_enabled: bool = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
+    smtp_host: str = os.getenv("SMTP_HOST", "")
+    smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
+    smtp_username: str = os.getenv("SMTP_USERNAME", "")
+    smtp_password: str = os.getenv("SMTP_PASSWORD", "")
+    smtp_from_email: str = os.getenv("SMTP_FROM_EMAIL", "")
+    smtp_to_emails: str = os.getenv("SMTP_TO_EMAILS", "")  # Comma-separated
+    smtp_use_tls: bool = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
+    
+    # Slack notification settings
+    slack_enabled: bool = os.getenv("SLACK_ENABLED", "false").lower() == "true"
+    slack_webhook_url: str = os.getenv("SLACK_WEBHOOK_URL", "")
+    slack_channel: Optional[str] = os.getenv("SLACK_CHANNEL")
+    slack_username: str = os.getenv("SLACK_USERNAME", "LLM Integration Module")
+    
+    # Webhook notification settings
+    webhook_enabled: bool = os.getenv("WEBHOOK_ENABLED", "false").lower() == "true"
+    webhook_url: str = os.getenv("WEBHOOK_URL", "")
+    webhook_headers: str = os.getenv("WEBHOOK_HEADERS", "{}")  # JSON string
+    
+    # Budget alert settings
+    budget_alerts_enabled: bool = True
+    budget_daily_warning: float = float(os.getenv("BUDGET_DAILY_WARNING", "10.0"))
+    budget_daily_critical: float = float(os.getenv("BUDGET_DAILY_CRITICAL", "20.0"))
+    budget_weekly_warning: float = float(os.getenv("BUDGET_WEEKLY_WARNING", "50.0"))
+    budget_weekly_critical: float = float(os.getenv("BUDGET_WEEKLY_CRITICAL", "100.0"))
+    budget_monthly_warning: float = float(os.getenv("BUDGET_MONTHLY_WARNING", "200.0"))
+    budget_monthly_critical: float = float(os.getenv("BUDGET_MONTHLY_CRITICAL", "500.0"))
+    
     class Config:
         """Pydantic configuration."""
         # Note: For production, consider using pydantic-settings package

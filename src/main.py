@@ -24,6 +24,11 @@ async def lifespan(app: FastAPI):
     
     logger.info("Starting LLM Integration Module", version=settings.app_version)
     
+    # Initialize notification system
+    from .utils.alert_helpers import initialize_notification_system
+    initialize_notification_system()
+    logger.info("Notification system initialized")
+    
     # Start metrics server if enabled
     if settings.enable_metrics:
         start_metrics_server(settings.metrics_port)

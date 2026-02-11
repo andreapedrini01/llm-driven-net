@@ -7,6 +7,7 @@ pydantic>=2.5.0
 
 # HTTP client for external APIs
 httpx>=0.25.2
+requests>=2.31.0
 
 # LLM integration - ChatGPT API
 openai>=1.54.0

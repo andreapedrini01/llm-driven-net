@@ -5,6 +5,8 @@ from typing import Any, Dict, Optional
 from prometheus_client import Counter, Histogram, Gauge, start_http_server
 from functools import wraps
 
+from src.utils.logging import performance_logger, chatgpt_usage_logger
+
 
 # Prometheus metrics
 INTENT_COUNTER = Counter(
@@ -59,19 +61,57 @@ class MetricsCollector:
         """Record an intent processing event."""
         status = "success" if success else "failure"
         INTENT_COUNTER.labels(intent_type=intent_type, status=status).inc()
+        
+        # Also log to performance logger
+        performance_logger.log_metric(
+            metric_name="intent_processed",
+            metric_value=1,
+            metric_unit="count",
+            component="intent_parser",
+            intent_type=intent_type,
+            success=success
+        )
     
     def record_action_generated(self, action_type: str, success: bool) -> None:
         """Record an action generation event."""
         status = "success" if success else "failure"
         ACTION_COUNTER.labels(action_type=action_type, status=status).inc()
+        
+        # Also log to performance logger
+        performance_logger.log_metric(
+            metric_name="action_generated",
+            metric_value=1,
+            metric_unit="count",
+            component="action_generator",
+            action_type=action_type,
+            success=success
+        )
     
     def record_anomaly_detected(self, anomaly_type: str, severity: str) -> None:
         """Record an anomaly detection event."""
         ANOMALY_COUNTER.labels(anomaly_type=anomaly_type, severity=severity).inc()
+        
+        # Also log to performance logger
+        performance_logger.log_metric(
+            metric_name="anomaly_detected",
+            metric_value=1,
+            metric_unit="count",
+            component="context_analyzer",
+            anomaly_type=anomaly_type,
+            severity=severity
+        )
     
     def update_network_state_age(self, age_seconds: float) -> None:
         """Update the network state age metric."""
         NETWORK_STATE_AGE.set(age_seconds)
+        
+        # Also log to performance logger
+        performance_logger.log_metric(
+            metric_name="network_state_age",
+            metric_value=age_seconds,
+            metric_unit="seconds",
+            component="state_cache"
+        )
     
     def record_llm_request(self, model: str, duration: float, success: bool) -> None:
         """Record an LLM API request."""
@@ -79,6 +119,16 @@ class MetricsCollector:
         LLM_REQUEST_COUNTER.labels(model=model, status=status).inc()
         if success:
             LLM_REQUEST_DURATION.labels(model=model).observe(duration)
+        
+        # Also log to performance logger
+        performance_logger.log_metric(
+            metric_name="llm_request_duration",
+            metric_value=duration,
+            metric_unit="seconds",
+            component="chatgpt_client",
+            model=model,
+            success=success
+        )
 
 
 def timed_operation(component: str):
