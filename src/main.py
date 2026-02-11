@@ -59,6 +59,10 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
+    # Add security middleware (rate limiting, input sanitization, security headers)
+    from .api.security_middleware import setup_security_middleware
+    setup_security_middleware(app)
+    
     # Add API routers
     from .api.routes import intent_router, health_router
     from .api.auth_routes import auth_router
