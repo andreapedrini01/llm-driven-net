@@ -92,7 +92,8 @@ class TestResourceAllocationFairnessProperties:
         # Calculate total requested bandwidth
         total_requested = sum(s.resources.bandwidth for s in slices)
         
-        # Allocate bandwidth based on priority and fairness
+        # First pass: allocate based on priority and fairness
+        initial_allocations = {}
         for slice_obj in slices:
             priority = slice_priorities[slice_obj.id]
             requested = slice_obj.resources.bandwidth
@@ -110,15 +111,49 @@ class TestResourceAllocationFairnessProperties:
                 min_bandwidth = slice_obj.sla.min_bandwidth if slice_obj.sla else int(requested * 0.5)
                 allocated_bandwidth = max(fair_share, min_bandwidth)
             
+            initial_allocations[slice_obj.id] = {
+                "bandwidth": allocated_bandwidth,
+                "requested": requested,
+                "min_bandwidth": slice_obj.sla.min_bandwidth if slice_obj.sla else int(requested * 0.5),
+                "priority": priority
+            }
+        
+        # Second pass: scale down if over-allocated
+        total_allocated = sum(alloc["bandwidth"] for alloc in initial_allocations.values())
+        if total_allocated > total_bandwidth:
+            # Calculate how much we need to reduce
+            reduction_needed = total_allocated - total_bandwidth
+            
+            # Reduce from slices that are above their minimum, starting with lower priority
+            sorted_slices = sorted(
+                initial_allocations.items(),
+                key=lambda x: x[1]["priority"]
+            )
+            
+            for slice_id, alloc in sorted_slices:
+                if reduction_needed <= 0:
+                    break
+                
+                # How much can we reduce from this slice?
+                reducible = alloc["bandwidth"] - alloc["min_bandwidth"]
+                if reducible > 0:
+                    reduction = min(reducible, reduction_needed)
+                    alloc["bandwidth"] -= reduction
+                    reduction_needed -= reduction
+        
+        # Allocate bandwidth and switches
+        for slice_obj in slices:
+            alloc = initial_allocations[slice_obj.id]
+            
             # Allocate switches (first-come-first-served with sharing)
             allocated_switches = slice_obj.resources.switches.copy()
             
             allocation_result["allocations"][slice_obj.id] = {
-                "bandwidth": allocated_bandwidth,
+                "bandwidth": alloc["bandwidth"],
                 "switches": allocated_switches,
-                "priority": priority,
-                "requested_bandwidth": requested,
-                "allocation_ratio": allocated_bandwidth / requested if requested > 0 else 1.0
+                "priority": alloc["priority"],
+                "requested_bandwidth": alloc["requested"],
+                "allocation_ratio": alloc["bandwidth"] / alloc["requested"] if alloc["requested"] > 0 else 1.0
             }
         
         # Calculate fairness score (Jain's fairness index)

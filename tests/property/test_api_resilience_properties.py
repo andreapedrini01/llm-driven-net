@@ -108,7 +108,11 @@ class TestAPIResilienceProperties:
         eventually_succeeds = scenario['eventually_succeeds']
         
         # Assume reasonable failure counts for testing
-        assume(failure_count <= self.mock_config.max_retries or eventually_succeeds)
+        # Generic errors are not retried, so they can't eventually succeed through retries
+        if error_type == 'generic':
+            assume(not eventually_succeeds or failure_count == 1)
+        else:
+            assume(failure_count <= self.mock_config.max_retries or eventually_succeeds)
         
         # Create appropriate error based on type
         if error_type == 'rate_limit':
@@ -116,7 +120,7 @@ class TestAPIResilienceProperties:
         elif error_type == 'timeout':
             error = APITimeoutError("Request timeout")
         elif error_type == 'connection':
-            error = APIConnectionError(request=Mock())
+            error = APIConnectionError(message="Connection error.", request=Mock())
         else:
             error = OpenAIError("Generic API error")
         
@@ -162,8 +166,12 @@ class TestAPIResilienceProperties:
                         asyncio.run(client.generate_response("Test prompt"))
                     
                     # Verify all retries were attempted (for retryable errors)
+                    # Generic errors are not retried, only specific API errors
                     if error_type in ['rate_limit', 'timeout', 'connection']:
                         assert mock_request.call_count == self.mock_config.max_retries
+                    else:
+                        # Generic OpenAIError is not retried
+                        assert mock_request.call_count == 1
                     
                     # Verify consecutive failures tracked
                     assert client._consecutive_failures > 0
@@ -191,7 +199,7 @@ class TestAPIResilienceProperties:
             elif error_type == 'timeout':
                 error = APITimeoutError("Request timeout")
             else:
-                error = APIConnectionError(request=Mock())
+                error = APIConnectionError(message="Connection error.", request=Mock())
             
             # Set up mock to always fail
             with patch.object(client, '_make_request', new_callable=AsyncMock) as mock_request:
@@ -510,7 +518,7 @@ class TestAPIResilienceProperties:
         elif error_type == 'timeout':
             error = APITimeoutError("Request timeout")
         else:
-            error = APIConnectionError(request=Mock())
+            error = APIConnectionError(message="Connection error.", request=Mock())
         
         mock_response = self.create_mock_response()
         
