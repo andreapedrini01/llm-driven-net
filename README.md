@@ -1,21 +1,21 @@
 # LLM Integration Module
 
-Il modulo di integrazione LLM è il componente centrale del sistema di networking intent-based che utilizza **ChatGPT API (OpenAI)** per interpretare intent di rete in linguaggio naturale e generare azioni di configurazione appropriate. L'utilizzo esclusivo di ChatGPT API garantisce velocità di risposta superiore e maggiore accuratezza nell'interpretazione degli intent.
+The LLM integration module is the core component of the intent-based networking system that uses **ChatGPT API (OpenAI)** to interpret network intents in natural language and generate appropriate configuration actions. The exclusive use of ChatGPT API ensures superior response speed and greater accuracy in intent interpretation.
 
-## 📚 Documentazione
+## 📚 Documentation
 
-- **[docs/](docs/)** - Indice completo documentazione 📖
-- **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** - Guida per iniziare e avviare il server ⚡
-- **[docs/getting-started/](docs/getting-started/)** - Guide installazione e quick start
-- **[docs/API_USAGE.md](docs/API_USAGE.md)** - Guida completa all'uso dell'API REST e WebSocket 🌐
-- **[docs/development/](docs/development/)** - Guide sviluppo, testing e dipendenze 💻
-- **[docs/deployment/](docs/deployment/)** - Guide deployment e architettura 🚀
-- **[CHANGELOG.md](CHANGELOG.md)** - Registro delle modifiche e versioni 📝
+- **[docs/](docs/)** - Complete documentation index 📖
+- **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** - Getting started guide and server startup ⚡
+- **[docs/getting-started/](docs/getting-started/)** - Installation and quick start guides
+- **[docs/API_USAGE.md](docs/API_USAGE.md)** - Complete guide to REST API and WebSocket usage 🌐
+- **[docs/development/](docs/development/)** - Development, testing and dependencies guides 💻
+- **[docs/deployment/](docs/deployment/)** - Deployment and architecture guides 🚀
+- **[CHANGELOG.md](CHANGELOG.md)** - Change log and versions 📝
 
-## Struttura del Progetto
+## Project Structure
 
 ```
-├── src/                    # Codice sorgente
+├── src/                    # Source code
 │   ├── models/            # Data models (Pydantic)
 │   ├── services/          # Business logic services
 │   ├── api/               # FastAPI routes and endpoints
@@ -24,70 +24,70 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
 │   └── main.py            # Application entry point
 │
 ├── tests/                  # Test suite
-│   ├── unit/              # Test unitari
-│   ├── property/          # Test property-based (Hypothesis)
-│   ├── integration/       # Test end-to-end
-│   └── mocks/             # Mock e fixture
+│   ├── unit/              # Unit tests
+│   ├── property/          # Property-based tests (Hypothesis)
+│   ├── integration/       # End-to-end tests
+│   └── mocks/             # Mocks and fixtures
 │
-├── docs/                   # Documentazione
-│   ├── getting-started/   # Guide installazione
-│   ├── api/               # Documentazione API
-│   ├── deployment/        # Guide deployment
-│   ├── development/       # Guide sviluppo
-│   └── architecture/      # Design e requisiti
+├── docs/                   # Documentation
+│   ├── getting-started/   # Installation guides
+│   ├── api/               # API documentation
+│   ├── deployment/        # Deployment guides
+│   ├── development/       # Development guides
+│   └── architecture/      # Design and requirements
 │
-├── deployment/             # Deployment e infrastruttura
-│   ├── kubernetes/        # Manifests K8s
-│   ├── docker/            # Dockerfile e compose
-│   ├── monitoring/        # Prometheus e alerting
-│   └── scripts/           # Script deployment
+├── deployment/             # Deployment and infrastructure
+│   ├── kubernetes/        # K8s manifests
+│   ├── docker/            # Dockerfile and compose
+│   ├── monitoring/        # Prometheus and alerting
+│   └── scripts/           # Deployment scripts
 │
-├── config/                 # Configurazioni ambiente
-│   ├── .env.example       # Template configurazione
-│   ├── dev.env            # Ambiente sviluppo
-│   ├── staging.env        # Ambiente staging
-│   └── prod.env           # Ambiente produzione
+├── config/                 # Environment configurations
+│   ├── .env.example       # Configuration template
+│   ├── dev.env            # Development environment
+│   ├── staging.env        # Staging environment
+│   └── prod.env           # Production environment
 │
-├── examples/               # Esempi e demo
-│   ├── data/              # Dati di esempio
-│   └── *.py               # Script dimostrativi
+├── examples/               # Examples and demos
+│   ├── data/              # Sample data
+│   └── *.py               # Demo scripts
 │
-├── cache/                  # Cache runtime
-├── output/                 # Output generati
-└── .kiro/                  # Spec e configurazione Kiro
+├── cache/                  # Runtime cache
+├── output/                 # Generated output
+└── .kiro/                  # Kiro spec and configuration
 ```
 
-## Installazione Rapida
+## Quick Installation
 
-### Requisiti di Sistema
+### System Requirements
 
-- Python 3.11 o superiore
-- pip (package manager Python)
-- Connessione internet per accedere a ChatGPT API
+- Python 3.11 or higher
+- pip (Python package manager)
+- Internet connection to access ChatGPT API
 
-### Installazione
+### Installation
 
-1. **Clona il repository**:
+1. **Clone the repository**:
    ```bash
    git clone <repository-url>
    cd llm-driven-net
    ```
 
-2. **Installa le dipendenze**:
+2. **Install dependencies**:
    
-   Per uso normale:
+   For normal use:
    ```bash
    pip install -r requirements.txt
    ```
    
-   Per sviluppo (include tool di testing, linting, ecc.):
+   For development (includes testing tools, linting, etc.):
    ```bash
    pip install -r requirements-dev.txt
    ```
 
-3. **Configura le variabili d'ambiente**:
+3. **Configure environment variables**:
    
-   Copia il file di esempio e modificalo:
+   Copy the example file and modify it:
    ```bash
    # Windows
    copy config\.env.example .env
@@ -96,29 +96,29 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
    cp config/.env.example .env
    ```
    
-   Modifica `.env` con le tue configurazioni (specialmente `OPENAI_API_KEY`).
+   Edit `.env` with your configurations (especially `OPENAI_API_KEY`).
 
-4. **Avvia il server**:
+4. **Start the server**:
    ```bash
    python -m src.main
    ```
    
-   Il server sarà disponibile su `http://localhost:8080`
+   The server will be available at `http://localhost:8080`
 
-Per istruzioni dettagliate, vedi [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+For detailed instructions, see [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 
-### Avvio del Server
+### Starting the Server
 
 ```bash
 python -m src.main
 ```
 
-Il server sarà disponibile su:
+The server will be available at:
 - API: http://localhost:8080
 - Metrics: http://localhost:8000
 - Docs: http://localhost:8080/docs
 
-### Test Rapido
+### Quick Test
 
 ```bash
 # Test health check
@@ -130,209 +130,209 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
   -d '{"username":"admin","password":"admin123"}'
 ```
 
-### Produzione
+### Production
 
-Per produzione, usa uvicorn direttamente:
+For production, use uvicorn directly:
 ```bash
 uvicorn src.main:app --host 0.0.0.0 --port 8080 --workers 4
 ```
 
-## Test
+## Testing
 
-### Test Rapido dell'API
+### Quick API Test
 
 ```bash
 python tests/integration/test_api_local.py
 ```
 
-### Test Suite Completa
+### Complete Test Suite
 
-Esegui tutti i test:
+Run all tests:
 ```bash
 pytest
 ```
 
-Esegui solo i test unitari:
+Run only unit tests:
 ```bash
 pytest tests/unit/ -m unit
 ```
 
-Esegui i test property-based:
+Run property-based tests:
 ```bash
 pytest tests/property/ -m property
 ```
 
-Esegui i test di integrazione:
+Run integration tests:
 ```bash
 pytest tests/integration/
 ```
 
-**Nota**: I test property-based possono richiedere più tempo per l'esecuzione.
+**Note**: Property-based tests may take longer to execute.
 
-Per dettagli completi, vedi [tests/README.md](tests/README.md) e [docs/development/TESTING.md](docs/development/TESTING.md)
+For complete details, see [tests/README.md](tests/README.md) and [docs/development/TESTING.md](docs/development/TESTING.md)
 
-## Monitoraggio
+## Monitoring
 
-Il modulo espone metriche Prometheus su `http://localhost:8000/metrics` (configurabile).
+The module exposes Prometheus metrics at `http://localhost:8000/metrics` (configurable).
 
-Metriche disponibili:
-- `llm_module_intents_total`: Numero totale di intent processati
-- `llm_module_actions_total`: Numero totale di azioni generate
-- `llm_module_processing_seconds`: Tempo di elaborazione per componente
-- `llm_module_anomalies_total`: Numero totale di anomalie rilevate
+Available metrics:
+- `llm_module_intents_total`: Total number of intents processed
+- `llm_module_actions_total`: Total number of actions generated
+- `llm_module_processing_seconds`: Processing time per component
+- `llm_module_anomalies_total`: Total number of anomalies detected
 
-## Configurazione
+## Configuration
 
-Tutte le configurazioni sono gestite tramite variabili d'ambiente. Vedi `config/.env.example` per la lista completa.
+All configurations are managed through environment variables. See `config/.env.example` for the complete list.
 
-### Configurazioni Essenziali
+### Essential Configurations
 
-#### ChatGPT API (Obbligatorio)
-- `OPENAI_API_KEY`: La tua chiave API OpenAI
-- `OPENAI_MODEL`: Modello da utilizzare (default: `gpt-4o-mini`)
+#### ChatGPT API (Required)
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `OPENAI_MODEL`: Model to use (default: `gpt-4o-mini`)
 
-#### Autenticazione (Raccomandato cambiare in produzione)
-- `JWT_SECRET_KEY`: Chiave segreta per JWT
-- `ADMIN_PASSWORD`: Password utente admin
-- `OPERATOR_PASSWORD`: Password utente operator
-- `VIEWER_PASSWORD`: Password utente viewer
+#### Authentication (Recommended to change in production)
+- `JWT_SECRET_KEY`: Secret key for JWT
+- `ADMIN_PASSWORD`: Admin user password
+- `OPERATOR_PASSWORD`: Operator user password
+- `VIEWER_PASSWORD`: Viewer user password
 
 #### Server
-- `API_HOST`: Host del server (default: `0.0.0.0`)
-- `API_PORT`: Porta del server (default: `8080`)
+- `API_HOST`: Server host (default: `0.0.0.0`)
+- `API_PORT`: Server port (default: `8080`)
 
-### Configurazioni Avanzate
+### Advanced Configurations
 
 #### ChatGPT API
-- `OPENAI_MAX_TOKENS`: Token massimi per risposta (default: 2000)
-- `OPENAI_TEMPERATURE`: Creatività delle risposte (0.0-1.0, default: 0.1)
-- `OPENAI_RATE_LIMIT_RPM`: Richieste massime al minuto (default: 60)
-- `OPENAI_TIMEOUT`: Timeout richieste in secondi (default: 30)
-- `OPENAI_MAX_RETRIES`: Tentativi massimi in caso di errore (default: 3)
+- `OPENAI_MAX_TOKENS`: Maximum tokens per response (default: 2000)
+- `OPENAI_TEMPERATURE`: Response creativity (0.0-1.0, default: 0.1)
+- `OPENAI_RATE_LIMIT_RPM`: Maximum requests per minute (default: 60)
+- `OPENAI_TIMEOUT`: Request timeout in seconds (default: 30)
+- `OPENAI_MAX_RETRIES`: Maximum retries on error (default: 3)
 
 #### Network State
-- `STATE_CACHE_TTL`: TTL della cache dello stato di rete (default: 300 secondi)
-- `STATE_REFRESH_INTERVAL`: Intervallo refresh automatico (default: 60 secondi)
+- `STATE_CACHE_TTL`: Network state cache TTL (default: 300 seconds)
+- `STATE_REFRESH_INTERVAL`: Automatic refresh interval (default: 60 seconds)
 
 #### Monitoring
-- `METRICS_PORT`: Porta per metriche Prometheus (default: 8000)
-- `ENABLE_METRICS`: Abilita server metriche (default: true)
+- `METRICS_PORT`: Port for Prometheus metrics (default: 8000)
+- `ENABLE_METRICS`: Enable metrics server (default: true)
 
-Vedi `config/.env.example` per tutte le opzioni disponibili.
+See `config/.env.example` for all available options.
 
-## Architettura
+## Architecture
 
-Il modulo segue un'architettura modulare con i seguenti componenti principali:
+The module follows a modular architecture with the following main components:
 
 ### Core Components
 
-1. **Intent Parser**: Analizza intent in linguaggio naturale
-2. **Context Analyzer**: Correla intent con stato della rete
-3. **Action Generator**: Genera azioni concrete tramite ChatGPT API
-4. **Validator**: Valida e verifica sicurezza delle azioni
-5. **ChatGPT Client**: Gestisce comunicazione con OpenAI API con retry logic e rate limiting
+1. **Intent Parser**: Analyzes intents in natural language
+2. **Context Analyzer**: Correlates intents with network state
+3. **Action Generator**: Generates concrete actions via ChatGPT API
+4. **Validator**: Validates and verifies action security
+5. **ChatGPT Client**: Manages communication with OpenAI API with retry logic and rate limiting
 
 ### API Layer
 
-6. **REST API**: Endpoints per sottomissione intent e gestione
-7. **WebSocket**: Aggiornamenti real-time per client connessi
-8. **Authentication**: Sistema JWT con ruoli e permessi
+6. **REST API**: Endpoints for intent submission and management
+7. **WebSocket**: Real-time updates for connected clients
+8. **Authentication**: JWT system with roles and permissions
 
 ### Infrastructure
 
-9. **State Cache**: Cache thread-safe per stato della rete
-10. **Monitoring**: Metriche Prometheus e health checks
-11. **Logging**: Logging strutturato con correlation IDs
+9. **State Cache**: Thread-safe cache for network state
+10. **Monitoring**: Prometheus metrics and health checks
+11. **Logging**: Structured logging with correlation IDs
 
-Vedi [.kiro/specs/llm-integration-module/design.md](.kiro/specs/llm-integration-module/design.md) per dettagli completi.
+See [.kiro/specs/llm-integration-module/design.md](.kiro/specs/llm-integration-module/design.md) for complete details.
 
-## API REST
+## REST API
 
-Il modulo espone un'API REST completa per la gestione degli intent di rete.
+The module exposes a complete REST API for network intent management.
 
-### Endpoints Principali
+### Main Endpoints
 
-- `POST /api/v1/auth/login` - Autenticazione e ottenimento token JWT
-- `GET /api/v1/auth/me` - Informazioni utente corrente
-- `POST /api/v1/intents` - Sottomissione intent in linguaggio naturale
-- `GET /api/v1/intents/{id}/status` - Status di un intent
-- `WS /api/v1/ws` - WebSocket per aggiornamenti real-time
+- `POST /api/v1/auth/login` - Authentication and JWT token retrieval
+- `GET /api/v1/auth/me` - Current user information
+- `POST /api/v1/intents` - Submit intent in natural language
+- `GET /api/v1/intents/{id}/status` - Intent status
+- `WS /api/v1/ws` - WebSocket for real-time updates
 - `GET /health` - Health check
 - `GET /health/ready` - Readiness check
 - `GET /health/live` - Liveness check
 
-### Documentazione Interattiva
+### Interactive Documentation
 
-Una volta avviato il server, la documentazione interattiva è disponibile su:
+Once the server is started, interactive documentation is available at:
 - **Swagger UI**: http://localhost:8080/docs
 - **ReDoc**: http://localhost:8080/redoc
 
-### Autenticazione
+### Authentication
 
-L'API utilizza JWT (JSON Web Tokens) per l'autenticazione. Utenti predefiniti:
-- `admin` / `admin123` - Accesso completo
-- `operator` / `operator123` - Lettura e scrittura
-- `viewer` / `viewer123` - Solo lettura
+The API uses JWT (JSON Web Tokens) for authentication. Default users:
+- `admin` / `admin123` - Full access
+- `operator` / `operator123` - Read and write
+- `viewer` / `viewer123` - Read only
 
-**Importante**: Cambia le password predefinite in produzione tramite variabili d'ambiente!
+**Important**: Change default passwords in production via environment variables!
 
-Per dettagli completi, vedi [docs/API_USAGE.md](docs/API_USAGE.md)
+For complete details, see [docs/API_USAGE.md](docs/API_USAGE.md)
 
 ## Logging
 
-Il sistema utilizza logging strutturato con supporto per:
-- Output JSON per produzione
-- Correlation ID per tracciamento
-- Audit logging per eventi critici
-- Diversi livelli di log configurabili
+The system uses structured logging with support for:
+- JSON output for production
+- Correlation ID for tracking
+- Audit logging for critical events
+- Configurable log levels
 
-## Sviluppo
+## Development
 
-Per contribuire al progetto:
+To contribute to the project:
 
-1. Segui la struttura dei task definita in `.kiro/specs/llm-integration-module/tasks.md`
-2. Usa i modelli Pydantic definiti in `src/models/`
-3. Implementa test sia unitari che property-based in `tests/`
-4. Mantieni la copertura dei test alta
-5. Segui le convenzioni di logging e monitoraggio
+1. Follow the task structure defined in `.kiro/specs/llm-integration-module/tasks.md`
+2. Use Pydantic models defined in `src/models/`
+3. Implement both unit and property-based tests in `tests/`
+4. Maintain high test coverage
+5. Follow logging and monitoring conventions
 
-### Dipendenze di Sviluppo
+### Development Dependencies
 
-Per installare le dipendenze di sviluppo (linting, formatting, ecc.):
+To install development dependencies (linting, formatting, etc.):
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-Questo include:
+This includes:
 - black (code formatter)
 - flake8 (linter)
 - mypy (type checker)
 - pytest-cov (test coverage)
-- E altro (vedi requirements-dev.txt)
+- And more (see requirements-dev.txt)
 
-Per dettagli completi, vedi [docs/development/](docs/development/)
+For complete details, see [docs/development/](docs/development/)
 
-## Versione
+## Version
 
-Versione corrente: **0.1.0**
+Current version: **0.1.0**
 
-Vedi [CHANGELOG.md](CHANGELOG.md) per la storia completa delle modifiche.
+See [CHANGELOG.md](CHANGELOG.md) for the complete change history.
 
-## Licenza
+## License
 
-Questo progetto è sviluppato per scopi educativi e di ricerca.
+This project is developed for educational and research purposes.
 
-## Autori
+## Authors
 
 @andreapedrini01
 
-## Supporto
+## Support
 
-Per problemi o domande:
-- Consulta la documentazione in `docs/`
-- Leggi la [Troubleshooting Guide](docs/TROUBLESHOOTING.md) per problemi comuni
-- Controlla i log del server per errori dettagliati
-- Verifica la configurazione in `.env`
-- Rivedi i requisiti in `requirements.txt`
-- Leggi le guide in [docs/README.md](docs/README.md)
+For issues or questions:
+- Consult the documentation in `docs/`
+- Read the [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for common issues
+- Check server logs for detailed errors
+- Verify configuration in `.env`
+- Review requirements in `requirements.txt`
+- Read guides in [docs/README.md](docs/README.md)
