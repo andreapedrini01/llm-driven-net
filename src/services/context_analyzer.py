@@ -1133,8 +1133,12 @@ class AnomalyDetectionSystem:
         """Generate rerouting actions for link failures."""
         actions = []
         
+        # Get all link IDs from state
+        link_ids = {link.id for link in state.topology.links}
+        
         for resource in anomaly.affected_resources:
-            if resource.startswith("link_"):
+            # Check if resource is a link (by prefix or by matching actual link ID)
+            if resource.startswith("link_") or resource.startswith("link-") or resource in link_ids:
                 action = NetworkAction(
                     id=f"reroute_{resource}_{int(time.time())}",
                     type=ActionType.FLOW_MOD,
@@ -1155,8 +1159,12 @@ class AnomalyDetectionSystem:
         """Generate failover actions for switch failures."""
         actions = []
         
+        # Get all switch IDs from state
+        switch_ids = {switch.id for switch in state.topology.switches}
+        
         for resource in anomaly.affected_resources:
-            if resource.startswith("switch_") or any(s.id == resource for s in state.topology.switches):
+            # Check if resource is a switch (by prefix or by matching actual switch ID)
+            if resource.startswith("switch_") or resource.startswith("switch-") or resource in switch_ids:
                 action = NetworkAction(
                     id=f"failover_{resource}_{int(time.time())}",
                     type=ActionType.CONFIG_CHANGE,

@@ -4,38 +4,64 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
 
 ## 📚 Documentazione
 
+- **[docs/](docs/)** - Indice completo documentazione 📖
 - **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** - Guida per iniziare e avviare il server ⚡
+- **[docs/getting-started/](docs/getting-started/)** - Guide installazione e quick start
 - **[docs/API_USAGE.md](docs/API_USAGE.md)** - Guida completa all'uso dell'API REST e WebSocket 🌐
-- **[docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)** - Informazioni dettagliate sulle dipendenze 📦
+- **[docs/development/](docs/development/)** - Guide sviluppo, testing e dipendenze 💻
+- **[docs/deployment/](docs/deployment/)** - Guide deployment e architettura 🚀
 - **[CHANGELOG.md](CHANGELOG.md)** - Registro delle modifiche e versioni 📝
-- **[README.md](README.md)** - Questo documento (panoramica generale) 📖
 
 ## Struttura del Progetto
 
 ```
-├── src/
-│   ├── models/          # Data models (Pydantic)
-│   │   ├── intent.py    # Intent-related models
-│   │   ├── network.py   # Network state models
-│   │   ├── actions.py   # Action models
-│   │   └── slices.py    # Network slice models
-│   ├── services/        # Business logic services
-│   ├── api/            # FastAPI routes and endpoints
-│   ├── utils/          # Utilities
-│   │   ├── logging.py  # Structured logging
-│   │   └── monitoring.py # Metrics and monitoring
-│   ├── config.py       # Configuration management
-│   └── main.py         # Application entry point
-├── tests/              # Test files
-├── requirements.txt    # Python dependencies
-└── README.md          # This file
+├── src/                    # Codice sorgente
+│   ├── models/            # Data models (Pydantic)
+│   ├── services/          # Business logic services
+│   ├── api/               # FastAPI routes and endpoints
+│   ├── utils/             # Utilities (logging, monitoring)
+│   ├── config.py          # Configuration management
+│   └── main.py            # Application entry point
+│
+├── tests/                  # Test suite
+│   ├── unit/              # Test unitari
+│   ├── property/          # Test property-based (Hypothesis)
+│   ├── integration/       # Test end-to-end
+│   └── mocks/             # Mock e fixture
+│
+├── docs/                   # Documentazione
+│   ├── getting-started/   # Guide installazione
+│   ├── api/               # Documentazione API
+│   ├── deployment/        # Guide deployment
+│   ├── development/       # Guide sviluppo
+│   └── architecture/      # Design e requisiti
+│
+├── deployment/             # Deployment e infrastruttura
+│   ├── kubernetes/        # Manifests K8s
+│   ├── docker/            # Dockerfile e compose
+│   ├── monitoring/        # Prometheus e alerting
+│   └── scripts/           # Script deployment
+│
+├── config/                 # Configurazioni ambiente
+│   ├── .env.example       # Template configurazione
+│   ├── dev.env            # Ambiente sviluppo
+│   ├── staging.env        # Ambiente staging
+│   └── prod.env           # Ambiente produzione
+│
+├── examples/               # Esempi e demo
+│   ├── data/              # Dati di esempio
+│   └── *.py               # Script dimostrativi
+│
+├── cache/                  # Cache runtime
+├── output/                 # Output generati
+└── .kiro/                  # Spec e configurazione Kiro
 ```
 
 ## Installazione Rapida
 
 ### Requisiti di Sistema
 
-- Python 3.8 o superiore
+- Python 3.11 o superiore
 - pip (package manager Python)
 - Connessione internet per accedere a ChatGPT API
 
@@ -64,10 +90,10 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
    Copia il file di esempio e modificalo:
    ```bash
    # Windows
-   copy .env.example .env
+   copy config\.env.example .env
    
    # Linux/Mac
-   cp .env.example .env
+   cp config/.env.example .env
    ```
    
    Modifica `.env` con le tue configurazioni (specialmente `OPENAI_API_KEY`).
@@ -80,8 +106,6 @@ Il modulo di integrazione LLM è il componente centrale del sistema di networkin
    Il server sarà disponibile su `http://localhost:8080`
 
 Per istruzioni dettagliate, vedi [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
-
-## Esecuzione
 
 ### Avvio del Server
 
@@ -118,7 +142,7 @@ uvicorn src.main:app --host 0.0.0.0 --port 8080 --workers 4
 ### Test Rapido dell'API
 
 ```bash
-python test_api_local.py
+python tests/integration/test_api_local.py
 ```
 
 ### Test Suite Completa
@@ -130,15 +154,22 @@ pytest
 
 Esegui solo i test unitari:
 ```bash
-pytest -m unit
+pytest tests/unit/ -m unit
 ```
 
 Esegui i test property-based:
 ```bash
-pytest -m property
+pytest tests/property/ -m property
+```
+
+Esegui i test di integrazione:
+```bash
+pytest tests/integration/
 ```
 
 **Nota**: I test property-based possono richiedere più tempo per l'esecuzione.
+
+Per dettagli completi, vedi [tests/README.md](tests/README.md) e [docs/development/TESTING.md](docs/development/TESTING.md)
 
 ## Monitoraggio
 
@@ -152,7 +183,7 @@ Metriche disponibili:
 
 ## Configurazione
 
-Tutte le configurazioni sono gestite tramite variabili d'ambiente. Vedi `.env.example` per la lista completa.
+Tutte le configurazioni sono gestite tramite variabili d'ambiente. Vedi `config/.env.example` per la lista completa.
 
 ### Configurazioni Essenziali
 
@@ -187,7 +218,7 @@ Tutte le configurazioni sono gestite tramite variabili d'ambiente. Vedi `.env.ex
 - `METRICS_PORT`: Porta per metriche Prometheus (default: 8000)
 - `ENABLE_METRICS`: Abilita server metriche (default: true)
 
-Vedi `.env.example` per tutte le opzioni disponibili.
+Vedi `config/.env.example` per tutte le opzioni disponibili.
 
 ## Architettura
 
@@ -261,7 +292,7 @@ Per contribuire al progetto:
 
 1. Segui la struttura dei task definita in `.kiro/specs/llm-integration-module/tasks.md`
 2. Usa i modelli Pydantic definiti in `src/models/`
-3. Implementa test sia unitari che property-based
+3. Implementa test sia unitari che property-based in `tests/`
 4. Mantieni la copertura dei test alta
 5. Segui le convenzioni di logging e monitoraggio
 
@@ -280,6 +311,8 @@ Questo include:
 - pytest-cov (test coverage)
 - E altro (vedi requirements-dev.txt)
 
+Per dettagli completi, vedi [docs/development/](docs/development/)
+
 ## Versione
 
 Versione corrente: **0.1.0**
@@ -292,12 +325,14 @@ Questo progetto è sviluppato per scopi educativi e di ricerca.
 
 ## Autori
 
-Sviluppato come parte del progetto LLM-Driven Network Management.
+@andreapedrini01
 
 ## Supporto
 
 Per problemi o domande:
 - Consulta la documentazione in `docs/`
+- Leggi la [Troubleshooting Guide](docs/TROUBLESHOOTING.md) per problemi comuni
 - Controlla i log del server per errori dettagliati
 - Verifica la configurazione in `.env`
 - Rivedi i requisiti in `requirements.txt`
+- Leggi le guide in [docs/README.md](docs/README.md)

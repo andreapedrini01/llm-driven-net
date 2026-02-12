@@ -38,3 +38,6 @@ python-multipart>=0.0.6
 
 # Monitoring
 prometheus-client>=0.20.0
+
+# Secrets management
+cryptography>=41.0.0
