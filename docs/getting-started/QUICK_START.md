@@ -1,246 +1,246 @@
 # Quick Start Guide
 
-Guida rapida per iniziare con il modulo LLM Integration in 5 minuti.
+Quick guide to get started with the LLM Integration module in 5 minutes.
 
-## Prerequisiti
+## Prerequisites
 
-- Python 3.10 o superiore
-- Account OpenAI con API key
+- Python 3.10 or higher
+- OpenAI account with API key
 
-## Installazione Rapida
+## Quick Installation
 
 ### Linux/macOS
 
 ```bash
-# 1. Clona e entra nella directory
+# 1. Clone and enter directory
 git clone <repository-url>
 cd llm-driven-net
 
-# 2. Esegui lo script di setup automatico
+# 2. Run automatic setup script
 chmod +x setup.sh
 ./setup.sh
 
-# 3. Configura la tua API key nel file .env
-nano .env  # o usa il tuo editor preferito
+# 3. Configure your API key in .env file
+nano .env  # or use your preferred editor
 ```
 
 ### Windows
 
 ```cmd
-REM 1. Clona e entra nella directory
+REM 1. Clone and enter directory
 git clone <repository-url>
 cd llm-driven-net
 
-REM 2. Esegui lo script di setup automatico
+REM 2. Run automatic setup script
 setup.bat
 
-REM 3. Configura la tua API key nel file .env
+REM 3. Configure your API key in .env file
 notepad .env
 ```
 
-### Installazione Manuale
+### Manual Installation
 
-Se preferisci installare manualmente:
+If you prefer to install manually:
 
 ```bash
-# 1. Crea ambiente virtuale
+# 1. Create virtual environment
 python -m venv venv
 
-# 2. Attiva ambiente virtuale
+# 2. Activate virtual environment
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
-# 3. Installa dipendenze
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Configura .env
+# 4. Configure .env
 cp .env.example .env  # Linux/Mac
 copy .env.example .env  # Windows
 
-# 5. Modifica .env con la tua API key
+# 5. Edit .env with your API key
 ```
 
-## Configurazione API Key
+## API Key Configuration
 
-1. Ottieni una API key da [OpenAI Platform](https://platform.openai.com/api-keys)
-2. Apri il file `.env`
-3. Sostituisci `your-api-key-here` con la tua chiave:
+1. Get an API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Open the `.env` file
+3. Replace `your-api-key-here` with your key:
 
 ```env
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
 OPENAI_MODEL=gpt-4-turbo
 ```
 
-## Verifica Installazione
+## Installation Verification
 
 ```bash
-# Verifica che tutto sia configurato correttamente
+# Verify everything is configured correctly
 python scripts/verify_installation.py
 ```
 
-Output atteso:
+Expected output:
 ```
-✓ Python 3.12.4 (>= 3.10 richiesto)
-✓ fastapi installato
-✓ openai installato
+✓ Python 3.12.4 (>= 3.10 required)
+✓ fastapi installed
+✓ openai installed
 ...
-✓ Installazione completa e corretta!
+✓ Installation complete and correct!
 ```
 
-## Esegui i Test
+## Run Tests
 
 ```bash
-# Esegui tutti i test
+# Run all tests
 pytest
 
-# Esegui test con output dettagliato
+# Run tests with detailed output
 pytest -v
 
-# Esegui solo test unitari (veloci)
+# Run only unit tests (fast)
 pytest tests/test_*.py -k "not properties"
 ```
 
-## Avvia l'Applicazione
+## Start Application
 
 ```bash
-# Metodo 1: Direttamente con Python
+# Method 1: Directly with Python
 python -m src.main
 
-# Metodo 2: Con uvicorn (raccomandato per sviluppo)
+# Method 2: With uvicorn (recommended for development)
 uvicorn src.main:app --reload
 
-# Metodo 3: Con uvicorn (produzione)
+# Method 3: With uvicorn (production)
 uvicorn src.main:app --host 0.0.0.0 --port 8000
 ```
 
-L'applicazione sarà disponibile su:
+The application will be available at:
 - API: http://localhost:8000
-- Documentazione interattiva: http://localhost:8000/docs
-- Documentazione alternativa: http://localhost:8000/redoc
+- Interactive documentation: http://localhost:8000/docs
+- Alternative documentation: http://localhost:8000/redoc
 
-## Test Rapido
+## Quick Test
 
-### Test Connessione ChatGPT
+### Test ChatGPT Connection
 
 ```bash
 python scripts/test_chatgpt_connection.py
 ```
 
-### Test API (con curl)
+### Test API (with curl)
 
 ```bash
 # Health check
 curl http://localhost:8000/health
 
-# Esempio richiesta (da implementare)
+# Example request (to be implemented)
 curl -X POST http://localhost:8000/api/v1/intents \
   -H "Content-Type: application/json" \
   -d '{"text": "Create a flow from switch-1 to switch-2"}'
 ```
 
-## Struttura del Progetto
+## Project Structure
 
 ```
 llm-driven-net/
-├── src/                    # Codice sorgente
+├── src/                    # Source code
 │   ├── models/            # Data models
 │   ├── services/          # Business logic
 │   ├── api/              # API endpoints
 │   └── main.py           # Entry point
 ├── tests/                 # Test suite
 ├── scripts/              # Utility scripts
-├── .env                  # Configurazione (da creare)
-├── requirements.txt      # Dipendenze produzione
-└── README.md            # Documentazione completa
+├── .env                  # Configuration (to create)
+├── requirements.txt      # Production dependencies
+└── README.md            # Complete documentation
 ```
 
-## Comandi Utili
+## Useful Commands
 
 ```bash
-# Attiva ambiente virtuale
+# Activate virtual environment
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
-# Disattiva ambiente virtuale
+# Deactivate virtual environment
 deactivate
 
-# Aggiorna dipendenze
+# Update dependencies
 pip install --upgrade -r requirements.txt
 
-# Verifica dipendenze obsolete
+# Check outdated dependencies
 pip list --outdated
 
-# Esegui linting (se hai installato requirements-dev.txt)
+# Run linting (if you installed requirements-dev.txt)
 flake8 src/
 black src/ --check
 
-# Formatta codice
+# Format code
 black src/
 
 # Type checking
 mypy src/
 
-# Coverage test
+# Test coverage
 pytest --cov=src tests/
 ```
 
-## Prossimi Passi
+## Next Steps
 
-1. **Leggi la documentazione completa**: `README.md`
-2. **Consulta la guida di installazione dettagliata**: `INSTALL.md`
-3. **Esplora le specifiche del progetto**: `.kiro/specs/llm-integration-module/`
-4. **Contribuisci**: Segui i task in `tasks.md`
+1. **Read complete documentation**: `README.md`
+2. **Consult detailed installation guide**: `INSTALL.md`
+3. **Explore project specifications**: `.kiro/specs/llm-integration-module/`
+4. **Contribute**: Follow tasks in `tasks.md`
 
-## Risoluzione Problemi Rapida
+## Quick Troubleshooting
 
-### Python non trovato
+### Python not found
 ```bash
-# Verifica installazione
+# Verify installation
 python --version
 python3 --version
 
-# Se non installato, scarica da python.org
+# If not installed, download from python.org
 ```
 
-### pip non trovato
+### pip not found
 ```bash
-# Usa python -m pip invece di pip
+# Use python -m pip instead of pip
 python -m pip install -r requirements.txt
 ```
 
-### Errore API key
+### API key error
 ```bash
-# Verifica che .env esista e contenga la chiave
+# Verify .env exists and contains the key
 cat .env | grep OPENAI_API_KEY  # Linux/Mac
 type .env | findstr OPENAI_API_KEY  # Windows
 
-# Verifica che la chiave sia valida su platform.openai.com
+# Verify key is valid at platform.openai.com
 ```
 
-### Test falliscono
+### Tests fail
 ```bash
-# Reinstalla dipendenze
+# Reinstall dependencies
 pip install -r requirements.txt --force-reinstall
 
-# Verifica installazione
+# Verify installation
 python scripts/verify_installation.py
 ```
 
-## Supporto
+## Support
 
-Per problemi o domande:
+For problems or questions:
 
-1. Consulta `INSTALL.md` per istruzioni dettagliate
-2. Consulta `DEPENDENCIES.md` per problemi con le dipendenze
-3. Esegui `python scripts/verify_installation.py` per diagnostica
-4. Controlla i log in `logs/` (se esistono)
+1. Consult `INSTALL.md` for detailed instructions
+2. Consult `DEPENDENCIES.md` for dependency issues
+3. Run `python scripts/verify_installation.py` for diagnostics
+4. Check logs in `logs/` (if they exist)
 
-## Risorse
+## Resources
 
-- **Documentazione OpenAI**: [platform.openai.com/docs](https://platform.openai.com/docs)
+- **OpenAI Documentation**: [platform.openai.com/docs](https://platform.openai.com/docs)
 - **FastAPI Docs**: [fastapi.tiangolo.com](https://fastapi.tiangolo.com)
 - **Hypothesis Docs**: [hypothesis.readthedocs.io](https://hypothesis.readthedocs.io)
 
 ---
 
-**Buon lavoro! 🚀**
+**Happy coding! 🚀**

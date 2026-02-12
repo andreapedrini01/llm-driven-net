@@ -1,184 +1,184 @@
-# Gestione delle Dipendenze
+# Dependency Management
 
-Questo documento spiega come gestire le dipendenze del progetto.
+This document explains how to manage project dependencies.
 
-## File di Dipendenze
+## Dependency Files
 
-Il progetto utilizza diversi file per gestire le dipendenze:
+The project uses different files to manage dependencies:
 
-### 1. `requirements.txt` (Produzione)
+### 1. `requirements.txt` (Production)
 
-Contiene le dipendenze minime necessarie per eseguire l'applicazione in produzione.
+Contains minimum dependencies needed to run the application in production.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Dipendenze principali**:
-- `fastapi` - Framework web per API REST
-- `pydantic` - Validazione dati e serializzazione
-- `openai` - Client ufficiale per ChatGPT API
-- `httpx` - Client HTTP asincrono
+**Main dependencies**:
+- `fastapi` - Web framework for REST API
+- `pydantic` - Data validation and serialization
+- `openai` - Official client for ChatGPT API
+- `httpx` - Asynchronous HTTP client
 - `hypothesis` - Property-based testing
-- `pytest` - Framework di testing
-- `structlog` - Logging strutturato
-- `python-dotenv` - Gestione variabili d'ambiente
+- `pytest` - Testing framework
+- `structlog` - Structured logging
+- `python-dotenv` - Environment variable management
 
-### 2. `requirements-dev.txt` (Sviluppo)
+### 2. `requirements-dev.txt` (Development)
 
-Include `requirements.txt` più tool di sviluppo aggiuntivi.
+Includes `requirements.txt` plus additional development tools.
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-**Dipendenze aggiuntive**:
-- `black` - Formattazione automatica del codice
+**Additional dependencies**:
+- `black` - Automatic code formatting
 - `flake8` - Linting
-- `mypy` - Type checking statico
-- `pytest-cov` - Coverage dei test
-- `mkdocs` - Generazione documentazione
+- `mypy` - Static type checking
+- `pytest-cov` - Test coverage
+- `mkdocs` - Documentation generation
 
-### 3. `requirements-lock.txt` (Versioni Esatte)
+### 3. `requirements-lock.txt` (Exact Versions)
 
-Contiene tutte le dipendenze con versioni esatte (generate con `pip freeze`).
+Contains all dependencies with exact versions (generated with `pip freeze`).
 
-Utile per:
-- Garantire riproducibilità esatta dell'ambiente
-- Deploy in produzione
-- Debug di problemi specifici di versione
+Useful for:
+- Guaranteeing exact environment reproducibility
+- Production deployment
+- Debugging version-specific issues
 
 ```bash
 pip install -r requirements-lock.txt
 ```
 
-## Installazione su Nuovo Dispositivo
+## Installation on New Device
 
-### Opzione 1: Installazione Standard (Raccomandato)
+### Option 1: Standard Installation (Recommended)
 
 ```bash
-# Crea ambiente virtuale
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
-# Installa dipendenze
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### Opzione 2: Installazione Esatta (Riproducibilità Garantita)
+### Option 2: Exact Installation (Guaranteed Reproducibility)
 
 ```bash
-# Crea ambiente virtuale
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
-# Installa versioni esatte
+# Install exact versions
 pip install -r requirements-lock.txt
 ```
 
-### Opzione 3: Installazione per Sviluppo
+### Option 3: Development Installation
 
 ```bash
-# Crea ambiente virtuale
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
-# Installa dipendenze di sviluppo
+# Install development dependencies
 pip install -r requirements-dev.txt
 ```
 
-## Aggiornamento Dipendenze
+## Updating Dependencies
 
-### Aggiornare una Singola Dipendenza
+### Update Single Dependency
 
 ```bash
-# Aggiorna una specifica dipendenza
+# Update specific dependency
 pip install --upgrade openai
 
-# Aggiorna pip freeze
+# Update pip freeze
 pip freeze > requirements-lock.txt
 ```
 
-### Aggiornare Tutte le Dipendenze
+### Update All Dependencies
 
 ```bash
-# Aggiorna tutte le dipendenze
+# Update all dependencies
 pip install --upgrade -r requirements.txt
 
-# Aggiorna pip freeze
+# Update pip freeze
 pip freeze > requirements-lock.txt
 ```
 
-### Verificare Dipendenze Obsolete
+### Check Outdated Dependencies
 
 ```bash
-# Mostra dipendenze con aggiornamenti disponibili
+# Show dependencies with available updates
 pip list --outdated
 ```
 
-## Verifica Dipendenze
+## Dependency Verification
 
-### Verifica Installazione
+### Verify Installation
 
 ```bash
-# Verifica che tutte le dipendenze siano installate
+# Verify all dependencies are installed
 python scripts/verify_installation.py
 ```
 
-### Verifica Versioni
+### Verify Versions
 
 ```bash
-# Mostra tutte le dipendenze installate
+# Show all installed dependencies
 pip list
 
-# Mostra informazioni su una specifica dipendenza
+# Show information about specific dependency
 pip show openai
 ```
 
-### Verifica Conflitti
+### Verify Conflicts
 
 ```bash
-# Verifica conflitti tra dipendenze
+# Verify conflicts between dependencies
 pip check
 ```
 
-## Dipendenze Critiche
+## Critical Dependencies
 
 ### ChatGPT API (OpenAI)
 
-**Pacchetto**: `openai >= 1.54.0`
+**Package**: `openai >= 1.54.0`
 
-**Configurazione richiesta**:
+**Required configuration**:
 ```env
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
 OPENAI_MODEL=gpt-4-turbo
 ```
 
-**Documentazione**: [platform.openai.com/docs](https://platform.openai.com/docs)
+**Documentation**: [platform.openai.com/docs](https://platform.openai.com/docs)
 
 ### FastAPI
 
-**Pacchetto**: `fastapi >= 0.104.1`
+**Package**: `fastapi >= 0.104.1`
 
-Framework web per costruire API REST ad alte prestazioni.
+Web framework for building high-performance REST APIs.
 
 ### Hypothesis
 
-**Pacchetto**: `hypothesis >= 6.119.4`
+**Package**: `hypothesis >= 6.119.4`
 
-Framework per property-based testing, utilizzato per validare le proprietà di correttezza del sistema.
+Framework for property-based testing, used to validate system correctness properties.
 
-## Risoluzione Problemi
+## Troubleshooting
 
-### Conflitti di Versione
+### Version Conflicts
 
-Se riscontri conflitti di versione:
+If you encounter version conflicts:
 
 ```bash
-# Crea un nuovo ambiente virtuale pulito
+# Create new clean virtual environment
 deactivate
 rm -rf venv  # Linux/Mac
 rmdir /s venv  # Windows
@@ -187,54 +187,54 @@ python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
-# Reinstalla
+# Reinstall
 pip install -r requirements.txt
 ```
 
-### Dipendenze Mancanti
+### Missing Dependencies
 
-Se un modulo non viene trovato:
+If a module is not found:
 
 ```bash
-# Verifica che sia in requirements.txt
-grep <nome-modulo> requirements.txt
+# Verify it's in requirements.txt
+grep <module-name> requirements.txt
 
-# Installalo manualmente
-pip install <nome-modulo>
+# Install manually
+pip install <module-name>
 
-# Aggiorna requirements-lock.txt
+# Update requirements-lock.txt
 pip freeze > requirements-lock.txt
 ```
 
-### Problemi di Rete
+### Network Issues
 
-Se l'installazione fallisce per problemi di rete:
+If installation fails due to network issues:
 
 ```bash
-# Aumenta il timeout
+# Increase timeout
 pip install -r requirements.txt --timeout=300
 
-# Usa un mirror alternativo
+# Use alternative mirror
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ## Best Practices
 
-1. **Usa sempre un ambiente virtuale**: Non installare mai dipendenze globalmente
-2. **Aggiorna requirements-lock.txt**: Dopo ogni modifica alle dipendenze
-3. **Testa dopo aggiornamenti**: Esegui `pytest` dopo ogni aggiornamento
-4. **Documenta dipendenze custom**: Se aggiungi nuove dipendenze, documentale
-5. **Verifica compatibilità**: Prima di aggiornare in produzione, testa in sviluppo
+1. **Always use virtual environment**: Never install dependencies globally
+2. **Update requirements-lock.txt**: After every dependency change
+3. **Test after updates**: Run `pytest` after every update
+4. **Document custom dependencies**: If you add new dependencies, document them
+5. **Verify compatibility**: Before updating in production, test in development
 
-## Dipendenze per Ambiente
+## Dependencies by Environment
 
-### Sviluppo Locale
+### Local Development
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-Include tool di sviluppo, testing e debugging.
+Includes development, testing and debugging tools.
 
 ### Testing/CI
 
@@ -242,32 +242,32 @@ Include tool di sviluppo, testing e debugging.
 pip install -r requirements.txt
 ```
 
-Include solo dipendenze necessarie per eseguire test.
+Includes only dependencies needed to run tests.
 
-### Produzione
+### Production
 
 ```bash
 pip install -r requirements-lock.txt
 ```
 
-Usa versioni esatte per garantire stabilità.
+Uses exact versions to guarantee stability.
 
-## Checklist Installazione
+## Installation Checklist
 
-Prima di considerare l'installazione completa:
+Before considering installation complete:
 
-- [ ] Ambiente virtuale creato e attivato
-- [ ] Dipendenze installate senza errori
-- [ ] `pip check` non mostra conflitti
-- [ ] `python scripts/verify_installation.py` passa tutti i controlli
-- [ ] Test eseguiti con successo: `pytest`
-- [ ] Applicazione avviabile: `python -m src.main`
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed without errors
+- [ ] `pip check` shows no conflicts
+- [ ] `python scripts/verify_installation.py` passes all checks
+- [ ] Tests executed successfully: `pytest`
+- [ ] Application can start: `python -m src.main`
 
-## Supporto
+## Support
 
-Per problemi con le dipendenze:
+For dependency issues:
 
-1. Consulta questo documento
-2. Verifica `INSTALL.md` per istruzioni dettagliate
-3. Esegui `python scripts/verify_installation.py`
-4. Controlla i log di errore
+1. Consult this document
+2. Verify `INSTALL.md` for detailed instructions
+3. Run `python scripts/verify_installation.py`
+4. Check error logs

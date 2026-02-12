@@ -1,117 +1,117 @@
 # Test Suite - LLM Integration Module
 
-Questa cartella contiene la suite completa di test per il modulo di integrazione LLM.
+This folder contains the complete test suite for the LLM integration module.
 
-## 📁 Struttura Test
+## 📁 Test Structure
 
 ```
 tests/
-├── unit/           # Test unitari per componenti individuali
-├── property/       # Test property-based con Hypothesis
-├── integration/    # Test end-to-end e integrazione
-├── mocks/          # Mock e fixture condivisi
-└── examples/       # Esempi di test e dati di test
+├── unit/           # Unit tests for individual components
+├── property/       # Property-based tests with Hypothesis
+├── integration/    # End-to-end and integration tests
+├── mocks/          # Shared mocks and fixtures
+└── examples/       # Test examples and test data
 ```
 
-## 🧪 Tipi di Test
+## 🧪 Test Types
 
 ### Unit Tests (`unit/`)
-Test unitari per componenti specifici:
-- `test_chatgpt_client.py` - Client ChatGPT API
-- `test_context_analyzer.py` - Analizzatore contesto
-- `test_validator.py` - Validatore azioni
-- `test_models.py` - Modelli dati Pydantic
-- `test_logging.py` - Sistema logging
-- `test_notifications.py` - Sistema notifiche
-- E altri...
+Unit tests for specific components:
+- `test_chatgpt_client.py` - ChatGPT API client
+- `test_context_analyzer.py` - Context analyzer
+- `test_validator.py` - Action validator
+- `test_models.py` - Pydantic data models
+- `test_logging.py` - Logging system
+- `test_notifications.py` - Notification system
+- And others...
 
-**Esecuzione**:
+**Execution**:
 ```bash
 pytest tests/unit/
 ```
 
 ### Property-Based Tests (`property/`)
-Test basati su proprietà usando Hypothesis (100+ iterazioni per test):
-- 25 test property-based che validano le proprietà di correttezza
-- Ogni test copre una proprietà specifica dal design document
-- Generatori intelligenti per dati di test realistici
+Property-based tests using Hypothesis (100+ iterations per test):
+- 25 property-based tests that validate correctness properties
+- Each test covers a specific property from the design document
+- Smart generators for realistic test data
 
-**Esecuzione**:
+**Execution**:
 ```bash
 pytest tests/property/ -m property
 ```
 
-**Nota**: I test property-based possono richiedere più tempo (1-5 minuti per test).
+**Note**: Property-based tests may take longer (1-5 minutes per test).
 
 ### Integration Tests (`integration/`)
-Test end-to-end che verificano l'intero flusso:
-- `test_end_to_end_integration.py` - Test E2E completo
-- `test_integration_suite.py` - Suite integrazione
-- `test_integration.py` - Test integrazione componenti
-- `test_api_local.py` - Test API locale
+End-to-end tests that verify the entire flow:
+- `test_end_to_end_integration.py` - Complete E2E test
+- `test_integration_suite.py` - Integration suite
+- `test_integration.py` - Component integration tests
+- `test_api_local.py` - Local API tests
 
-**Esecuzione**:
+**Execution**:
 ```bash
 pytest tests/integration/
 ```
 
 ### Mocks (`mocks/`)
-Mock e fixture condivisi:
-- `test_chatgpt_mock.py` - Mock ChatGPT API per test offline
-- Fixture comuni per tutti i test
+Shared mocks and fixtures:
+- `test_chatgpt_mock.py` - ChatGPT API mock for offline testing
+- Common fixtures for all tests
 
-## 🚀 Esecuzione Test
+## 🚀 Running Tests
 
-### Tutti i Test
+### All Tests
 ```bash
 pytest
 ```
 
-### Solo Test Unitari
+### Unit Tests Only
 ```bash
 pytest tests/unit/ -v
 ```
 
-### Solo Test Property-Based
+### Property-Based Tests Only
 ```bash
 pytest tests/property/ -m property
 ```
 
-### Solo Test Integrazione
+### Integration Tests Only
 ```bash
 pytest tests/integration/ -v
 ```
 
-### Test Specifico
+### Specific Test
 ```bash
 pytest tests/unit/test_chatgpt_client.py -v
 ```
 
-### Con Coverage
+### With Coverage
 ```bash
 pytest --cov=src --cov-report=html
 ```
 
-## 📊 Marker Test
+## 📊 Test Markers
 
-I test sono organizzati con marker pytest:
+Tests are organized with pytest markers:
 
-- `@pytest.mark.unit` - Test unitari
-- `@pytest.mark.property` - Test property-based
-- `@pytest.mark.integration` - Test integrazione
-- `@pytest.mark.slow` - Test lenti (>1 secondo)
+- `@pytest.mark.unit` - Unit tests
+- `@pytest.mark.property` - Property-based tests
+- `@pytest.mark.integration` - Integration tests
+- `@pytest.mark.slow` - Slow tests (>1 second)
 
-**Esecuzione per marker**:
+**Execution by marker**:
 ```bash
-pytest -m unit          # Solo unitari
-pytest -m property      # Solo property-based
-pytest -m integration   # Solo integrazione
-pytest -m "not slow"    # Escludi test lenti
+pytest -m unit          # Unit tests only
+pytest -m property      # Property-based only
+pytest -m integration   # Integration only
+pytest -m "not slow"    # Exclude slow tests
 ```
 
-## ⚙️ Configurazione
+## ⚙️ Configuration
 
-La configurazione dei test è in `pytest.ini` nella root del progetto:
+Test configuration is in `pytest.ini` in the project root:
 
 ```ini
 [pytest]
@@ -128,15 +128,15 @@ markers =
 
 ## 🔧 Hypothesis Configuration
 
-I test property-based usano Hypothesis con:
-- **Min examples**: 100 iterazioni per test
-- **Max examples**: 1000 iterazioni (se necessario)
+Property-based tests use Hypothesis with:
+- **Min examples**: 100 iterations per test
+- **Max examples**: 1000 iterations (if needed)
 - **Database**: `.hypothesis/` (gitignored)
-- **Shrinking**: Abilitato per trovare esempi minimi
+- **Shrinking**: Enabled to find minimal examples
 
-## 📝 Scrivere Nuovi Test
+## 📝 Writing New Tests
 
-### Test Unitario
+### Unit Test
 ```python
 # tests/unit/test_my_component.py
 import pytest
@@ -149,7 +149,7 @@ def test_my_component_basic():
     assert result == "expected"
 ```
 
-### Test Property-Based
+### Property-Based Test
 ```python
 # tests/property/test_my_properties.py
 import pytest
@@ -165,7 +165,7 @@ def test_property_always_returns_string(input_data):
     assert isinstance(result, str)
 ```
 
-### Test Integrazione
+### Integration Test
 ```python
 # tests/integration/test_my_integration.py
 import pytest
@@ -173,45 +173,45 @@ from src.main import app
 
 @pytest.mark.integration
 async def test_full_workflow():
-    # Test completo del flusso
+    # Complete workflow test
     pass
 ```
 
-## 🐛 Debugging Test
+## 🐛 Debugging Tests
 
 ### Verbose Output
 ```bash
 pytest -v -s
 ```
 
-### Stop al Primo Fallimento
+### Stop at First Failure
 ```bash
 pytest -x
 ```
 
-### Esegui Solo Test Falliti
+### Run Only Failed Tests
 ```bash
 pytest --lf
 ```
 
-### Debug con PDB
+### Debug with PDB
 ```bash
 pytest --pdb
 ```
 
 ## 📈 Coverage Report
 
-Dopo aver eseguito i test con coverage:
+After running tests with coverage:
 
 ```bash
 pytest --cov=src --cov-report=html
 ```
 
-Apri `htmlcov/index.html` nel browser per vedere il report dettagliato.
+Open `htmlcov/index.html` in browser to see detailed report.
 
-## 🔍 Test Property-Based - Proprietà Coperte
+## 🔍 Property-Based Tests - Covered Properties
 
-| # | Proprietà | File | Status |
+| # | Property | File | Status |
 |---|-----------|------|--------|
 | 1 | Intent parsing completeness | `test_intent_parsing_properties.py` | ✅ |
 | 2 | Resource validation consistency | `test_resource_validation_properties.py` | ✅ |
@@ -239,7 +239,7 @@ Apri `htmlcov/index.html` nel browser per vedere il report dettagliato.
 | 24 | Error handling completeness | `test_error_handling_properties.py` | ✅ |
 | 25 | State recovery reliability | `test_state_recovery_properties.py` | ✅ |
 
-## 📚 Risorse
+## 📚 Resources
 
 - [Pytest Documentation](https://docs.pytest.org/)
 - [Hypothesis Documentation](https://hypothesis.readthedocs.io/)
@@ -248,4 +248,4 @@ Apri `htmlcov/index.html` nel browser per vedere il report dettagliato.
 
 ---
 
-**Nota**: Esegui sempre i test prima di committare modifiche!
+**Note**: Always run tests before committing changes!

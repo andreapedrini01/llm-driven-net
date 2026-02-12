@@ -1,159 +1,159 @@
-# Risultati Test Modulo LLM
+# LLM Module Test Results
 
-## Riepilogo Esecuzione
+## Execution Summary
 
-✅ **Tutti i test completati con successo!**
+✅ **All tests completed successfully!**
 
-Data test: 12 Febbraio 2026
-File utilizzato: `network_context_latest.json`
-Modalità: Test locale (senza ChatGPT API)
+Test date: February 12, 2026
+File used: `network_context_latest.json`
+Mode: Local testing (without ChatGPT API)
 
-## Dati Analizzati
+## Analyzed Data
 
-### Topologia di Rete
-- **4 Switches** attivi
-  - Switch 1 (DPID: 0000000000000001) - 4 porte
-  - Switch 2 (DPID: 0000000000000002) - 3 porte
-  - Switch 3 (DPID: 0000000000000003) - 3 porte
-  - Switch 4 (DPID: 0000000000000004) - 2 porte
+### Network Topology
+- **4 Switches** active
+  - Switch 1 (DPID: 0000000000000001) - 4 ports
+  - Switch 2 (DPID: 0000000000000002) - 3 ports
+  - Switch 3 (DPID: 0000000000000003) - 3 ports
+  - Switch 4 (DPID: 0000000000000004) - 2 ports
 
-- **2 Links** attivi
+- **2 Links** active
   - Link 1: Switch 1 ↔ Switch 2
   - Link 2: Switch 1 ↔ Switch 3
 
-- **4 Hosts** connessi
-  - host_1 (10.0.0.1) → Switch 1, porta 4
-  - host_2 (10.0.0.2) → Switch 2, porta 3
-  - host_3 (10.0.0.3) → Switch 3, porta 3
-  - host_4 (10.0.0.4) → Switch 4, porta 1
+- **4 Hosts** connected
+  - host_1 (10.0.0.1) → Switch 1, port 4
+  - host_2 (10.0.0.2) → Switch 2, port 3
+  - host_3 (10.0.0.3) → Switch 3, port 3
+  - host_4 (10.0.0.4) → Switch 4, port 1
 
-### Metriche di Rete
+### Network Metrics
 
 **Bandwidth:**
-- Capacità totale: 12000 Mbps
-- Utilizzata: 1133 Mbps
-- Disponibile: 10866 Mbps
-- **Utilizzo: 9.4%** ✅ (normale)
+- Total capacity: 12000 Mbps
+- Used: 1133 Mbps
+- Available: 10866 Mbps
+- **Usage: 9.4%** ✅ (normal)
 
-**Latenza:**
-- Media: 6.4 ms ✅
+**Latency:**
+- Average: 6.4 ms ✅
 - Min: 5.0 ms
 - Max: 20.0 ms
 - Jitter: 7.5 ms
 
-## Anomalie Rilevate
+## Detected Anomalies
 
-### 🔴 Anomalia 1: CRITICAL
-- **Tipo**: Traffic Spike (High Utilization)
-- **Componente**: Switch 1, Porta 3
-- **Problema**: Utilizzo al 100%
+### 🔴 Anomaly 1: CRITICAL
+- **Type**: Traffic Spike (High Utilization)
+- **Component**: Switch 1, Port 3
+- **Problem**: 100% usage
 - **Confidence**: 90%
-- **Azione suggerita**: Ridistribuire il traffico o aumentare la capacità
+- **Suggested action**: Redistribute traffic or increase capacity
 
-### 🔴 Anomalia 2: CRITICAL
-- **Tipo**: Link Failure (High Error Rate)
-- **Componente**: Switch 2, Porta 2
-- **Problema**: Tasso di errori al 2%
+### 🔴 Anomaly 2: CRITICAL
+- **Type**: Link Failure (High Error Rate)
+- **Component**: Switch 2, Port 2
+- **Problem**: 2% error rate
 - **Confidence**: 95%
-- **Azione suggerita**: Verificare la connessione fisica e i driver
+- **Suggested action**: Check physical connection and drivers
 
-### 🟠 Anomalia 3: HIGH
-- **Tipo**: Switch Failure (Isolated Switch)
-- **Componente**: Switch 4 (0000000000000004)
-- **Problema**: Switch appare isolato dalla rete
+### 🟠 Anomaly 3: HIGH
+- **Type**: Switch Failure (Isolated Switch)
+- **Component**: Switch 4 (0000000000000004)
+- **Problem**: Switch appears isolated from network
 - **Confidence**: 85%
-- **Azione suggerita**: Verificare i link e la connettività dello switch
+- **Suggested action**: Check links and switch connectivity
 
-## Test Funzionali Eseguiti
+## Functional Tests Executed
 
-### ✅ Test 1: Caricamento Network State
-- File JSON caricato correttamente
-- Struttura dati validata
-- Parsing completato in <1 secondo
+### ✅ Test 1: Network State Loading
+- JSON file loaded correctly
+- Data structure validated
+- Parsing completed in <1 second
 
 ### ✅ Test 2: Intent Parsing
-Testati 4 intent in italiano:
+Tested 4 intents in Italian:
 
-1. **"Crea un flusso da host_1 a host_2 con priorità alta"**
+1. **"Create a flow from host_1 to host_2 with high priority"**
    - Confidence: 82%
-   - Entità estratte: host_1, host_2
-   - Tipo: Configuration
+   - Extracted entities: host_1, host_2
+   - Type: Configuration
 
-2. **"Mostra lo stato di switch_0000000000000001"**
+2. **"Show status of switch_0000000000000001"**
    - Confidence: 70%
-   - Entità estratte: switch_0000000000000001
-   - Tipo: Configuration
+   - Extracted entities: switch_0000000000000001
+   - Type: Configuration
 
-3. **"Risolvi l'anomalia sulla porta 3 dello switch 1"**
+3. **"Resolve anomaly on port 3 of switch 1"**
    - Confidence: 85%
-   - Entità estratte: porta, switch
-   - Tipo: Configuration
+   - Extracted entities: port, switch
+   - Type: Configuration
 
-4. **"Aumenta la bandwidth del link tra switch 1 e switch 2"**
+4. **"Increase bandwidth of link between switch 1 and switch 2"**
    - Confidence: 100%
-   - Entità estratte: link, switch, bandwidth
-   - Tipo: Configuration
+   - Extracted entities: link, switch, bandwidth
+   - Type: Configuration
 
 ### ✅ Test 3: Context Analysis
-- Risorse rilevanti identificate correttamente
-- Nessun conflitto rilevato
-- Contesto arricchito con informazioni di rete
+- Relevant resources correctly identified
+- No conflicts detected
+- Context enriched with network information
 
 ### ✅ Test 4: Anomaly Analysis
-- 3 anomalie identificate e classificate
-- Severità assegnata correttamente
-- Azioni correttive suggerite
+- 3 anomalies identified and classified
+- Severity correctly assigned
+- Corrective actions suggested
 
 ### ✅ Test 5: Metrics Analysis
-- Bandwidth: utilizzo normale (9.4%)
-- Latenza: nella norma (6.4 ms)
-- Porte critiche: 1 porta al 100% (Switch 1:3)
+- Bandwidth: normal usage (9.4%)
+- Latency: within normal range (6.4 ms)
+- Critical ports: 1 port at 100% (Switch 1:3)
 
-## Capacità Dimostrate
+## Demonstrated Capabilities
 
-Il modulo LLM ha dimostrato di poter:
+The LLM module has demonstrated ability to:
 
-1. ✅ **Caricare e validare** file JSON di stato della rete
-2. ✅ **Parsare intent** in linguaggio naturale (italiano)
-3. ✅ **Estrarre entità** da testo non strutturato
-4. ✅ **Analizzare il contesto** di rete per gli intent
-5. ✅ **Rilevare anomalie** nella rete
-6. ✅ **Classificare severità** delle anomalie
-7. ✅ **Suggerire azioni correttive** per i problemi
-8. ✅ **Analizzare metriche** di performance
+1. ✅ **Load and validate** network state JSON files
+2. ✅ **Parse intents** in natural language (Italian)
+3. ✅ **Extract entities** from unstructured text
+4. ✅ **Analyze network context** for intents
+5. ✅ **Detect anomalies** in the network
+6. ✅ **Classify severity** of anomalies
+7. ✅ **Suggest corrective actions** for problems
+8. ✅ **Analyze performance metrics**
 
-## Raccomandazioni
+## Recommendations
 
-### Problemi Critici da Risolvere:
-1. **Porta 3 dello Switch 1**: Utilizzo al 100% - richiede intervento immediato
-2. **Porta 2 dello Switch 2**: Alto tasso di errori - verificare hardware
-3. **Switch 4**: Isolato dalla rete - verificare connettività
+### Critical Problems to Resolve:
+1. **Port 3 of Switch 1**: 100% usage - requires immediate intervention
+2. **Port 2 of Switch 2**: High error rate - check hardware
+3. **Switch 4**: Isolated from network - check connectivity
 
-### Ottimizzazioni Suggerite:
-- Bilanciare il carico sulla porta 3 dello Switch 1
-- Aggiungere link ridondanti per Switch 4
-- Monitorare la porta 2 dello Switch 2 per ulteriori errori
+### Suggested Optimizations:
+- Balance load on port 3 of Switch 1
+- Add redundant links for Switch 4
+- Monitor port 2 of Switch 2 for further errors
 
-## Prossimi Passi
+## Next Steps
 
-### Per Uso in Produzione:
-1. Configurare ChatGPT API per generazione azioni intelligenti
-2. Integrare con controller Ryu per applicazione automatica delle azioni
-3. Configurare notifiche per anomalie critiche
-4. Implementare dashboard di monitoraggio
+### For Production Use:
+1. Configure ChatGPT API for intelligent action generation
+2. Integrate with Ryu controller for automatic action application
+3. Configure notifications for critical anomalies
+4. Implement monitoring dashboard
 
-### Per Testing Avanzato:
-1. Testare con scenari di rete più complessi
-2. Validare generazione azioni con ChatGPT API
-3. Testare resilienza con file corrotti/mancanti
-4. Eseguire test di carico con molti intent concorrenti
+### For Advanced Testing:
+1. Test with more complex network scenarios
+2. Validate action generation with ChatGPT API
+3. Test resilience with corrupted/missing files
+4. Run load tests with many concurrent intents
 
-## Conclusioni
+## Conclusions
 
-Il modulo LLM è **pienamente funzionante** e pronto per:
-- ✅ Analisi di stato della rete da file JSON
-- ✅ Interpretazione di intent in linguaggio naturale
-- ✅ Rilevamento e classificazione anomalie
-- ✅ Analisi del contesto di rete
+The LLM module is **fully functional** and ready for:
+- ✅ Network state analysis from JSON files
+- ✅ Natural language intent interpretation
+- ✅ Anomaly detection and classification
+- ✅ Network context analysis
 
-**Nota**: I test sono stati eseguiti senza utilizzare ChatGPT API, dimostrando che il modulo può operare anche in modalità offline con funzionalità ridotte ma comunque utili.
+**Note**: Tests were executed without using ChatGPT API, demonstrating that the module can operate even in offline mode with reduced but still useful functionality.

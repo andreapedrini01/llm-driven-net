@@ -2,102 +2,102 @@
 
 ## Overview
 
-Il modulo LLM Integration utilizza esclusivamente ChatGPT API di OpenAI per interpretare intent di rete e generare azioni di configurazione.
+The LLM Integration module uses exclusively ChatGPT API from OpenAI to interpret network intents and generate configuration actions.
 
-## Ottenere una API Key
+## Getting an API Key
 
-1. Vai su [OpenAI Platform](https://platform.openai.com/)
-2. Crea un account o effettua il login
-3. Naviga su [API Keys](https://platform.openai.com/api-keys)
-4. Clicca su "Create new secret key"
-5. Copia la chiave (la vedrai solo una volta!)
+1. Go to [OpenAI Platform](https://platform.openai.com/)
+2. Create an account or log in
+3. Navigate to [API Keys](https://platform.openai.com/api-keys)
+4. Click on "Create new secret key"
+5. Copy the key (you'll only see it once!)
 
-## Configurazione
+## Configuration
 
-### 1. Crea il file .env
+### 1. Create the .env file
 
-Copia il file `.env.example` in `.env`:
+Copy the `.env.example` file to `.env`:
 
 ```bash
 copy .env.example .env
 ```
 
-### 2. Configura la tua API Key
+### 2. Configure your API Key
 
-Apri il file `.env` e sostituisci `your-openai-api-key-here` con la tua chiave API:
+Open the `.env` file and replace `your-openai-api-key-here` with your API key:
 
 ```env
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
 ```
 
-### 3. Scegli il modello
+### 3. Choose the model
 
-Il sistema supporta tre modelli ChatGPT:
+The system supports three ChatGPT models:
 
-#### GPT-4-turbo (Raccomandato)
-- **Bilanciamento ottimale** tra qualità, velocità e costo
-- Context window: 128k token
-- Latenza: ~2-5 secondi
-- Costo: ~$0.01 input / $0.03 output per 1K token
+#### GPT-4-turbo (Recommended)
+- **Optimal balance** between quality, speed and cost
+- Context window: 128k tokens
+- Latency: ~2-5 seconds
+- Cost: ~$0.01 input / $0.03 output per 1K tokens
 
 ```env
 OPENAI_MODEL=gpt-4-turbo
 ```
 
 #### GPT-4
-- **Massima qualità** e accuratezza
-- Context window: 8k-32k token
-- Latenza: ~5-10 secondi
-- Costo: ~$0.03 input / $0.06 output per 1K token
+- **Maximum quality** and accuracy
+- Context window: 8k-32k tokens
+- Latency: ~5-10 seconds
+- Cost: ~$0.03 input / $0.06 output per 1K tokens
 
 ```env
 OPENAI_MODEL=gpt-4
 ```
 
 #### GPT-3.5-turbo
-- **Velocità massima**, costo minimo
-- Context window: 16k token
-- Latenza: ~1-2 secondi
-- Costo: ~$0.0005 input / $0.0015 output per 1K token
+- **Maximum speed**, minimum cost
+- Context window: 16k tokens
+- Latency: ~1-2 seconds
+- Cost: ~$0.0005 input / $0.0015 output per 1K tokens
 
 ```env
 OPENAI_MODEL=gpt-3.5-turbo
 ```
 
-## Parametri Avanzati
+## Advanced Parameters
 
 ### Temperature
-Controlla la creatività delle risposte (0.0 = deterministico, 1.0 = creativo):
+Controls response creativity (0.0 = deterministic, 1.0 = creative):
 
 ```env
 OPENAI_TEMPERATURE=0.1
 ```
 
-Per networking, si raccomanda un valore basso (0.1-0.3) per risposte più precise.
+For networking, a low value (0.1-0.3) is recommended for more precise responses.
 
 ### Max Tokens
-Numero massimo di token nella risposta:
+Maximum number of tokens in the response:
 
 ```env
 OPENAI_MAX_TOKENS=2000
 ```
 
 ### Rate Limiting
-Richieste massime al minuto:
+Maximum requests per minute:
 
 ```env
 OPENAI_RATE_LIMIT_RPM=60
 ```
 
-### Timeout e Retry
+### Timeout and Retry
 ```env
 OPENAI_TIMEOUT=30
 OPENAI_MAX_RETRIES=3
 ```
 
-## Verifica della Configurazione
+## Configuration Verification
 
-Per verificare che la configurazione funzioni:
+To verify that the configuration works:
 
 ```python
 from src.services.chatgpt_client import ChatGPTClient, ChatGPTConfig
@@ -122,15 +122,15 @@ async def test_connection():
 asyncio.run(test_connection())
 ```
 
-## Gestione dei Costi
+## Cost Management
 
-### Monitoraggio
-Il client traccia automaticamente:
-- Numero totale di richieste
-- Token utilizzati
-- Costo stimato
+### Monitoring
+The client automatically tracks:
+- Total number of requests
+- Tokens used
+- Estimated cost
 
-Accedi alle statistiche con:
+Access statistics with:
 
 ```python
 stats = client.get_stats()
@@ -139,65 +139,65 @@ print(f"Total tokens: {stats['total_tokens']}")
 ```
 
 ### Budget Alerts
-Configura alert quando si avvicinano soglie di costo (da implementare nel task 6.3).
+Configure alerts when approaching cost thresholds (to be implemented in task 6.3).
 
-### Best Practices per Ridurre i Costi
+### Best Practices to Reduce Costs
 
-1. **Usa GPT-3.5-turbo** per operazioni semplici
-2. **Cache delle risposte** per intent simili
-3. **Ottimizza i prompt** per ridurre token
-4. **Batch requests** quando possibile
-5. **Monitora l'utilizzo** regolarmente
+1. **Use GPT-3.5-turbo** for simple operations
+2. **Cache responses** for similar intents
+3. **Optimize prompts** to reduce tokens
+4. **Batch requests** when possible
+5. **Monitor usage** regularly
 
 ## Troubleshooting
 
-### Errore: "Invalid API Key"
-- Verifica che la chiave sia corretta
-- Controlla che non ci siano spazi extra
-- Assicurati che la chiave non sia scaduta
+### Error: "Invalid API Key"
+- Verify the key is correct
+- Check for extra spaces
+- Make sure the key hasn't expired
 
-### Errore: "Rate Limit Exceeded"
-- Il client gestisce automaticamente con retry
-- Riduci `OPENAI_RATE_LIMIT_RPM` se necessario
-- Considera un piano con limiti più alti
+### Error: "Rate Limit Exceeded"
+- The client handles automatically with retry
+- Reduce `OPENAI_RATE_LIMIT_RPM` if necessary
+- Consider a plan with higher limits
 
-### Errore: "Insufficient Quota"
-- Aggiungi crediti al tuo account OpenAI
-- Verifica il billing su [OpenAI Platform](https://platform.openai.com/account/billing)
+### Error: "Insufficient Quota"
+- Add credits to your OpenAI account
+- Check billing on [OpenAI Platform](https://platform.openai.com/account/billing)
 
 ### Timeout Errors
-- Aumenta `OPENAI_TIMEOUT`
-- Verifica la connessione internet
-- Prova con un modello più veloce (gpt-3.5-turbo)
+- Increase `OPENAI_TIMEOUT`
+- Verify internet connection
+- Try with a faster model (gpt-3.5-turbo)
 
-## Sicurezza
+## Security
 
-⚠️ **IMPORTANTE**: Non committare mai il file `.env` con la tua API key!
+⚠️ **IMPORTANT**: Never commit the `.env` file with your API key!
 
-Il file `.gitignore` è già configurato per escludere `.env`, ma verifica sempre prima di fare commit:
+The `.gitignore` file is already configured to exclude `.env`, but always verify before committing:
 
 ```bash
 git status
 ```
 
-Se accidentalmente committi la chiave:
-1. Revoca immediatamente la chiave su OpenAI Platform
-2. Genera una nuova chiave
-3. Rimuovi la chiave dalla history di Git
+If you accidentally commit the key:
+1. Immediately revoke the key on OpenAI Platform
+2. Generate a new key
+3. Remove the key from Git history
 
-## Limiti e Quote
+## Limits and Quotas
 
-OpenAI applica limiti basati sul piano:
+OpenAI applies limits based on the plan:
 
-- **Free tier**: Limiti molto bassi, solo per testing
-- **Pay-as-you-go**: Limiti più alti, scala con l'uso
-- **Enterprise**: Limiti personalizzati
+- **Free tier**: Very low limits, only for testing
+- **Pay-as-you-go**: Higher limits, scales with usage
+- **Enterprise**: Custom limits
 
-Controlla i tuoi limiti su: https://platform.openai.com/account/limits
+Check your limits at: https://platform.openai.com/account/limits
 
-## Supporto
+## Support
 
-Per problemi con l'API OpenAI:
+For issues with the OpenAI API:
 - [OpenAI Documentation](https://platform.openai.com/docs)
 - [OpenAI Community](https://community.openai.com/)
 - [OpenAI Support](https://help.openai.com/)

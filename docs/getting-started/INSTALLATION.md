@@ -1,141 +1,141 @@
-# Guida Completa all'Installazione
+# Complete Installation Guide
 
-Questa guida fornisce istruzioni dettagliate per installare e configurare il modulo LLM Integration su un nuovo dispositivo.
+This guide provides detailed instructions for installing and configuring the LLM Integration module on a new device.
 
-## Indice
+## Table of Contents
 
-1. [Requisiti di Sistema](#requisiti-di-sistema)
-2. [Installazione Passo-Passo](#installazione-passo-passo)
-3. [Configurazione](#configurazione)
-4. [Verifica dell'Installazione](#verifica-dellinstallazione)
-5. [Risoluzione Problemi](#risoluzione-problemi)
+1. [System Requirements](#system-requirements)
+2. [Step-by-Step Installation](#step-by-step-installation)
+3. [Configuration](#configuration)
+4. [Installation Verification](#installation-verification)
+5. [Troubleshooting](#troubleshooting)
 
-## Requisiti di Sistema
+## System Requirements
 
-### Software Richiesto
+### Required Software
 
-- **Python**: Versione 3.10 o superiore
-  - Verifica: `python --version` o `python3 --version`
+- **Python**: Version 3.10 or higher
+  - Verify: `python --version` or `python3 --version`
   - Download: [python.org](https://www.python.org/downloads/)
 
-- **pip**: Package manager Python (solitamente incluso con Python)
-  - Verifica: `pip --version`
+- **pip**: Python package manager (usually included with Python)
+  - Verify: `pip --version`
 
-- **Git**: Per clonare il repository
-  - Verifica: `git --version`
+- **Git**: To clone the repository
+  - Verify: `git --version`
   - Download: [git-scm.com](https://git-scm.com/downloads)
 
-### Account e Credenziali
+### Accounts and Credentials
 
-- **OpenAI Account**: Necessario per ottenere la API key
-  - Registrati su: [platform.openai.com](https://platform.openai.com/signup)
-  - Ottieni API key da: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **OpenAI Account**: Required to obtain the API key
+  - Register at: [platform.openai.com](https://platform.openai.com/signup)
+  - Get API key from: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 
-### Connessione Internet
+### Internet Connection
 
-- Richiesta per:
-  - Scaricare le dipendenze Python
-  - Comunicare con ChatGPT API
-  - Clonare il repository
+- Required for:
+  - Downloading Python dependencies
+  - Communicating with ChatGPT API
+  - Cloning the repository
 
-## Installazione Passo-Passo
+## Step-by-Step Installation
 
-### 1. Clona il Repository
+### 1. Clone the Repository
 
 ```bash
-# Clona il repository
+# Clone the repository
 git clone <repository-url>
 
-# Entra nella directory del progetto
+# Enter the project directory
 cd llm-driven-net
 ```
 
-### 2. Crea l'Ambiente Virtuale
+### 2. Create Virtual Environment
 
-Un ambiente virtuale isola le dipendenze del progetto dal sistema.
+A virtual environment isolates project dependencies from the system.
 
 #### Linux/macOS
 
 ```bash
-# Crea l'ambiente virtuale
+# Create virtual environment
 python3 -m venv venv
 
-# Attiva l'ambiente virtuale
+# Activate virtual environment
 source venv/bin/activate
 
-# Dovresti vedere (venv) nel prompt
+# You should see (venv) in the prompt
 ```
 
 #### Windows (PowerShell)
 
 ```powershell
-# Crea l'ambiente virtuale
+# Create virtual environment
 python -m venv venv
 
-# Attiva l'ambiente virtuale
+# Activate virtual environment
 venv\Scripts\Activate.ps1
 
-# Se ricevi errore di execution policy:
+# If you get execution policy error:
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
-# Dovresti vedere (venv) nel prompt
+# You should see (venv) in the prompt
 ```
 
 #### Windows (CMD)
 
 ```cmd
-# Crea l'ambiente virtuale
+# Create virtual environment
 python -m venv venv
 
-# Attiva l'ambiente virtuale
+# Activate virtual environment
 venv\Scripts\activate.bat
 
-# Dovresti vedere (venv) nel prompt
+# You should see (venv) in the prompt
 ```
 
-### 3. Aggiorna pip
+### 3. Update pip
 
 ```bash
-# Aggiorna pip all'ultima versione
+# Update pip to latest version
 python -m pip install --upgrade pip
 ```
 
-### 4. Installa le Dipendenze
+### 4. Install Dependencies
 
-#### Per Uso in Produzione
+#### For Production Use
 
 ```bash
 pip install -r requirements.txt
 ```
 
-#### Per Sviluppo (Include Tool di Testing)
+#### For Development (Includes Testing Tools)
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-**Tempo stimato**: 2-5 minuti (dipende dalla connessione internet)
+**Estimated time**: 2-5 minutes (depends on internet connection)
 
-### 5. Verifica le Dipendenze Installate
+### 5. Verify Installed Dependencies
 
 ```bash
-# Elenca tutte le dipendenze installate
+# List all installed dependencies
 pip list
 
-# Verifica dipendenze specifiche
+# Verify specific dependencies
 pip show fastapi openai hypothesis pytest
 ```
 
-Dovresti vedere:
+You should see:
 - `fastapi` >= 0.104.1
 - `openai` >= 1.54.0
 - `hypothesis` >= 6.119.4
 - `pytest` >= 8.3.4
-- E altre dipendenze...
+- And other dependencies...
 
-## Configurazione
+## Configuration
 
-### 1. Crea il File di Configurazione
+### 1. Create Configuration File
 
 ```bash
 # Linux/macOS
@@ -145,12 +145,12 @@ cp .env.example .env
 copy .env.example .env
 ```
 
-### 2. Configura ChatGPT API (OBBLIGATORIO)
+### 2. Configure ChatGPT API (REQUIRED)
 
-Apri il file `.env` con un editor di testo e configura:
+Open the `.env` file with a text editor and configure:
 
 ```env
-# === ChatGPT API Configuration (OBBLIGATORIO) ===
+# === ChatGPT API Configuration (REQUIRED) ===
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
 OPENAI_MODEL=gpt-4-turbo
 OPENAI_MAX_TOKENS=2000
@@ -160,15 +160,15 @@ OPENAI_TIMEOUT=30
 OPENAI_MAX_RETRIES=3
 ```
 
-**Come ottenere la API key**:
-1. Vai su [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-2. Clicca "Create new secret key"
-3. Copia la chiave (inizia con `sk-proj-` o `sk-`)
-4. Incollala nel file `.env`
+**How to get the API key**:
+1. Go to [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+2. Click "Create new secret key"
+3. Copy the key (starts with `sk-proj-` or `sk-`)
+4. Paste it in the `.env` file
 
-**⚠️ IMPORTANTE**: Non condividere mai la tua API key!
+**⚠️ IMPORTANT**: Never share your API key!
 
-### 3. Configura Altri Parametri (Opzionale)
+### 3. Configure Other Parameters (Optional)
 
 ```env
 # === RYU Controller ===
@@ -193,38 +193,38 @@ LOG_LEVEL=INFO
 LOG_FORMAT=json
 ```
 
-## Verifica dell'Installazione
+## Installation Verification
 
-### 1. Verifica Connessione ChatGPT
+### 1. Verify ChatGPT Connection
 
 ```bash
 python scripts/test_chatgpt_connection.py
 ```
 
-**Output atteso**:
+**Expected output**:
 ```
 ✓ ChatGPT API connection successful
 ✓ Model: gpt-4-turbo
 ✓ Response time: ~2-5 seconds
 ```
 
-### 2. Esegui i Test
+### 2. Run Tests
 
 ```bash
-# Esegui tutti i test
+# Run all tests
 pytest
 
-# Esegui test con output dettagliato
+# Run tests with detailed output
 pytest -v
 
-# Esegui solo test unitari (veloci)
+# Run only unit tests (fast)
 pytest tests/test_*.py -v
 
-# Esegui test property-based (più lenti)
+# Run property-based tests (slower)
 pytest tests/test_*_properties.py -v
 ```
 
-**Output atteso**:
+**Expected output**:
 ```
 ==================== test session starts ====================
 collected XX items
@@ -236,17 +236,17 @@ tests/test_chatgpt_client.py .................... [100%]
 ==================== XX passed in X.XXs ====================
 ```
 
-### 3. Avvia l'Applicazione (Test Manuale)
+### 3. Start Application (Manual Test)
 
 ```bash
-# Avvia il server
+# Start server
 python -m src.main
 
-# Oppure con uvicorn
+# Or with uvicorn
 uvicorn src.main:app --reload
 ```
 
-**Output atteso**:
+**Expected output**:
 ```
 INFO:     Started server process
 INFO:     Waiting for application startup.
@@ -254,149 +254,149 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000
 ```
 
-Apri il browser su `http://localhost:8000/docs` per vedere la documentazione API interattiva.
+Open browser at `http://localhost:8000/docs` to see interactive API documentation.
 
-## Risoluzione Problemi
+## Troubleshooting
 
-### Problema: Python non trovato
+### Problem: Python not found
 
-**Sintomo**:
+**Symptom**:
 ```
 'python' is not recognized as an internal or external command
 ```
 
-**Soluzione**:
-1. Verifica che Python sia installato: scarica da [python.org](https://www.python.org/downloads/)
-2. Durante l'installazione, seleziona "Add Python to PATH"
-3. Riavvia il terminale
-4. Prova con `python3` invece di `python`
+**Solution**:
+1. Verify Python is installed: download from [python.org](https://www.python.org/downloads/)
+2. During installation, select "Add Python to PATH"
+3. Restart terminal
+4. Try with `python3` instead of `python`
 
-### Problema: pip non trovato
+### Problem: pip not found
 
-**Sintomo**:
+**Symptom**:
 ```
 'pip' is not recognized as an internal or external command
 ```
 
-**Soluzione**:
+**Solution**:
 ```bash
-# Usa python -m pip invece di pip
+# Use python -m pip instead of pip
 python -m pip install -r requirements.txt
 ```
 
-### Problema: Errore durante creazione venv
+### Problem: Error creating venv
 
-**Sintomo**:
+**Symptom**:
 ```
 Error: [Errno 13] Permission denied
 ```
 
-**Soluzione**:
+**Solution**:
 ```bash
-# Linux/macOS: usa sudo
+# Linux/macOS: use sudo
 sudo python3 -m venv venv
 
-# Windows: esegui PowerShell come amministratore
+# Windows: run PowerShell as administrator
 ```
 
-### Problema: Errore di Execution Policy (Windows)
+### Problem: Execution Policy Error (Windows)
 
-**Sintomo**:
+**Symptom**:
 ```
 cannot be loaded because running scripts is disabled on this system
 ```
 
-**Soluzione**:
+**Solution**:
 ```powershell
-# Esegui in PowerShell come amministratore
+# Run in PowerShell as administrator
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-### Problema: OpenAI API key non valida
+### Problem: Invalid OpenAI API key
 
-**Sintomo**:
+**Symptom**:
 ```
 Error: Invalid API key provided
 ```
 
-**Soluzione**:
-1. Verifica che la chiave nel file `.env` sia corretta
-2. Controlla che la chiave sia attiva su [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-3. Verifica di avere credito disponibile sul tuo account OpenAI
-4. Assicurati che non ci siano spazi prima/dopo la chiave nel file `.env`
+**Solution**:
+1. Verify the key in `.env` file is correct
+2. Check the key is active at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+3. Verify you have available credit on your OpenAI account
+4. Make sure there are no spaces before/after the key in `.env` file
 
-### Problema: Test falliscono
+### Problem: Tests fail
 
-**Sintomo**:
+**Symptom**:
 ```
 ImportError: No module named 'src'
 ```
 
-**Soluzione**:
-1. Verifica di essere nella directory root del progetto: `pwd` (Linux/Mac) o `cd` (Windows)
-2. Verifica che l'ambiente virtuale sia attivato (dovresti vedere `(venv)` nel prompt)
-3. Reinstalla le dipendenze: `pip install -r requirements.txt`
+**Solution**:
+1. Verify you're in the project root directory: `pwd` (Linux/Mac) or `cd` (Windows)
+2. Verify virtual environment is activated (you should see `(venv)` in prompt)
+3. Reinstall dependencies: `pip install -r requirements.txt`
 
-### Problema: Timeout durante installazione dipendenze
+### Problem: Timeout during dependency installation
 
-**Sintomo**:
+**Symptom**:
 ```
 ReadTimeoutError: HTTPSConnectionPool
 ```
 
-**Soluzione**:
+**Solution**:
 ```bash
-# Aumenta il timeout
+# Increase timeout
 pip install -r requirements.txt --timeout=300
 
-# Oppure usa un mirror più veloce
+# Or use a faster mirror
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-### Problema: Conflitti di versione
+### Problem: Version conflicts
 
-**Sintomo**:
+**Symptom**:
 ```
 ERROR: pip's dependency resolver does not currently take into account all the packages that are installed
 ```
 
-**Soluzione**:
+**Solution**:
 ```bash
-# Crea un nuovo ambiente virtuale pulito
+# Create a new clean virtual environment
 deactivate
 rm -rf venv  # Linux/Mac
-# oppure
+# or
 rmdir /s venv  # Windows
 
-# Ricrea l'ambiente
+# Recreate environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate  # Windows
 
-# Reinstalla
+# Reinstall
 pip install -r requirements.txt
 ```
 
-## Supporto Aggiuntivo
+## Additional Support
 
-Se riscontri altri problemi:
+If you encounter other problems:
 
-1. Controlla i log in `logs/` (se esistono)
-2. Verifica la documentazione completa in `docs/`
-3. Consulta il file `README.md` per informazioni generali
-4. Controlla le issue su GitHub (se disponibile)
+1. Check logs in `logs/` (if they exist)
+2. Verify complete documentation in `docs/`
+3. Consult `README.md` file for general information
+4. Check issues on GitHub (if available)
 
-## Checklist Finale
+## Final Checklist
 
-Prima di considerare l'installazione completa, verifica:
+Before considering installation complete, verify:
 
-- [ ] Python 3.10+ installato e funzionante
-- [ ] Ambiente virtuale creato e attivato
-- [ ] Tutte le dipendenze installate senza errori
-- [ ] File `.env` creato e configurato
-- [ ] OpenAI API key configurata e valida
-- [ ] Test di connessione ChatGPT superato
-- [ ] Test suite eseguita con successo
-- [ ] Applicazione avviata senza errori
+- [ ] Python 3.10+ installed and working
+- [ ] Virtual environment created and activated
+- [ ] All dependencies installed without errors
+- [ ] `.env` file created and configured
+- [ ] OpenAI API key configured and valid
+- [ ] ChatGPT connection test passed
+- [ ] Test suite executed successfully
+- [ ] Application started without errors
 
-**Congratulazioni! L'installazione è completa.** 🎉
+**Congratulations! Installation is complete.** 🎉

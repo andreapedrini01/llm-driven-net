@@ -1,107 +1,107 @@
-# Test del Modulo LLM con File JSON Personalizzato
+# LLM Module Testing with Custom JSON File
 
-Questa guida spiega come testare il modulo LLM usando il tuo file `network_context_latest.json` senza utilizzare l'API di ChatGPT.
+This guide explains how to test the LLM module using your `network_context_latest.json` file without using the ChatGPT API.
 
-## File Creati
+## Created Files
 
-1. **convert_json_format.py** - Converte il formato JSON nel formato compatibile con il modulo
-2. **test_with_your_json.py** - Script di test completo che esegue vari test sul modulo
-3. **network_context_converted.json** - File JSON convertito (generato automaticamente)
+1. **convert_json_format.py** - Converts JSON format to module-compatible format
+2. **test_with_your_json.py** - Complete test script that runs various module tests
+3. **network_context_converted.json** - Converted JSON file (automatically generated)
 
-## Come Usare
+## How to Use
 
-### Passo 1: Converti il File JSON
+### Step 1: Convert JSON File
 
-Il tuo file `network_context_latest.json` ha un formato leggermente diverso da quello atteso dal modulo. Esegui lo script di conversione:
+Your `network_context_latest.json` file has a slightly different format than expected by the module. Run the conversion script:
 
 ```bash
 python convert_json_format.py
 ```
 
-Questo creerà il file `network_context_converted.json` con il formato corretto.
+This will create the `network_context_converted.json` file with the correct format.
 
-### Passo 2: Esegui i Test
+### Step 2: Run Tests
 
-Esegui lo script di test completo:
+Run the complete test script:
 
 ```bash
 python test_with_your_json.py
 ```
 
-## Test Eseguiti
+## Tests Executed
 
-Lo script esegue 5 test principali:
+The script runs 5 main tests:
 
-### Test 1: Caricamento Network State
-- Carica il file JSON convertito
-- Valida la struttura dei dati
-- Mostra informazioni su switches, hosts, links e anomalie
+### Test 1: Network State Loading
+- Loads the converted JSON file
+- Validates data structure
+- Shows information about switches, hosts, links and anomalies
 
 ### Test 2: Intent Parsing
-- Testa il parsing di intent in linguaggio naturale (italiano)
-- Estrae entità e parametri dagli intent
-- Calcola confidence scores
+- Tests parsing of natural language intents (Italian)
+- Extracts entities and parameters from intents
+- Calculates confidence scores
 
-Intent di esempio testati:
-- "Crea un flusso da host_1 a host_2 con priorità alta"
-- "Mostra lo stato di switch_0000000000000001"
-- "Risolvi l'anomalia sulla porta 3 dello switch 1"
-- "Aumenta la bandwidth del link tra switch 1 e switch 2"
+Example intents tested:
+- "Create a flow from host_1 to host_2 with high priority"
+- "Show status of switch_0000000000000001"
+- "Resolve anomaly on port 3 of switch 1"
+- "Increase bandwidth of link between switch 1 and switch 2"
 
 ### Test 3: Context Analysis
-- Analizza il contesto degli intent rispetto allo stato della rete
-- Identifica risorse rilevanti
-- Rileva potenziali conflitti
+- Analyzes intent context against network state
+- Identifies relevant resources
+- Detects potential conflicts
 
 ### Test 4: Anomaly Analysis
-- Analizza le anomalie presenti nel network state
-- Classifica tipo e severità
-- Suggerisce azioni correttive
+- Analyzes anomalies present in network state
+- Classifies type and severity
+- Suggests corrective actions
 
-Anomalie rilevate nel tuo file:
-1. **High Utilization** sulla porta 3 (100% utilizzo) → Severità CRITICAL
-2. **High Error Rate** sulla porta 2 (2% errori) → Severità CRITICAL
-3. **Isolated Switch** (Switch 4 isolato) → Severità HIGH
+Anomalies detected in your file:
+1. **High Utilization** on port 3 (100% usage) → CRITICAL severity
+2. **High Error Rate** on port 2 (2% errors) → CRITICAL severity
+3. **Isolated Switch** (Switch 4 isolated) → HIGH severity
 
 ### Test 5: Metrics Analysis
-- Analizza le metriche di rete (bandwidth, latenza, utilizzo porte)
-- Identifica problemi potenziali
-- Fornisce raccomandazioni
+- Analyzes network metrics (bandwidth, latency, port usage)
+- Identifies potential problems
+- Provides recommendations
 
-## Risultati dei Test
+## Test Results
 
-Tutti i test sono stati eseguiti con successo! ✓
+All tests executed successfully! ✓
 
-### Dati Caricati dal Tuo File:
-- **Switches**: 4 (tutti attivi)
+### Data Loaded from Your File:
+- **Switches**: 4 (all active)
 - **Links**: 2
 - **Hosts**: 4
-- **Anomalie**: 3
-- **Bandwidth Utilizzo**: 9.4% (normale)
-- **Latenza Media**: 6.4 ms (nella norma)
+- **Anomalies**: 3
+- **Bandwidth Usage**: 9.4% (normal)
+- **Average Latency**: 6.4 ms (within normal range)
 
-### Anomalie Critiche Identificate:
-1. Porta 3 dello Switch 1: utilizzo al 100% (CRITICAL)
-2. Porta 2 dello Switch 2: alto tasso di errori (CRITICAL)
-3. Switch 4: appare isolato dalla rete (HIGH)
+### Critical Anomalies Identified:
+1. Port 3 of Switch 1: 100% usage (CRITICAL)
+2. Port 2 of Switch 2: high error rate (CRITICAL)
+3. Switch 4: appears isolated from network (HIGH)
 
-## Note Importanti
+## Important Notes
 
-### Senza ChatGPT API
-Questi test utilizzano **solo la logica locale** del modulo:
-- Intent parsing con NLP locale
-- Context analysis con algoritmi deterministici
-- Anomaly detection con pattern matching
+### Without ChatGPT API
+These tests use **only local module logic**:
+- Intent parsing with local NLP
+- Context analysis with deterministic algorithms
+- Anomaly detection with pattern matching
 
-### Con ChatGPT API
-Per utilizzare ChatGPT API per generazione azioni più intelligenti:
-1. Configura la chiave API in `.env`
-2. Usa gli endpoint REST API del modulo
-3. Vedi `docs/API_USAGE.md` per dettagli
+### With ChatGPT API
+To use ChatGPT API for smarter action generation:
+1. Configure API key in `.env`
+2. Use module's REST API endpoints
+3. See `docs/API_USAGE.md` for details
 
-## Formato JSON Richiesto
+## Required JSON Format
 
-Il modulo richiede che le anomalie abbiano questo formato:
+The module requires anomalies to have this format:
 
 ```json
 {
@@ -110,7 +110,7 @@ Il modulo richiede che le anomalie abbiano questo formato:
       "id": "anomaly_1",
       "type": "traffic_spike",  // Enum: traffic_spike, latency_increase, link_failure, switch_failure, security_threat
       "severity": "critical",    // Enum: low, medium, high, critical
-      "description": "Descrizione dell'anomalia",
+      "description": "Anomaly description",
       "affected_resources": ["resource_id"],
       "detected_at": "2026-02-11T17:35:50",
       "resolved_at": null,
@@ -122,46 +122,46 @@ Il modulo richiede che le anomalie abbiano questo formato:
 }
 ```
 
-Lo script `convert_json_format.py` converte automaticamente il tuo formato in questo.
+The `convert_json_format.py` script automatically converts your format to this.
 
-## Prossimi Passi
+## Next Steps
 
-### Per Testare con ChatGPT API:
-1. Configura `.env` con la tua chiave OpenAI
-2. Avvia il server API: `python -m src.main`
-3. Usa gli endpoint REST per inviare intent
+### To Test with ChatGPT API:
+1. Configure `.env` with your OpenAI key
+2. Start API server: `python -m src.main`
+3. Use REST endpoints to submit intents
 
-### Per Integrare con Ryu:
-1. Il modulo legge file JSON dalla cartella `cache/`
-2. Un modulo esterno dovrebbe salvare lo stato di Ryu in `cache/network_state.json`
-3. Il modulo LLM rileverà automaticamente i cambiamenti (se file watching è abilitato)
+### To Integrate with Ryu:
+1. Module reads JSON files from `cache/` folder
+2. External module should save Ryu state to `cache/network_state.json`
+3. LLM module will automatically detect changes (if file watching is enabled)
 
-### Per Eseguire Test Completi:
+### To Run Complete Tests:
 ```bash
-# Test unitari
+# Unit tests
 pytest tests/
 
-# Test di integrazione
+# Integration tests
 pytest tests/test_end_to_end_integration.py
 
-# Test property-based (richiede più tempo)
+# Property-based tests (takes longer)
 pytest tests/ -m "property"
 ```
 
 ## Troubleshooting
 
-### Errore: "File not found"
-Assicurati che `network_context_latest.json` sia nella directory corrente.
+### Error: "File not found"
+Make sure `network_context_latest.json` is in the current directory.
 
-### Errore: "Validation error"
-Esegui prima `convert_json_format.py` per convertire il formato.
+### Error: "Validation error"
+Run `convert_json_format.py` first to convert the format.
 
-### Errore: "Module not found"
-Installa le dipendenze:
+### Error: "Module not found"
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Contatti
+## Contact
 
-Per domande o problemi, consulta la documentazione in `docs/` o apri un issue.
+For questions or issues, consult documentation in `docs/` or open an issue.
