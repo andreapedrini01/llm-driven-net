@@ -4,7 +4,7 @@ This guide will help you set up and run the LLM Integration Module locally.
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.11 or higher
 - pip (Python package manager)
 - OpenAI API key (for ChatGPT integration)
 

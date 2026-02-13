@@ -4,7 +4,7 @@ Quick guide to get started with the LLM Integration module in 5 minutes.
 
 ## Prerequisites
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - OpenAI account with API key
 
 ## Quick Installation

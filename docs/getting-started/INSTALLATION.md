@@ -14,7 +14,7 @@ This guide provides detailed instructions for installing and configuring the LLM
 
 ### Required Software
 
-- **Python**: Version 3.10 or higher
+- **Python**: Version 3.11 or higher
   - Verify: `python --version` or `python3 --version`
   - Download: [python.org](https://www.python.org/downloads/)
 
