@@ -2,6 +2,17 @@
 
 Complete guide to solve common problems with the LLM Integration Module.
 
+## 📚 Finding the Right Documentation
+
+If you're looking for information beyond troubleshooting, here's where to find it:
+
+- **Getting Started**: See [Quick Start](QUICK_START.md) for a 5-10 minute setup guide
+- **Installation**: See [Installation Guide](INSTALLATION.md) for comprehensive installation instructions
+- **API Usage**: See [API Usage](API_USAGE.md) for API reference and examples
+- **Deployment**: See [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md) for production deployment
+- **Dependencies**: See [Dependencies](development/DEPENDENCIES.md) for dependency management
+- **Testing**: See [Testing Guide](development/TESTING.md) for testing documentation
+
 ## 📋 Table of Contents
 
 - [Installation Problems](#installation-problems)
@@ -628,7 +639,7 @@ pip install py-spy
 py-spy top -- python -m src.main
 
 # 2. Check metrics
-curl localhost:8000/metrics
+curl localhost:8080/metrics
 
 # 3. Increase workers
 uvicorn src.main:app --workers 4
@@ -712,9 +723,10 @@ If the problem persists:
    ```
 
 3. **Consult documentation**:
-   - [Getting Started](GETTING_STARTED.md)
+   - [Quick Start](QUICK_START.md)
+   - [Installation Guide](INSTALLATION.md)
    - [API Usage](API_USAGE.md)
-   - [Deployment Guide](deployment/DEPLOYMENT.md)
+   - [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md)
 
 4. **Search existing issues**:
    - Check `.kiro/specs/llm-integration-module/tasks.md`

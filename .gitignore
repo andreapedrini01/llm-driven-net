@@ -307,3 +307,6 @@ RESTRUCTURE_COMPLETED.md
 RESTRUCTURE_PROPOSAL.md
 RESTRUCTURE_SUCCESS.md
 RESTRUCTURE_FINAL.md
+
+# Documentation validation scripts
+validate_*.py

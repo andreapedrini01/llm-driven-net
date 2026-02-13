@@ -2,6 +2,8 @@
 
 This guide explains how to use the LLM Integration Module REST API and WebSocket interface.
 
+**New to the project?** See the [Quick Start Guide](QUICK_START.md) to get the application running first.
+
 ## Base URL
 
 ```
@@ -351,3 +353,11 @@ FastAPI provides interactive API documentation:
 - **ReDoc**: http://localhost:8080/redoc
 
 These interfaces allow you to test API endpoints directly from your browser.
+
+## Related Documentation
+
+- [Quick Start Guide](QUICK_START.md) - Get the application running in under 10 minutes
+- [Installation Guide](INSTALLATION.md) - Comprehensive installation instructions
+- [Troubleshooting](TROUBLESHOOTING.md) - Solutions to common issues
+- [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md) - Deploy to production environments
+- [Architecture](deployment/ARCHITECTURE.md) - System architecture and design details
