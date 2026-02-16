@@ -55,7 +55,7 @@ For detailed instructions, see the [Quick Start Guide](docs/QUICK_START.md) or [
 
 ```
 ├── src/                    # Source code
-├── tests/                  # Test suite (unit, property-based, integration)
+├── tests_llm_module/       # Test suite (unit, property-based, integration)
 ├── docs/                   # Complete documentation
 ├── deployment/             # Kubernetes, Docker, monitoring
 ├── config/                 # Environment configurations
@@ -92,9 +92,9 @@ See `config/.env.example` for all available options and [Installation Guide](doc
 pytest
 
 # Run specific test types
-pytest tests/unit/           # Unit tests
-pytest tests/property/       # Property-based tests
-pytest tests/integration/    # Integration tests
+pytest tests_llm_module/unit/           # Unit tests
+pytest tests_llm_module/property/       # Property-based tests
+pytest tests_llm_module/integration/    # Integration tests
 ```
 
 For complete testing documentation, see [Testing Guide](docs/development/TESTING.md).
