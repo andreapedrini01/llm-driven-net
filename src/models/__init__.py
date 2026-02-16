@@ -1,23 +1,83 @@
-"""
-Data models for Network State Collector
+"""Data models package."""
 
-Questo modulo contiene tutte le dataclass e modelli dati utilizzati
-dal Network State Collector per rappresentare lo stato della rete.
-"""
+from .intent import (
+    IntentType,
+    Entity,
+    IntentObject,
+    ContextualizedIntent,
+)
 
-from .core import NetworkSnapshot, TopologyData, MetricsData
-from .llm import LLMNetworkData, ContextEmbedding
-from .config import CollectorConfig, RetryConfig
-from .health import HealthStatus, QualityMetrics
+from .network import (
+    Switch,
+    Link,
+    Host,
+    Flow,
+    BandwidthMetrics,
+    LatencyMetrics,
+    UtilizationMetrics,
+    NetworkMetrics,
+    Topology,
+    AnomalyType,
+    AnomalySeverity,
+    Anomaly,
+    NetworkState,
+)
+
+from .actions import (
+    ActionType,
+    NetworkAction,
+    ActionSequence,
+    ValidationResult,
+    SafetyReport,
+    SimulationResult,
+    ImpactAssessment,
+)
+
+from .slices import (
+    SliceStatus,
+    Path,
+    SliceResources,
+    Policy,
+    ServiceLevelAgreement,
+    NetworkSlice,
+)
 
 __all__ = [
-    "NetworkSnapshot",
-    "TopologyData",
-    "MetricsData", 
-    "LLMNetworkData",
-    "ContextEmbedding",
-    "CollectorConfig",
-    "RetryConfig",
-    "HealthStatus",
-    "QualityMetrics"
+    # Intent models
+    "IntentType",
+    "Entity",
+    "IntentObject",
+    "ContextualizedIntent",
+    
+    # Network models
+    "Switch",
+    "Link",
+    "Host",
+    "Flow",
+    "BandwidthMetrics",
+    "LatencyMetrics",
+    "UtilizationMetrics",
+    "NetworkMetrics",
+    "Topology",
+    "AnomalyType",
+    "AnomalySeverity",
+    "Anomaly",
+    "NetworkState",
+    
+    # Action models
+    "ActionType",
+    "NetworkAction",
+    "ActionSequence",
+    "ValidationResult",
+    "SafetyReport",
+    "SimulationResult",
+    "ImpactAssessment",
+    
+    # Slice models
+    "SliceStatus",
+    "Path",
+    "SliceResources",
+    "Policy",
+    "ServiceLevelAgreement",
+    "NetworkSlice",
 ]
