@@ -128,6 +128,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+venv_test/
 ENV/
 env.bak/
 venv.bak/
@@ -283,12 +284,16 @@ temp/
 *.safetensors
 *.gguf
 
-# Data files
+# Data files (output del collector)
 data/
 datasets/
 *.csv
 *.json.gz
 *.parquet
+data/history/*.json
+!data/history/.gitkeep
+data/archive/
+data/network_context_history/
 
 # Backup files
 *.bak
@@ -300,6 +305,10 @@ test-results/
 test-reports/
 screenshots/
 videos/
+
+# Project specific archives
+*.tar.gz
+network-collector-*.tar.gz
 
 get-pip.py
 CHANGELOG.md

@@ -4,16 +4,10 @@
 # Include production dependencies
 -r requirements.txt
 
-# Code quality
-black>=23.0.0                    # Code formatter
-flake8>=6.0.0                    # Linter
-mypy>=1.0.0                      # Static type checker
-isort>=5.12.0                    # Import sorter
+# Code quality (black, flake8, mypy, isort already in requirements.txt)
 pylint>=3.0.0                    # Code analyzer
 
-# Testing
-pytest-cov>=4.1.0                # Test coverage
-pytest-mock>=3.12.0              # Mocking support
+# Testing (pytest-cov, pytest-mock already in requirements.txt)
 pytest-xdist>=3.5.0              # Parallel test execution
 faker>=20.0.0                    # Fake data generation
 

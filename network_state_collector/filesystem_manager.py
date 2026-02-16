@@ -141,7 +141,6 @@ class FileSystemManager:
                 if timestamp:
                     # Converti da ISO string a timestamp se necessario
                     if isinstance(timestamp, str):
-                        from datetime import datetime
                         timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00')).timestamp()
                 else:
                     timestamp = datetime.now().timestamp()

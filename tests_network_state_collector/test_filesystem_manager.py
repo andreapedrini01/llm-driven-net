@@ -32,7 +32,7 @@ class TestFileSystemConfig:
         config = FileSystemConfig()
         
         assert config.base_output_dir == "data"
-        assert config.llm_output_dir == "llm_output"
+        assert config.llm_output_dir == "history"  # Modificato da llm_output a history
         assert config.history_dir == "history"
         assert config.archive_dir == "archive"
         assert config.max_history_files == 100
@@ -185,7 +185,7 @@ class TestFileSystemManager:
             
             # Verifica che le directory siano state create
             base_path = Path(temp_dir)
-            assert (base_path / "llm_output").exists()
+            assert (base_path / "history").exists()  # Modificato da llm_output a history
             assert (base_path / "history").exists()
             assert (base_path / "archive").exists()
     
@@ -235,8 +235,8 @@ class TestFileSystemManager:
         assert file_path.suffix == ".json"
         assert "network_context_" in file_path.name
         
-        # Verifica che sia nella directory llm_output
-        assert file_path.parent.name == "llm_output"
+        # Verifica che sia nella directory history (modificato da llm_output)
+        assert file_path.parent.name == "history"
         
         # Verifica che sia stato creato anche il file latest
         latest_path = file_path.parent / "network_context_latest.json"

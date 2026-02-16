@@ -343,9 +343,17 @@ class TestGlobalFunctions:
             assert manager.config.console_enabled is False
             assert manager.config.file_enabled is True
             
+            # Chiudi tutti gli handler prima del cleanup
+            for handler in logging.getLogger().handlers[:]:
+                handler.close()
+                logging.getLogger().removeHandler(handler)
+            
         finally:
             if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
+                try:
+                    os.unlink(tmp_path)
+                except PermissionError:
+                    pass  # File ancora in uso, ignora
 
 
 class TestIntegration:
@@ -392,10 +400,18 @@ class TestIntegration:
             assert stats['by_level']['info_messages'] >= 1
             assert stats['by_level']['error_messages'] >= 1
             
+            # Chiudi tutti gli handler prima del cleanup
+            for handler in logging.getLogger().handlers[:]:
+                handler.close()
+                logging.getLogger().removeHandler(handler)
+            
         finally:
             # Cleanup
             if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
+                try:
+                    os.unlink(tmp_path)
+                except PermissionError:
+                    pass  # File ancora in uso, ignora
     
     def test_multiple_loggers_coordination(self):
         """Test coordinamento di multipli logger"""
