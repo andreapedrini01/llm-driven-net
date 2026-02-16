@@ -19,7 +19,7 @@ src/
 Tutti gli import sono stati aggiornati in:
 
 - ✅ `network_state_collector/*.py` (tutti i servizi)
-- ✅ `tests/*.py` (tutti i test)
+- ✅ `tests_network_state_collector/*.py` (tutti i test)
 - ✅ `examples/*.py` (tutti gli esempi)
 - ✅ File di test nella root (`test_*.py`)
 
@@ -67,7 +67,7 @@ Modificato `src/models/config.py` per rendere PyYAML opzionale:
 │   ├── logging_manager.py
 │   └── performance_monitor.py
 │
-├── tests/                         # Test suite
+├── tests_network_state_collector/ # Test suite (rinominata)
 ├── examples/                      # Esempi di utilizzo
 ├── config/                        # File di configurazione
 └── data/
@@ -108,7 +108,7 @@ Dopo aver installato le dipendenze:
 
 ```bash
 # Test suite completa
-pytest tests/ -v
+pytest tests_network_state_collector/ -v
 
 # Test funzionale con mock Ryu
 python3 test_with_hosts_and_anomalies.py
@@ -153,7 +153,8 @@ modified:   network_state_collector/llm_integrator.py
 modified:   network_state_collector/main.py
 modified:   network_state_collector/ryu_connector.py
 deleted:    network_state_collector/models/*
-modified:   tests/*.py (tutti i test)
+renamed:    tests/ -> tests_network_state_collector/
+modified:   tests_network_state_collector/*.py (tutti i test)
 modified:   examples/*.py (tutti gli esempi)
 ```
 

@@ -20,17 +20,17 @@ Tempo esecuzione: 21.14s
 
 ### Models (15/15) ✅ 100%
 ```bash
-tests/test_models.py::TestSwitchInfo                    ✅ 4/4
-tests/test_models.py::TestLinkInfo                      ✅ 1/1
-tests/test_models.py::TestPortMetrics                   ✅ 3/3
-tests/test_models.py::TestTopologyData                  ✅ 2/2
-tests/test_models.py::TestMetricsData                   ✅ 1/1
-tests/test_models.py::TestNetworkSnapshot               ✅ 4/4
+tests_network_state_collector/test_models.py::TestSwitchInfo                    ✅ 4/4
+tests_network_state_collector/test_models.py::TestLinkInfo                      ✅ 1/1
+tests_network_state_collector/test_models.py::TestPortMetrics                   ✅ 3/3
+tests_network_state_collector/test_models.py::TestTopologyData                  ✅ 2/2
+tests_network_state_collector/test_models.py::TestMetricsData                   ✅ 1/1
+tests_network_state_collector/test_models.py::TestNetworkSnapshot               ✅ 4/4
 ```
 
 ### Data Processor (27/27) ✅ 100%
 ```bash
-tests/test_data_processor.py                            ✅ 27/27
+tests_network_state_collector/test_data_processor.py                            ✅ 27/27
 - Formattazione DPID
 - Validazione porte
 - Elaborazione metriche
@@ -40,7 +40,7 @@ tests/test_data_processor.py                            ✅ 27/27
 
 ### Data Validator (68/68) ✅ 100%
 ```bash
-tests/test_data_validator.py                            ✅ 68/68
+tests_network_state_collector/test_data_validator.py                            ✅ 68/68
 - Validazione snapshot
 - Validazione switches
 - Validazione links
@@ -51,7 +51,7 @@ tests/test_data_validator.py                            ✅ 68/68
 
 ### JSON Serializer (110/110) ✅ 100%
 ```bash
-tests/test_json_serializer.py                           ✅ 110/110
+tests_network_state_collector/test_json_serializer.py                           ✅ 110/110
 - Serializzazione NetworkSnapshot
 - Serializzazione LLMNetworkData
 - Salvataggio/caricamento file
@@ -61,7 +61,7 @@ tests/test_json_serializer.py                           ✅ 110/110
 
 ### Configuration Manager ✅
 ```bash
-tests/test_configuration_manager.py                     ✅ Tutti passati
+tests_network_state_collector/test_configuration_manager.py                     ✅ Tutti passati
 - Caricamento configurazione
 - Validazione YAML/JSON
 - Gestione environment
@@ -69,7 +69,7 @@ tests/test_configuration_manager.py                     ✅ Tutti passati
 
 ### Ryu Connector ✅ (1 fallimento minore)
 ```bash
-tests/test_ryu_connector.py                             ✅ Quasi tutti passati
+tests_network_state_collector/test_ryu_connector.py                             ✅ Quasi tutti passati
 - Connessione Ryu
 - Raccolta switches/links
 - Statistiche porte
@@ -79,7 +79,7 @@ tests/test_ryu_connector.py                             ✅ Quasi tutti passati
 
 ### Health Models ✅
 ```bash
-tests/test_health_models.py                             ✅ Tutti passati
+tests_network_state_collector/test_health_models.py                             ✅ Tutti passati
 - HealthStatus
 - QualityMetrics
 - SystemHealth
@@ -87,8 +87,8 @@ tests/test_health_models.py                             ✅ Tutti passati
 
 ### Collector ✅
 ```bash
-tests/test_collector.py                                 ✅ Tutti passati
-tests/test_collector_integration.py                     ✅ Tutti passati
+tests_network_state_collector/test_collector.py                                 ✅ Tutti passati
+tests_network_state_collector/test_collector_integration.py                     ✅ Tutti passati
 - Inizializzazione
 - Raccolta snapshot
 - Modalità continua
