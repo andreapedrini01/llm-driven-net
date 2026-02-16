@@ -1,0 +1,43 @@
+# Core web framework
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+
+# Data validation and serialization
+pydantic>=2.5.0
+
+# HTTP client for external APIs
+httpx>=0.25.2
+requests>=2.31.0
+
+# LLM integration - ChatGPT API
+openai>=1.54.0
+
+# Property-based testing
+hypothesis>=6.119.4
+
+# Standard testing
+pytest>=8.3.4
+pytest-asyncio>=0.24.0
+
+# Logging and monitoring
+structlog>=24.5.0
+
+# Configuration management
+python-dotenv>=1.0.0
+
+# File system monitoring
+watchdog>=3.0.0
+
+# Type checking
+typing-extensions>=4.5.0
+
+# Authentication and security
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.6
+
+# Monitoring
+prometheus-client>=0.20.0
+
+# Secrets management
+cryptography>=41.0.0

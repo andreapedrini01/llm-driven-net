@@ -1,0 +1,131 @@
+groups:
+  - name: llm_module_alerts
+    interval: 30s
+    rules:
+      # Service availability
+      - alert: LLMModuleDown
+        expr: up{job="llm-module"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "LLM Integration Module is down"
+          description: "LLM Module has been down for more than 2 minutes"
+          
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+          
+      # ChatGPT API failures
+      - alert: ChatGPTAPIFailures
+        expr: rate(openai_api_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High ChatGPT API failure rate"
+          description: "ChatGPT API failure rate is {{ $value }} errors/sec"
+          
+      # High API costs
+      - alert: HighAPICosts
+        expr: increase(openai_api_cost_usd[1h]) > 10
+        labels:
+          severity: warning
+        annotations:
+          summary: "High ChatGPT API costs"
+          description: "API costs exceeded $10 in the last hour: ${{ $value }}"
+          
+      # Daily budget exceeded
+      - alert: DailyBudgetExceeded
+        expr: increase(openai_api_cost_usd[24h]) > 50
+        labels:
+          severity: critical
+        annotations:
+          summary: "Daily API budget exceeded"
+          description: "Daily API costs exceeded $50: ${{ $value }}"
+          
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes{container="llm-module"} / container_spec_memory_limit_bytes{container="llm-module"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+          
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total{container="llm-module"}[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+          
+      # Slow response times
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow API response times"
+          description: "95th percentile response time is {{ $value }}s"
+          
+      # Intent processing failures
+      - alert: IntentProcessingFailures
+        expr: rate(intent_processing_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High intent processing failure rate"
+          description: "Intent processing failure rate is {{ $value }} errors/sec"
+          
+      # Action validation failures
+      - alert: ActionValidationFailures
+        expr: rate(action_validation_failures_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High action validation failure rate"
+          description: "Action validation failure rate is {{ $value }} failures/sec"
+          
+      # Anomaly detection issues
+      - alert: AnomalyDetectionDown
+        expr: anomaly_detection_enabled == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Anomaly detection is disabled"
+          description: "Anomaly detection has been disabled or is not functioning"
+          
+      # State cache staleness
+      - alert: StaleStateCache
+        expr: time() - state_cache_last_update_timestamp > 600
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "State cache is stale"
+          description: "State cache hasn't been updated in {{ $value }}s"
+          
+      # Rate limiting triggered
+      - alert: RateLimitingActive
+        expr: rate(rate_limit_exceeded_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Rate limiting is being triggered"
+          description: "Rate limit exceeded {{ $value }} times/sec"

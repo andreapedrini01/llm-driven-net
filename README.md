@@ -1,67 +1,121 @@
-# LLM-Driven Network
+# LLM Integration Module
 
-Intent-based networking using Large Language Models (LLMs)
+The LLM integration module is the core component of the intent-based networking system that uses **ChatGPT API (OpenAI)** to interpret network intents in natural language and generate appropriate configuration actions.
 
-## Roadmap
+## 📚 Documentation
 
-### Fase 1: Analisi e Definizione dei Requisiti
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get started in 5-10 minutes ⚡
+- **[Installation Guide](docs/INSTALLATION.md)** - Complete installation instructions 📦
+- **[API Usage Guide](docs/API_USAGE.md)** - REST API and WebSocket documentation 🌐
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions 🔧
+- **[Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md)** - Production deployment �
+- **[Architecture](docs/deployment/ARCHITECTURE.md)** - System design and architecture 🏗️
+- **[Development Guide](docs/development/)** - Testing, dependencies, and development �
 
-**Obiettivo:** Comprendere esattamente cosa si vuole ottenere e definire scenari d'uso concreti (ad esempio, orchestrazione di slice e rilevamento anomalie).
+## Quick Start
 
-**Task principali:**
-- Studio di RYU e raccolta dati di stato di rete
-- Identificazione delle possibili "intent" da gestire con LLM (es. routing, anomaly detection, configurazione slice)
+### Prerequisites
+- Python 3.11 or higher
+- OpenAI API key
 
-**Divisione ruoli:**
-- **Filippo:** Responsabile SDN/RYU
-- **Andrea:** Studio LLM e integrazione
-- **Pietro:** Architettura applicativa e script Northbound
+### Installation
 
-### Fase 2: Progettazione Architettura
+```bash
+# Clone and navigate to the repository
+git clone <repository-url>
+cd llm-driven-net
 
-**Obiettivo:** Definire come dialogano i vari componenti (RYU, servizio LLM, script Northbound).
+# Install dependencies
+pip install -r requirements.txt
 
-**Task principali:**
-- Schema di flusso dati tra RYU, modulo LLM e script Northbound
-- Specifica dati di input/output per LLM
-- Scelta framework per orchestrare lo scambio (REST API, Python, etc.)
+# Configure environment
+cp config/.env.example .env
+# Edit .env and add your OPENAI_API_KEY
 
-### Fase 3: Sviluppo Singoli Moduli
+# Start the server
+python -m src.main
+```
 
-**Divisione:**
+The server will be available at:
+- **API**: http://localhost:8080
+- **Docs**: http://localhost:8080/docs
+- **Metrics**: http://localhost:8000
 
-**Filippo:**
-- Sviluppo script per raccogliere stato rete da RYU
-- Gestione intent: parsing e invio intent al modulo LLM
+For detailed instructions, see the [Quick Start Guide](docs/QUICK_START.md) or [Installation Guide](docs/INSTALLATION.md).
 
-**Andrea:**
-- Prototipazione e test modello LLM (Chat GPT o clone)
-- Script di interfaccia per ricevere stato/intents e restituire azioni
-- Validazione risposte modello
+## Key Features
 
-**Pietro:**
-- Sviluppo Northbound script: riceve output LLM e applica modifiche alla rete
-- Logging/monitoraggio cambiamenti e gestione errori
+- **Natural Language Processing**: Interpret network intents using ChatGPT API
+- **REST API & WebSocket**: Complete API for intent management and real-time updates
+- **Authentication & Authorization**: JWT-based security with role-based access control
+- **Monitoring**: Prometheus metrics and health checks
+- **Production Ready**: Docker support, Kubernetes manifests, and deployment guides
 
-### Fase 4: Integrazione e Test
+## Project Structure
 
-**Obiettivo:** Collegare tutti i moduli, testare funzionalità end-to-end ed eseguire casi di test.
+```
+├── src/                    # Source code
+├── tests/                  # Test suite (unit, property-based, integration)
+├── docs/                   # Complete documentation
+├── deployment/             # Kubernetes, Docker, monitoring
+├── config/                 # Environment configurations
+└── examples/               # Usage examples
+```
 
-**Task principali:**
-- Test scenario "quale slice usare" e "anomaly detection"
-- Simulazione flussi di rete ed errori, raccolta log
-- Miglioramenti iterativi e debugging in gruppo
+## API Overview
 
-### Fase 5: Documentazione e Presentazione
+Main endpoints:
+- `POST /api/v1/auth/login` - Authentication
+- `POST /api/v1/intents` - Submit network intent
+- `GET /api/v1/intents/{id}/status` - Check intent status
+- `WS /api/v1/ws` - WebSocket for real-time updates
+- `GET /health` - Health check
 
-**Obiettivo:** Produrre materiale per documentare implementazione, test e risultati.
+Interactive documentation available at http://localhost:8080/docs
 
-**Task principali:**
-- Scrivere report tecnico e slide di presentazione
-- Preparare demo funzionale per valutatori/professori
-- Eventuali video o script per simulazione
+For complete API documentation, see [API Usage Guide](docs/API_USAGE.md).
 
-## Suggerimenti per la Divisione del Lavoro
+## Configuration
 
-- Ruotare i ruoli di test/debugging e documentazione in modo che tutti acquisiscano familiarità con l'intero progetto
-- Utilizzare repository condiviso (es. GitHub) e tool di project management (Trello/Notion)
+Essential environment variables:
+- `OPENAI_API_KEY` - Your OpenAI API key (required)
+- `OPENAI_MODEL` - Model to use (default: gpt-4o-mini)
+- `API_PORT` - Server port (default: 8080)
+- `JWT_SECRET_KEY` - Secret for JWT tokens
+
+See `config/.env.example` for all available options and [Installation Guide](docs/INSTALLATION.md) for configuration details.
+
+## Testing
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test types
+pytest tests/unit/           # Unit tests
+pytest tests/property/       # Property-based tests
+pytest tests/integration/    # Integration tests
+```
+
+For complete testing documentation, see [Testing Guide](docs/development/TESTING.md).
+
+## Support
+
+For issues or questions:
+- Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+- Review the [documentation](docs/)
+- Check server logs for detailed errors
+
+## Version
+
+Current version: **0.1.0**
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete change history.
+
+## License
+
+This project is developed for educational and research purposes.
+
+## Authors
+
+@andreapedrini01
