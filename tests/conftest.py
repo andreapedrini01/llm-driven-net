@@ -4,7 +4,7 @@ Configurazione pytest e fixture condivise per i test
 
 import pytest
 from hypothesis import settings, Verbosity
-from network_state_collector.models import CollectorConfig
+from src.models import CollectorConfig
 
 
 # Configurazione Hypothesis per i test

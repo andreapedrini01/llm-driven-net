@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from network_state_collector.data_processor import DataProcessor
-from network_state_collector.models.core import PortMetrics, MetricsData
+from src.models.core import PortMetrics, MetricsData
 
 
 def create_sample_port_stats():

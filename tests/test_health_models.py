@@ -8,7 +8,7 @@ logging strutturato e metriche di qualità.
 import pytest
 import json
 import time
-from network_state_collector.models.health import (
+from src.models.health import (
     HealthStatus, ComponentType, HealthCheck, ConnectionHealth,
     QualityMetrics, SystemHealth, StructuredLogEntry
 )

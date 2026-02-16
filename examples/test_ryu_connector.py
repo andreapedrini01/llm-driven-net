@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from network_state_collector.ryu_connector import RyuConnector, RyuConnectionError
-from network_state_collector.models.config import RyuConfig, RetryConfig
+from src.models.config import RyuConfig, RetryConfig
 
 
 def setup_logging():

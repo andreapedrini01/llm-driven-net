@@ -11,7 +11,7 @@ import traceback
 from typing import Dict, List, Any, Optional, Callable, Type
 from enum import Enum
 from dataclasses import dataclass, field
-from .models.health import HealthStatus, ComponentType
+from src.models.health import HealthStatus, ComponentType
 
 
 class ErrorSeverity(Enum):

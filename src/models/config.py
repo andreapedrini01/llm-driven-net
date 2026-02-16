@@ -9,7 +9,13 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
-import yaml
+
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+    yaml = None  # type: ignore
 
 
 @dataclass
@@ -270,11 +276,15 @@ class CollectorConfig:
     
     def to_yaml(self) -> str:
         """Serializza in YAML"""
+        if not HAS_YAML:
+            raise ImportError("PyYAML is required for YAML serialization. Install with: pip install pyyaml")
         return yaml.dump(self.to_dict(), default_flow_style=False, allow_unicode=True)
     
     @classmethod
     def from_yaml(cls, yaml_str: str) -> 'CollectorConfig':
         """Crea istanza da stringa YAML"""
+        if not HAS_YAML:
+            raise ImportError("PyYAML is required for YAML parsing. Install with: pip install pyyaml")
         data = yaml.safe_load(yaml_str)
         return cls.from_dict(data)
     
@@ -288,15 +298,19 @@ class CollectorConfig:
         content = path.read_text(encoding='utf-8')
         
         if path.suffix.lower() in ['.yaml', '.yml']:
+            if not HAS_YAML:
+                raise ImportError("PyYAML is required for YAML files. Install with: pip install pyyaml")
             return cls.from_yaml(content)
         elif path.suffix.lower() == '.json':
             return cls.from_json(content)
         else:
-            # Prova prima YAML, poi JSON
-            try:
-                return cls.from_yaml(content)
-            except yaml.YAMLError:
-                return cls.from_json(content)
+            # Prova prima YAML (se disponibile), poi JSON
+            if HAS_YAML:
+                try:
+                    return cls.from_yaml(content)
+                except Exception:
+                    pass
+            return cls.from_json(content)
     
     def save_to_file(self, file_path: str, format: str = "auto") -> None:
         """Salva configurazione su file"""

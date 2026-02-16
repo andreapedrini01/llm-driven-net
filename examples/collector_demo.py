@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from network_state_collector.collector import NetworkStateCollector
-from network_state_collector.models.config import CollectorConfig
+from src.models.config import CollectorConfig
 
 
 def demo_single_snapshot():

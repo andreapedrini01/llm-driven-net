@@ -8,7 +8,7 @@ import sys
 import json
 from pathlib import Path
 from network_state_collector.collector import NetworkStateCollector
-from network_state_collector.models.config import CollectorConfig, RyuConfig, OutputConfig
+from src.models.config import CollectorConfig, RyuConfig, OutputConfig
 
 def print_header(title):
     print(f"\n{'='*60}")
@@ -137,11 +137,11 @@ def main():
     # Test 7: Verifica Modelli Dati
     print_header("7️⃣  Test Modelli Dati")
     try:
-        from network_state_collector.models.core import (
+        from src.models.core import (
             NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
         )
-        from network_state_collector.models.llm import LLMNetworkData
-        from network_state_collector.models.health import HealthStatus, ComponentType
+        from src.models.llm import LLMNetworkData
+        from src.models.health import HealthStatus, ComponentType
         
         print_success("NetworkSnapshot importato")
         print_success("TopologyData importato")

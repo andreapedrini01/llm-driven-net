@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from .models import CollectorConfig
+from src.models import CollectorConfig
 from .collector import NetworkStateCollector
 
 

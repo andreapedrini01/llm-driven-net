@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from network_state_collector.llm_integrator import LLMIntegrator
 from network_state_collector.filesystem_manager import FileSystemManager, FileSystemConfig
-from network_state_collector.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
+from src.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
 
 
 def test_with_hosts_and_anomalies():

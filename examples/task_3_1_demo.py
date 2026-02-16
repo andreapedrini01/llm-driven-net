@@ -15,8 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from network_state_collector.data_processor import DataProcessor
-from network_state_collector.models.core import SwitchInfo, LinkInfo, PortMetrics
-from network_state_collector.models import CollectorConfig
+from src.models.core import SwitchInfo, LinkInfo, PortMetrics
+from src.models import CollectorConfig
 from network_state_collector.collector import NetworkStateCollector
 
 

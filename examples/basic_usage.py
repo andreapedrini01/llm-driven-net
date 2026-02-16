@@ -9,7 +9,7 @@ per raccogliere dati di rete e integrarli con modelli LLM.
 import time
 from pathlib import Path
 from network_state_collector import NetworkStateCollector, CollectorConfig
-from network_state_collector.models.core import (
+from src.models.core import (
     NetworkSnapshot, TopologyData, MetricsData,
     SwitchInfo, LinkInfo, PortMetrics
 )

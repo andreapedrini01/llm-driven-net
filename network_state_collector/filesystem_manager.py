@@ -15,8 +15,8 @@ from dataclasses import dataclass
 import json
 import glob
 
-from .models.core import NetworkSnapshot
-from .models.llm import LLMNetworkData
+from src.models.core import NetworkSnapshot
+from src.models.llm import LLMNetworkData
 from .json_serializer import JSONSerializer
 
 

@@ -8,7 +8,7 @@ con focus sulla formattazione DPID e elaborazione topologia.
 import pytest
 from hypothesis import given, strategies as st
 from network_state_collector.data_processor import DataProcessor, DataProcessingError
-from network_state_collector.models.core import (
+from src.models.core import (
     SwitchInfo, LinkInfo, TopologyData, PortMetrics, MetricsData, AggregatedMetrics, DerivedMetrics
 )
 

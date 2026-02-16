@@ -11,8 +11,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from network_state_collector.filesystem_manager import FileSystemManager, FileSystemConfig
-from network_state_collector.models.core import NetworkSnapshot, TopologyData, MetricsData
-from network_state_collector.models.llm import LLMNetworkData
+from src.models.core import NetworkSnapshot, TopologyData, MetricsData
+from src.models.llm import LLMNetworkData
 from network_state_collector.json_serializer import JSONSerializer
 
 

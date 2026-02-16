@@ -8,7 +8,7 @@ provenienti dal RyuConnector.
 import pytest
 from unittest.mock import Mock, patch
 from network_state_collector.data_processor import DataProcessor
-from network_state_collector.models.core import SwitchInfo, LinkInfo, PortMetrics
+from src.models.core import SwitchInfo, LinkInfo, PortMetrics
 
 
 class TestDataProcessorIntegration:

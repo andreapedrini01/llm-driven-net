@@ -11,10 +11,10 @@ import json
 from pathlib import Path
 
 from network_state_collector.llm_integrator import LLMIntegrator
-from network_state_collector.models.core import (
+from src.models.core import (
     NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
 )
-from network_state_collector.models.health import QualityMetrics
+from src.models.health import QualityMetrics
 
 
 def create_sample_network_data():

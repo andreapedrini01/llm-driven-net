@@ -9,7 +9,7 @@ rilevare anomalie e generare metriche di qualità.
 import time
 import json
 from network_state_collector.data_validator import DataValidator, ValidationSeverity
-from network_state_collector.models.core import (
+from src.models.core import (
     NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, 
     PortMetrics, AggregatedMetrics, DerivedMetrics
 )

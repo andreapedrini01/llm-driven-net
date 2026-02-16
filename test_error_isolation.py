@@ -5,7 +5,7 @@ Test per verificare l'isolamento errori per switch multipli (Task 10.1)
 
 import sys
 from network_state_collector.collector import NetworkStateCollector
-from network_state_collector.models.config import CollectorConfig, RyuConfig, CollectionConfig
+from src.models.config import CollectorConfig, RyuConfig, CollectionConfig
 from unittest.mock import Mock, patch
 
 def print_header(title):
@@ -39,7 +39,7 @@ def test_error_isolation():
     print()
     
     # Simula get_switches che ritorna 3 switch
-    from network_state_collector.models.core import SwitchInfo
+    from src.models.core import SwitchInfo
     mock_switches = [
         SwitchInfo(dpid="0000000000000001", ports=[1, 2, 3]),
         SwitchInfo(dpid="0000000000000002", ports=[1, 2]),  # Questo fallirà
@@ -111,7 +111,7 @@ def test_sequential_error_isolation():
     
     collector = NetworkStateCollector(config)
     
-    from network_state_collector.models.core import SwitchInfo
+    from src.models.core import SwitchInfo
     mock_switches = [
         SwitchInfo(dpid="0000000000000001", ports=[1, 2]),
         SwitchInfo(dpid="0000000000000002", ports=[1]),  # Fallirà

@@ -15,9 +15,9 @@ from hypothesis import given, strategies as st, assume
 from network_state_collector.ryu_connector import (
     RyuConnector, RyuConnectionError, RyuTimeoutError, RyuDataError
 )
-from network_state_collector.models.config import RyuConfig, RetryConfig
-from network_state_collector.models.core import SwitchInfo, LinkInfo, PortMetrics
-from network_state_collector.models.health import HealthStatus, ComponentType, HealthCheck
+from src.models.config import RyuConfig, RetryConfig
+from src.models.core import SwitchInfo, LinkInfo, PortMetrics
+from src.models.health import HealthStatus, ComponentType, HealthCheck
 
 
 # Strategies per Hypothesis

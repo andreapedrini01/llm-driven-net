@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from network_state_collector.configuration_manager import ConfigurationManager
-from network_state_collector.models.config import CollectorConfig
+from src.models.config import CollectorConfig
 
 
 def demo_basic_usage():

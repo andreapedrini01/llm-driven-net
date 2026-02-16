@@ -5,7 +5,7 @@ Test per verificare le metriche di performance (Task 11.3)
 
 import time
 from network_state_collector.collector import NetworkStateCollector
-from network_state_collector.models.config import CollectorConfig, RyuConfig
+from src.models.config import CollectorConfig, RyuConfig
 
 def print_header(title):
     print(f"\n{'='*60}")

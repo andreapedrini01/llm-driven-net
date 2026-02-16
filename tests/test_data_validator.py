@@ -12,11 +12,11 @@ from network_state_collector.data_validator import (
     DataValidator, ValidationResult, ValidationIssue, ValidationSeverity, 
     AnomalyType, DataValidationError
 )
-from network_state_collector.models.core import (
+from src.models.core import (
     NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, 
     PortMetrics, AggregatedMetrics, DerivedMetrics
 )
-from network_state_collector.models.health import QualityMetrics
+from src.models.health import QualityMetrics
 
 
 class TestDataValidator:
