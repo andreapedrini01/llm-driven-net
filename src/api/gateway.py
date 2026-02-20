@@ -70,12 +70,87 @@ async def lifespan(app: FastAPI):
         # Cleanup resources if needed
         pass
 
-# Create FastAPI app
+# Create FastAPI app with comprehensive OpenAPI documentation
 app = FastAPI(
     title="Northbound Script Generator API",
-    description="REST API Gateway for network action processing via LLM integration",
+    description="""
+# Northbound Script Generator API
+
+REST API Gateway for network action processing via LLM integration with ComnetsEMU and RYU Controller.
+
+## Overview
+
+This API allows Large Language Models (LLMs) and other clients to submit network actions that are applied to a ComnetsEMU/RYU controlled network. The system provides:
+
+- **Action Processing**: Submit and track network configuration actions
+- **Authentication**: Secure JWT-based authentication with MFA support
+- **Monitoring**: Real-time metrics and alerting
+- **Batch Operations**: Submit multiple actions simultaneously
+- **Dashboard**: Web interface for visualization and control
+
+## Authentication
+
+All API endpoints (except `/health` and `/docs`) require authentication. Use one of the following methods:
+
+1. **JWT Token**: Obtain a token via `/api/v1/auth/login` and include it in the `Authorization` header
+2. **API Key**: Use an API key in the `X-API-Key` header (for LLM integrations)
+
+Example:
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+## Quick Start
+
+1. **Login**: POST to `/api/v1/auth/login` with credentials
+2. **Submit Action**: POST to `/api/v1/actions` with action details
+3. **Check Status**: GET `/api/v1/actions/{action_id}` to track progress
+4. **View Dashboard**: Access the web interface at `/dashboard`
+
+## Rate Limits
+
+- Standard users: 100 requests/minute
+- Admin users: 1000 requests/minute
+- Batch operations count as 1 request regardless of action count
+
+## Support
+
+For issues or questions, contact the network operations team.
+    """,
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_tags=[
+        {
+            "name": "actions",
+            "description": "Network action submission and management. Submit actions to configure network flows, topology, and QoS policies.",
+        },
+        {
+            "name": "authentication",
+            "description": "User authentication and authorization. Obtain JWT tokens and manage API keys.",
+        },
+        {
+            "name": "monitoring",
+            "description": "System monitoring and metrics. Access Prometheus metrics and health status.",
+        },
+        {
+            "name": "dashboard",
+            "description": "Web dashboard endpoints. Real-time visualization and control interface.",
+        },
+        {
+            "name": "configuration",
+            "description": "System configuration management. Update settings and view current configuration.",
+        },
+    ],
+    contact={
+        "name": "Network Operations Team",
+        "email": "netops@example.com",
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
 )
 
 # Add CORS middleware
@@ -93,6 +168,10 @@ app.include_router(auth_router)
 # Include dashboard routes
 from src.api.dashboard_routes import router as dashboard_router, set_monitoring_service, set_northbound_instance, set_action_tracker
 app.include_router(dashboard_router)
+
+# Include configuration routes
+from src.api.config_routes import router as config_router
+app.include_router(config_router)
 
 # Security
 security = HTTPBearer()
@@ -136,9 +215,40 @@ async def process_action_background(action_id: str, action: NetworkAction):
             action_tracker[action_id]["error"] = str(e)
             action_tracker[action_id]["updated_at"] = datetime.utcnow()
 
-@app.get("/health", response_model=HealthStatus)
+@app.get("/health", response_model=HealthStatus, tags=["monitoring"])
 async def health_check():
-    """Health check endpoint."""
+    """
+    Health Check Endpoint
+    
+    Returns the current health status of the API Gateway and connected services.
+    
+    This endpoint does not require authentication and can be used for:
+    - Load balancer health checks
+    - Monitoring system probes
+    - Service availability verification
+    
+    **Response Fields:**
+    - `status`: Overall system status (healthy/degraded/unhealthy)
+    - `timestamp`: Current server time in UTC
+    - `version`: API version
+    - `services`: Health status of individual services
+    - `error`: Error message if unhealthy (optional)
+    
+    **Example Response:**
+    ```json
+    {
+        "status": "healthy",
+        "timestamp": "2024-01-15T10:30:00Z",
+        "version": "1.0.0",
+        "services": {
+            "northbound": "healthy",
+            "api_gateway": "healthy",
+            "ryu_controller": "healthy",
+            "database": "healthy"
+        }
+    }
+    ```
+    """
     try:
         nb_instance = get_northbound_instance()
         # Basic health check - could be expanded
@@ -164,13 +274,84 @@ async def health_check():
             error=str(e)
         )
 
-@app.post("/api/v1/actions", response_model=ActionResponse)
+@app.post("/api/v1/actions", response_model=ActionResponse, tags=["actions"], status_code=status.HTTP_202_ACCEPTED)
 async def submit_action(
     request: ActionRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user)
 ):
-    """Submit a network action for processing."""
+    """
+    Submit Network Action
+    
+    Submit a network action for asynchronous processing. The action will be validated,
+    queued, and executed against the RYU Controller and ComnetsEMU network.
+    
+    **Action Types:**
+    - `flow_rule`: Add/modify/delete OpenFlow rules
+    - `topology_change`: Modify network topology (add/remove switches, links, hosts)
+    - `qos_policy`: Configure Quality of Service policies
+    - `network_config`: General network configuration changes
+    
+    **Request Body:**
+    - `type`: Action type (required)
+    - `target`: Target network element (switch ID, link ID, etc.)
+    - `parameters`: Action-specific parameters (see examples below)
+    - `priority`: Execution priority 1-10 (default: 5, higher = more urgent)
+    - `timeout`: Maximum execution time in seconds (default: 300)
+    - `description`: Human-readable description (optional)
+    
+    **Example - Add Flow Rule:**
+    ```json
+    {
+        "type": "flow_rule",
+        "target": "switch-1",
+        "parameters": {
+            "operation": "add",
+            "match": {
+                "in_port": 1,
+                "eth_type": 2048,
+                "ipv4_dst": "10.0.0.1/32"
+            },
+            "actions": ["output:2"],
+            "priority": 100,
+            "idle_timeout": 0,
+            "hard_timeout": 0
+        },
+        "priority": 5,
+        "timeout": 60,
+        "description": "Route traffic to host 10.0.0.1"
+    }
+    ```
+    
+    **Example - QoS Policy:**
+    ```json
+    {
+        "type": "qos_policy",
+        "target": "switch-1:port-2",
+        "parameters": {
+            "bandwidth_limit_mbps": 100,
+            "latency_limit_ms": 50,
+            "packet_loss_limit": 0.01,
+            "dscp_marking": 46
+        },
+        "priority": 7,
+        "description": "Apply QoS for VoIP traffic"
+    }
+    ```
+    
+    **Response:**
+    - `action_id`: Unique identifier for tracking
+    - `status`: Current status (pending/validating/executing/completed/failed)
+    - `message`: Status message
+    - `estimated_completion`: Estimated completion time
+    
+    **Status Codes:**
+    - `202 Accepted`: Action submitted successfully
+    - `400 Bad Request`: Invalid action parameters
+    - `401 Unauthorized`: Authentication required
+    - `403 Forbidden`: Insufficient permissions
+    - `500 Internal Server Error`: Server error
+    """
     try:
         # Generate unique action ID
         action_id = str(uuid4())

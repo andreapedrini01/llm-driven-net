@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: northbound-config
+  namespace: northbound
+data:
+  # Application configuration
+  LOG_LEVEL: "INFO"
+  WORKERS: "4"
+  
+  # Database configuration
+  POSTGRES_DB: "northbound"
+  POSTGRES_USER: "northbound"
+  
+  # Redis configuration
+  REDIS_DB: "0"
+  
+  # InfluxDB configuration
+  INFLUXDB_ORG: "northbound"
+  INFLUXDB_BUCKET: "metrics"
+  
+  # JWT configuration
+  JWT_ALGORITHM: "HS256"
+  JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+  
+  # RYU Controller configuration
+  RYU_CONTROLLER_PORT: "8080"
+  
+  # ComnetsEMU configuration
+  COMNETSEMU_PORT: "6653"
