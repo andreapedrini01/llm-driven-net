@@ -259,7 +259,7 @@ L'implementazione segue un approccio incrementale, partendo dall'integrazione re
     - Test di performance sotto carico realistico
     - _Requirements: Tutti i requisiti_
 
-- [ ] 13. Checkpoint Finale - Sistema Production-Ready
+- [x] 13. Checkpoint Finale - Sistema Production-Ready
   - Assicurarsi che tutti i test passino, chiedere all'utente se sorgono domande.
 
 ## Note

@@ -438,3 +438,13 @@ def require_role(role: UserRole):
             )
         return current_user
     return role_checker
+
+
+def require_admin(current_user: User = Depends(get_current_user)):
+    """Dependency to require admin role."""
+    if UserRole.ADMIN not in current_user.roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required"
+        )
+    return current_user
