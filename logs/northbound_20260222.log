@@ -58,3 +58,75 @@
 2026-02-22 18:57:17,094 - PersistentActionQueue - INFO - Cleaned up 0 old queue entries
 2026-02-22 18:57:17,095 - AdvancedRetrySystem - INFO - Advanced retry system cleanup completed
 2026-02-22 18:57:17,098 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:12:06,271 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:12:06,273 - NorthboundScript - INFO - Parsed sequence seq_test_001 with 1 actions
+2026-02-22 19:12:06,277 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:12:06,278 - NorthboundScript - INFO - Parsed sequence seq_invalid with 1 actions
+2026-02-22 19:12:06,281 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:12:06,282 - NorthboundScript - INFO - Parsed sequence seq_dryrun with 1 actions
+2026-02-22 19:12:06,282 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-02-22 19:12:06,283 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-02-22 19:12:06,299 - PersistentActionQueue - INFO - Loaded 2 actions from persistent storage
+2026-02-22 19:12:06,300 - AdvancedRetrySystem - INFO - Advanced retry system initialized
+2026-02-22 19:12:06,300 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-02-22 19:12:08,327 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-02-22 19:12:08,328 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-02-22 19:12:08,329 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-02-22 19:12:08,329 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-02-22 19:12:08,330 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:12:08,332 - NorthboundScript - INFO - Closing NorthboundScript
+2026-02-22 19:12:08,332 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-02-22 19:12:08,332 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-02-22 19:12:08,334 - PersistentActionQueue - INFO - Cleaned up 0 old queue entries
+2026-02-22 19:12:08,334 - AdvancedRetrySystem - INFO - Advanced retry system cleanup completed
+2026-02-22 19:12:08,337 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:14:25,629 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:14:25,630 - NorthboundScript - INFO - Parsed sequence seq_test_001 with 1 actions
+2026-02-22 19:14:25,633 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:14:25,633 - NorthboundScript - INFO - Parsed sequence seq_invalid with 1 actions
+2026-02-22 19:14:25,636 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:14:25,636 - NorthboundScript - INFO - Parsed sequence seq_dryrun with 1 actions
+2026-02-22 19:14:25,637 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-02-22 19:14:25,637 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-02-22 19:14:25,653 - PersistentActionQueue - INFO - Loaded 2 actions from persistent storage
+2026-02-22 19:14:25,653 - AdvancedRetrySystem - INFO - Advanced retry system initialized
+2026-02-22 19:14:25,653 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-02-22 19:14:27,677 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-02-22 19:14:27,678 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-02-22 19:14:27,678 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-02-22 19:14:27,679 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-02-22 19:14:27,680 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:14:27,683 - NorthboundScript - INFO - Closing NorthboundScript
+2026-02-22 19:14:27,683 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-02-22 19:14:27,684 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-02-22 19:14:27,685 - PersistentActionQueue - INFO - Cleaned up 0 old queue entries
+2026-02-22 19:14:27,685 - AdvancedRetrySystem - INFO - Advanced retry system cleanup completed
+2026-02-22 19:14:27,688 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:15:49,766 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:15:49,769 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:15:49,770 - NorthboundScript - INFO - Parsed sequence test_001 with 1 actions
+2026-02-22 19:15:49,771 - NorthboundScript - INFO - Parsed sequence test_001 with 1 actions
+2026-02-22 19:15:49,771 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-02-22 19:15:49,772 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-02-22 19:16:06,945 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:16:06,947 - NorthboundScript - INFO - Parsed sequence seq_test_001 with 1 actions
+2026-02-22 19:16:06,950 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:16:06,951 - NorthboundScript - INFO - Parsed sequence seq_invalid with 1 actions
+2026-02-22 19:16:06,954 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:16:06,954 - NorthboundScript - INFO - Parsed sequence seq_dryrun with 1 actions
+2026-02-22 19:16:06,954 - NorthboundScript - WARNING - Validation warnings: ['Estimated duration significantly differs from sum of action times']
+2026-02-22 19:16:06,955 - NorthboundScript - INFO - Dry run mode - skipping execution
+2026-02-22 19:16:06,973 - PersistentActionQueue - INFO - Loaded 2 actions from persistent storage
+2026-02-22 19:16:06,974 - AdvancedRetrySystem - INFO - Advanced retry system initialized
+2026-02-22 19:16:06,974 - ComnetsEMUConnector - INFO - Initializing connection to ComnetsEMU at localhost:6653
+2026-02-22 19:16:09,007 - ComnetsEMUConnector - WARNING - OpenFlow port 6653 is not accessible
+2026-02-22 19:16:09,019 - ComnetsEMUConnector - ERROR - Failed to connect to ComnetsEMU
+2026-02-22 19:16:09,020 - RYUNetworkInterface - INFO - Initialized RYU interface to localhost:8080
+2026-02-22 19:16:09,020 - RYUNetworkInterface - INFO - Initialized ComnetsEMU interface to localhost:6653
+2026-02-22 19:16:09,021 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653
+2026-02-22 19:16:09,025 - NorthboundScript - INFO - Closing NorthboundScript
+2026-02-22 19:16:09,025 - RYUNetworkInterface - INFO - Closing RYU and ComnetsEMU network interfaces
+2026-02-22 19:16:09,026 - ComnetsEMUConnector - INFO - Closing ComnetsEMU connector
+2026-02-22 19:16:09,028 - PersistentActionQueue - INFO - Cleaned up 0 old queue entries
+2026-02-22 19:16:09,029 - AdvancedRetrySystem - INFO - Advanced retry system cleanup completed
+2026-02-22 19:16:09,032 - NorthboundScript - INFO - Initialized NorthboundScript with RYU at localhost:8080 and ComnetsEMU at localhost:6653

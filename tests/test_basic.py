@@ -2,7 +2,7 @@
 
 import sys
 import os
-# Aggiungi la directory parent al path
+# Aggiungi la directory parent al path per accedere al modulo northbound_script_generator
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import json
@@ -132,7 +132,7 @@ def test_ryu_integration():
     print("\n=== TEST 4: INTEGRAZIONE RYU ===")
     
     # Mock RYU connector
-    with patch('src.connectors.ryu_connector.create_ryu_connector') as mock_create:
+    with patch('northbound_script_generator.src.connectors.ryu_connector.create_ryu_connector') as mock_create:
         mock_connector = Mock()
         mock_connector.get_connection_status.return_value = {
             "status": "connected",
@@ -204,7 +204,7 @@ def test_connection_pooling():
     print("\n=== TEST 6: CONNECTION POOLING ===")
     
     try:
-        from src.connectors.ryu_connector import RYUConfig, RYUConnectionPool
+        from northbound_script_generator.src.connectors.ryu_connector import RYUConfig, RYUConnectionPool
         
         config = RYUConfig(
             host="localhost",

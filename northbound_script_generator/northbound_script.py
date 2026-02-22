@@ -236,8 +236,8 @@ class RYUNetworkInterface:
     
     def __init__(self, ryu_host: str = "localhost", ryu_port: int = 8080, 
                  comnetsemu_host: str = "localhost", comnetsemu_port: int = 6653, **config):
-        from src.connectors.ryu_connector import create_ryu_connector
-        from src.connectors.comnetsemu_connector import create_comnetsemu_connector
+        from .src.connectors.ryu_connector import create_ryu_connector
+        from .src.connectors.comnetsemu_connector import create_comnetsemu_connector
         
         self.logger = logging.getLogger("RYUNetworkInterface")
         

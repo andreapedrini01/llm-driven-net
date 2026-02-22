@@ -1,0 +1,54 @@
+2026-02-22 19:12:32,881 - src.orchestrator.system_orchestrator - INFO - SystemOrchestrator initialized
+2026-02-22 19:12:32,881 - __main__ - INFO - ================================================================================
+2026-02-22 19:12:32,882 - __main__ - INFO - Starting Northbound Script Generator Integrated System
+2026-02-22 19:12:32,882 - __main__ - INFO - ================================================================================
+2026-02-22 19:12:32,884 - src.orchestrator.system_orchestrator - INFO - Starting SystemOrchestrator...
+2026-02-22 19:12:32,884 - src.orchestrator.system_orchestrator - INFO - Registered service: config_manager with dependencies: []
+2026-02-22 19:12:32,885 - src.orchestrator.system_orchestrator - INFO - Registered service: logging with dependencies: ['config_manager']
+2026-02-22 19:12:32,887 - src.orchestrator.system_orchestrator - INFO - Registered service: database with dependencies: ['config_manager']
+2026-02-22 19:12:32,887 - src.orchestrator.system_orchestrator - INFO - Registered service: ryu_connector with dependencies: ['config_manager', 'logging']
+2026-02-22 19:12:32,887 - src.orchestrator.system_orchestrator - INFO - Registered service: comnetsemu_connector with dependencies: ['config_manager', 'logging']
+2026-02-22 19:12:32,888 - src.orchestrator.system_orchestrator - INFO - Registered service: northbound_module with dependencies: ['ryu_connector', 'comnetsemu_connector', 'database']
+2026-02-22 19:12:32,888 - src.orchestrator.system_orchestrator - INFO - Registered service: monitoring_service with dependencies: ['config_manager', 'database']
+2026-02-22 19:12:32,888 - src.orchestrator.system_orchestrator - INFO - Registered service: auth_service with dependencies: ['database', 'config_manager']
+2026-02-22 19:12:32,889 - src.orchestrator.system_orchestrator - INFO - Registered service: backup_service with dependencies: ['database', 'config_manager']
+2026-02-22 19:12:32,889 - src.orchestrator.system_orchestrator - INFO - Registered service: api_gateway with dependencies: ['northbound_module', 'auth_service', 'monitoring_service']
+2026-02-22 19:12:32,889 - src.orchestrator.system_orchestrator - INFO - Registered service: web_interface with dependencies: ['api_gateway']
+2026-02-22 19:12:32,890 - src.orchestrator.system_orchestrator - INFO - Service start order: ['config_manager', 'logging', 'database', 'ryu_connector', 'comnetsemu_connector', 'monitoring_service', 'auth_service', 'backup_service', 'northbound_module', 'api_gateway', 'web_interface']
+2026-02-22 19:12:32,890 - src.orchestrator.system_orchestrator - INFO - Starting service: config_manager
+2026-02-22 19:12:32,891 - ConfigManager - WARNING - Configuration file not found: config\system_config.yaml
+2026-02-22 19:12:32,892 - ConfigManager - INFO - Configuration loaded successfully
+2026-02-22 19:12:32,892 - ConfigManager - WARNING - Configuration file doesn't exist, file watcher not started
+2026-02-22 19:12:32,893 - ConfigManager - INFO - ConfigManager initialized
+2026-02-22 19:12:32,893 - src.orchestrator.system_orchestrator - ERROR - Failed to start service config_manager: 'ConfigManager' object has no attribute 'load_config'
+2026-02-22 19:12:32,893 - src.orchestrator.system_orchestrator - ERROR - Failed to start SystemOrchestrator: 'ConfigManager' object has no attribute 'load_config'
+2026-02-22 19:12:32,894 - __main__ - ERROR - System startup error: 'ConfigManager' object has no attribute 'load_config'
+Traceback (most recent call last):
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\start_system.py", line 53, in start
+    await self.orchestrator.start()
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\src\orchestrator\system_orchestrator.py", line 111, in start
+    await self._start_service(service_name)
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\src\orchestrator\system_orchestrator.py", line 249, in _start_service
+    await self._start_config_manager()
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\src\orchestrator\system_orchestrator.py", line 332, in _start_config_manager
+    await self.config_manager.load_config()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ConfigManager' object has no attribute 'load_config'. Did you mean: 'get_config'?
+2026-02-22 19:12:32,922 - __main__ - INFO - Initiating graceful shutdown...
+2026-02-22 19:12:32,922 - __main__ - INFO - System shutdown complete
+2026-02-22 19:12:32,923 - __main__ - ERROR - Fatal error: 'ConfigManager' object has no attribute 'load_config'
+Traceback (most recent call last):
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\start_system.py", line 154, in main
+    await system.start()
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\start_system.py", line 53, in start
+    await self.orchestrator.start()
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\src\orchestrator\system_orchestrator.py", line 111, in start
+    await self._start_service(service_name)
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\src\orchestrator\system_orchestrator.py", line 249, in _start_service
+    await self._start_config_manager()
+  File "C:\Users\pietr\Documents\llm-driven-net\northbound_script_generator\src\orchestrator\system_orchestrator.py", line 332, in _start_config_manager
+    await self.config_manager.load_config()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ConfigManager' object has no attribute 'load_config'. Did you mean: 'get_config'?
+2026-02-22 19:12:32,924 - __main__ - INFO - Initiating graceful shutdown...
+2026-02-22 19:12:32,924 - __main__ - INFO - System shutdown complete

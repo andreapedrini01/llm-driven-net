@@ -1,0 +1,66 @@
+# Backup System Configuration Example
+# Copy this file to backup_config.yaml and customize for your environment
+
+database:
+  host: "localhost"
+  port: 5432
+  database: "northbound"
+  username: "postgres"
+  password: "your_password_here"
+  ssl_mode: "prefer"
+  connection_timeout: 30
+
+backup:
+  directory: "./backups"
+  compression_enabled: true
+  encryption_enabled: true
+  encryption_key: null  # Will generate if not provided
+  retention_days: 7
+  max_backup_size_mb: 1000
+  pg_dump_path: "pg_dump"
+  psql_path: "psql"
+  notification_email: "admin@example.com"
+  webhook_url: null
+
+recovery:
+  auto_recovery_enabled: true
+  max_recovery_attempts: 3
+
+disk_monitoring:
+  warning_threshold_mb: 1000
+  critical_threshold_mb: 500
+  check_interval_seconds: 300
+
+notifications:
+  email_enabled: false
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 587
+  smtp_username: "your_email@gmail.com"
+  smtp_password: "your_app_password"
+  smtp_use_tls: true
+  from_email: "backup-system@example.com"
+  to_emails:
+    - "admin@example.com"
+    - "ops@example.com"
+  webhook_enabled: false
+  webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+  webhook_timeout: 30
+
+schedules:
+  - schedule_id: "daily_full_backup"
+    backup_type: "full"
+    cron_expression: "0 2 * * *"  # Daily at 2 AM
+    is_enabled: true
+    database_name: "northbound"
+    retention_days: 30
+    notification_on_failure: true
+    notification_on_success: false
+  
+  - schedule_id: "hourly_incremental"
+    backup_type: "incremental"
+    cron_expression: "0 * * * *"  # Every hour
+    is_enabled: false
+    database_name: "northbound"
+    retention_days: 7
+    notification_on_failure: true
+    notification_on_success: false
