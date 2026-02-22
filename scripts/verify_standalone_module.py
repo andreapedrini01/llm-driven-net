@@ -9,6 +9,9 @@ independently without external dependencies.
 import sys
 import os
 
+# Add parent directory to path to access the module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 print("=" * 70)
 print("NORTHBOUND SCRIPT GENERATOR - STANDALONE MODULE VERIFICATION")
 print("=" * 70)
