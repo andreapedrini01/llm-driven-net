@@ -6,7 +6,7 @@ import os
 import importlib.util
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src'))
 
 def check_module(module_path, module_name):
     """Check if a module can be imported."""

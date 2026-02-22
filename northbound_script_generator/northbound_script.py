@@ -17,7 +17,8 @@ from enum import Enum
 # Add src to path for imports
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# Go up one directory from northbound_script_generator to project root, then to src
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src'))
 
 # Import from organized modules
 from models.action_models import (
@@ -235,8 +236,8 @@ class RYUNetworkInterface:
     
     def __init__(self, ryu_host: str = "localhost", ryu_port: int = 8080, 
                  comnetsemu_host: str = "localhost", comnetsemu_port: int = 6653, **config):
-        from ryu_connector import create_ryu_connector
-        from comnetsemu_connector import create_comnetsemu_connector
+        from src.connectors.ryu_connector import create_ryu_connector
+        from src.connectors.comnetsemu_connector import create_comnetsemu_connector
         
         self.logger = logging.getLogger("RYUNetworkInterface")
         

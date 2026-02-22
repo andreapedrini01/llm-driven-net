@@ -1,0 +1,147 @@
+{
+  "package_id": "pkg_seq_demo_001_20260210132013",
+  "package_version": "1.0",
+  "created_at": "2026-02-10T13:20:13.660031",
+  "source_intent_id": "intent_demo_001",
+  "sequence_id": "seq_demo_001",
+  "actions": [
+    {
+      "action_id": "flow_mod_001",
+      "action_type": "flow_mod",
+      "target_resource": "switch-1",
+      "parameters": {
+        "match": {
+          "in_port": 1,
+          "eth_type": 2048,
+          "ip_dst": "10.0.0.5"
+        },
+        "actions": [
+          {
+            "type": "output",
+            "port": 2
+          }
+        ],
+        "priority": 100
+      },
+      "execution_priority": 1000,
+      "timeout_seconds": 30,
+      "description": "Route traffic to host 10.0.0.5 through port 2"
+    },
+    {
+      "action_id": "slice_create_001",
+      "action_type": "slice_create",
+      "target_resource": "slice-controller",
+      "parameters": {
+        "slice_name": "iot_slice",
+        "resources": {
+          "bandwidth": 500,
+          "switches": [
+            "switch-1",
+            "switch-2",
+            "switch-3"
+          ],
+          "paths": [
+            {
+              "switches": [
+                "switch-1",
+                "switch-2"
+              ],
+              "bandwidth": 200
+            },
+            {
+              "switches": [
+                "switch-2",
+                "switch-3"
+              ],
+              "bandwidth": 300
+            }
+          ]
+        },
+        "policies": [
+          {
+            "type": "qos",
+            "priority": "high",
+            "max_latency": 50
+          }
+        ],
+        "sla": {
+          "min_bandwidth": 400,
+          "max_latency": 100,
+          "availability": 99.9
+        }
+      },
+      "execution_priority": 900,
+      "timeout_seconds": 120,
+      "description": "Create IoT network slice with QoS guarantees"
+    },
+    {
+      "action_id": "config_change_001",
+      "action_type": "config_change",
+      "target_resource": "switch-2",
+      "parameters": {
+        "config_type": "qos_config",
+        "config_data": {
+          "queue_config": {
+            "queue_1": {
+              "min_rate": 100,
+              "max_rate": 500
+            },
+            "queue_2": {
+              "min_rate": 50,
+              "max_rate": 200
+            }
+          }
+        },
+        "backup": true,
+        "validate_before_apply": true
+      },
+      "execution_priority": 800,
+      "timeout_seconds": 60,
+      "description": "Configure QoS queues on switch-2"
+    }
+  ],
+  "execution_order": [
+    "flow_mod_001",
+    "slice_create_001",
+    "config_change_001"
+  ],
+  "metadata": {
+    "estimated_duration_seconds": 210,
+    "total_actions": 3,
+    "dependencies": [
+      "network_state_update"
+    ]
+  },
+  "validation": {
+    "validation_passed": true,
+    "safety_approved": true,
+    "risk_level": "medium"
+  },
+  "rollback": {
+    "rollback_actions": [
+      {
+        "action_id": "rollback_flow_001",
+        "action_type": "flow_mod",
+        "target_resource": "switch-1",
+        "parameters": {
+          "match": {
+            "in_port": 1
+          },
+          "actions": [
+            {
+              "type": "drop"
+            }
+          ]
+        },
+        "execution_priority": 1000,
+        "timeout_seconds": 30,
+        "description": "Rollback: Drop traffic on port 1"
+      }
+    ],
+    "has_rollback": true
+  },
+  "traceability": {
+    "trace_id": "trace_intent_demo_001_20260210132013660031",
+    "user_id": "admin_user"
+  }
+}

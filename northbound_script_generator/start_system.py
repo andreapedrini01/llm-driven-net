@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.orchestrator.system_orchestrator import SystemOrchestrator
 from src.api.gateway_app import create_app
