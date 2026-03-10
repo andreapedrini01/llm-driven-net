@@ -1,6 +1,6 @@
 """
-Action Processor - Simplified action processing without API/database dependencies
-Extracts core action processing logic for direct file-based operation
+Simplified Action Processor
+Core action processing logic without API/database dependencies
 """
 
 import logging
@@ -11,14 +11,8 @@ from typing import Dict, Any, List, Optional
 from enum import Enum
 from dataclasses import dataclass
 
-# Import core dependencies (preserved from original architecture)
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src'))
-
-from models.action_models import NetworkAction, ActionType
-from connectors.comnetsemu_connector import create_comnetsemu_connector
-from core.retry_system import AdvancedRetrySystem, RetryConfig
+from models import NetworkAction, ActionType
+from comnetsemu_connector import ComnetsEMUConnector, ComnetsEMUConfig
 
 
 class ExecutionStatus(str, Enum):
@@ -75,30 +69,16 @@ class ActionProcessor:
         self.config = config
         
         # Initialize ComnetsEMU connector
-        comnetsemu_host = config.get("comnetsemu_host", "localhost")
-        comnetsemu_port = config.get("comnetsemu_port", 6653)
-        timeout_seconds = config.get("timeout_seconds", 30)
-        
-        self.logger.info(f"Initializing ComnetsEMU connector to {comnetsemu_host}:{comnetsemu_port}")
-        self.comnetsemu_connector = create_comnetsemu_connector(
-            host=comnetsemu_host,
-            port=comnetsemu_port,
-            timeout_seconds=timeout_seconds
+        comnetsemu_config = ComnetsEMUConfig(
+            host=config.get("comnetsemu_host", "localhost"),
+            port=config.get("comnetsemu_port", 6653),
+            timeout_seconds=config.get("timeout_seconds", 30),
+            max_retries=config.get("max_retries", 3),
+            retry_delay=config.get("retry_delay", 2.0)
         )
         
-        # Initialize retry system
-        max_retries = config.get("max_retries", 3)
-        retry_delay = config.get("retry_delay", 2.0)
-        
-        retry_config = RetryConfig(
-            max_attempts=max_retries,
-            base_delay=retry_delay,
-            max_delay=60.0,
-            failure_threshold=3,
-            recovery_timeout=45.0,
-            enable_persistent_queue=False  # Simplified: no persistent queue
-        )
-        self.retry_system = AdvancedRetrySystem(retry_config)
+        self.logger.info(f"Initializing ComnetsEMU connector to {comnetsemu_config.host}:{comnetsemu_config.port}")
+        self.comnetsemu_connector = ComnetsEMUConnector(comnetsemu_config)
         
         self.logger.info("Action processor initialized successfully")
     
@@ -191,28 +171,20 @@ class ActionProcessor:
             self.logger.warning(f"Failed to get network state before execution: {e}")
             state_before = None
         
-        # Execute action with retry logic
+        # Execute action based on type
         try:
             self.logger.info(f"Executing action {action.id} (type: {action.type}, target: {action.target})")
             
-            def _execute():
-                """Internal execution function for retry system."""
-                if action.type == ActionType.FLOW_MOD:
-                    return self._execute_flow_mod(action)
-                elif action.type == ActionType.SLICE_CREATE:
-                    return self._execute_slice_create(action)
-                elif action.type == ActionType.CONFIG_CHANGE:
-                    return self._execute_config_change(action)
-                else:
-                    raise ValueError(f"Unknown action type: {action.type}")
+            if action.type == ActionType.FLOW_MOD:
+                result = self._execute_flow_mod(action)
+            elif action.type == ActionType.SLICE_CREATE:
+                result = self._execute_slice_create(action)
+            elif action.type == ActionType.CONFIG_CHANGE:
+                result = self._execute_config_change(action)
+            else:
+                raise ValueError(f"Unknown action type: {action.type}")
             
-            # Use retry system for execution
-            retry_result = self.retry_system.execute_with_retry(
-                _execute,
-                service_name="comnetsemu"
-            )
-            
-            if retry_result.success:
+            if result.get("success"):
                 # Get network state after execution
                 try:
                     state_after = self.comnetsemu_connector.get_network_state(action.target)
@@ -227,21 +199,20 @@ class ActionProcessor:
                     status=ExecutionStatus.SUCCESS,
                     timestamp=datetime.now(),
                     duration=duration,
-                    message=f"Action executed successfully (attempts: {len(retry_result.attempts)})",
+                    message="Action executed successfully",
                     network_state_before=state_before,
                     network_state_after=state_after
                 )
             else:
-                # Execution failed after retries
                 duration = time.time() - start_time
-                error_msg = f"Action failed after {len(retry_result.attempts)} attempts: {retry_result.error}"
+                error_msg = result.get("error", "Unknown error")
                 
                 return ExecutionResult(
                     action_id=action.id,
                     status=ExecutionStatus.FAILED,
                     timestamp=datetime.now(),
                     duration=duration,
-                    message="Action failed after all retries",
+                    message="Action execution failed",
                     error=error_msg,
                     network_state_before=state_before
                 )
@@ -265,14 +236,10 @@ class ActionProcessor:
         """Execute flow modification action."""
         self.logger.debug(f"Executing flow_mod for action {action.id}")
         
-        # Extract parameters
         operation = action.parameters.get("operation", "add")
         match_fields = action.parameters.get("match", {})
         actions = action.parameters.get("actions", [])
         
-        # Use ComnetsEMU connector (which may delegate to RYU for flow operations)
-        # For now, we'll use the topology change method as a placeholder
-        # In a real implementation, this would call a specific flow_mod method
         result = self.comnetsemu_connector.execute_topology_change(action)
         
         if result.get("success"):
@@ -284,13 +251,15 @@ class ActionProcessor:
                 "actions": actions
             }
         else:
-            raise RuntimeError(f"Flow modification failed: {result.get('error', 'Unknown error')}")
+            return {
+                "success": False,
+                "error": result.get("error", "Unknown error")
+            }
     
     def _execute_slice_create(self, action: NetworkAction) -> Dict[str, Any]:
         """Execute slice creation action."""
         self.logger.debug(f"Executing slice_create for action {action.id}")
         
-        # Extract parameters
         slice_name = action.parameters.get("slice_name", f"slice_{action.id}")
         resources = action.parameters.get("resources", {})
         
@@ -320,7 +289,10 @@ class ActionProcessor:
                 "resources": resources
             }
         else:
-            raise RuntimeError(f"Slice creation failed: {result.get('error', 'Unknown error')}")
+            return {
+                "success": False,
+                "error": result.get("error", "Unknown error")
+            }
     
     def _execute_config_change(self, action: NetworkAction) -> Dict[str, Any]:
         """Execute configuration change action."""
@@ -329,10 +301,8 @@ class ActionProcessor:
         config_type = action.parameters.get("config_type", "unknown")
         
         if config_type == "qos":
-            # Execute QoS policy
             result = self.comnetsemu_connector.execute_qos_policy(action)
         else:
-            # Generic topology change
             result = self.comnetsemu_connector.execute_topology_change(action)
         
         if result.get("success"):
@@ -342,7 +312,10 @@ class ActionProcessor:
                 "config_type": config_type
             }
         else:
-            raise RuntimeError(f"Configuration change failed: {result.get('error', 'Unknown error')}")
+            return {
+                "success": False,
+                "error": result.get("error", "Unknown error")
+            }
     
     def execute_actions_sequence(self, actions: List[NetworkAction]) -> List[ExecutionResult]:
         """
@@ -373,12 +346,7 @@ class ActionProcessor:
         return results
     
     def get_connector_status(self) -> Dict[str, Any]:
-        """
-        Get status of ComnetsEMU connector.
-        
-        Returns:
-            Dictionary with connector status information
-        """
+        """Get status of ComnetsEMU connector."""
         try:
             return self.comnetsemu_connector.get_connection_status()
         except Exception as e:

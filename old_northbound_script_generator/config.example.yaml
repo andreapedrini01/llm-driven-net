@@ -1,0 +1,18 @@
+# Simplified Configuration File
+# Minimal parameters for local file-based network action processing
+
+# ComnetsEMU connection settings
+comnetsemu_host: localhost
+comnetsemu_port: 6653
+
+# Retry system settings
+max_retries: 3
+retry_delay: 2.0
+timeout_seconds: 30
+
+# Logging settings
+log_level: INFO
+
+# Storage settings
+history_dir: data/history
+actions_file: logs/actions.jsonl
