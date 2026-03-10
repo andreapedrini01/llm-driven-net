@@ -1,0 +1,12 @@
+{
+  "action_id": "verify-1",
+  "status": "success",
+  "timestamp": "2024-01-01T00:00:00",
+  "duration": 1.0,
+  "message": "Verification test",
+  "target": "test-target",
+  "action_type": "test-action",
+  "error": null,
+  "network_state_before": null,
+  "network_state_after": null
+}

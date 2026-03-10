@@ -66,9 +66,9 @@ class HistoryManager:
             Path to saved file
         """
         try:
-            # Generate filename with timestamp
+            # Generate filename with timestamp as specified in requirements
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            filename = f"result_{result.action_id}_{timestamp}.json"
+            filename = f"results_{timestamp}.json"
             filepath = self.history_dir / filename
             
             # Convert to dictionary
@@ -120,7 +120,7 @@ class HistoryManager:
         try:
             # Get all JSON files in history directory
             json_files = sorted(
-                self.history_dir.glob("result_*.json"),
+                self.history_dir.glob("results_*.json"),
                 key=lambda p: p.stat().st_mtime,
                 reverse=True
             )
@@ -151,10 +151,9 @@ class HistoryManager:
             List of result dictionaries
         """
         try:
-            # Find files matching the action ID pattern
-            pattern = f"result_{action_id}_*.json"
+            # Search through all result files for matching action_id
             json_files = sorted(
-                self.history_dir.glob(pattern),
+                self.history_dir.glob("results_*.json"),
                 key=lambda p: p.stat().st_mtime,
                 reverse=True
             )
@@ -164,7 +163,8 @@ class HistoryManager:
                 try:
                     with open(filepath, 'r') as f:
                         result = json.load(f)
-                        results.append(result)
+                        if result.get("action_id") == action_id:
+                            results.append(result)
                 except Exception as e:
                     self.logger.warning(f"Failed to read {filepath}: {e}")
             
@@ -182,7 +182,7 @@ class HistoryManager:
             Dictionary with statistics
         """
         try:
-            json_files = list(self.history_dir.glob("result_*.json"))
+            json_files = list(self.history_dir.glob("results_*.json"))
             
             total_results = len(json_files)
             successful = 0
@@ -232,7 +232,7 @@ class HistoryManager:
             import time
             
             cutoff_time = time.time() - (days * 24 * 60 * 60)
-            json_files = list(self.history_dir.glob("result_*.json"))
+            json_files = list(self.history_dir.glob("results_*.json"))
             
             deleted = 0
             for filepath in json_files:
