@@ -58,3 +58,43 @@ cryptography>=41.0.0
 # Scientific computing (optional dependencies)
 numpy>=1.21.0
 scipy>=1.9.0
+
+# ============================================
+# Network Monitoring Integration Dependencies
+# ============================================
+
+# SDN Controller - Ryu
+ryu>=4.34
+
+# Network utilities
+netifaces>=0.11.0
+netaddr>=0.8.0
+
+# Async support
+aiohttp>=3.9.0
+asyncio>=3.4.3
+
+# WebSocket support (for real-time updates)
+websockets>=12.0
+
+# Email notifications (optional)
+aiosmtplib>=3.0.0
+
+# Slack notifications (optional)
+slack-sdk>=3.23.0
+
+# Data processing
+pandas>=2.0.0
+
+# JSON schema validation
+jsonschema>=4.20.0
+
+# Retry mechanisms
+tenacity>=8.2.0
+
+# CLI enhancements
+click>=8.1.0
+rich>=13.7.0
+
+# Time utilities
+pytz>=2023.3
