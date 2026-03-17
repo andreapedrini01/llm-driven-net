@@ -117,11 +117,6 @@ def main():
                         logger.info(f"  Switch: {len(snapshot.topology.switches)}")
                         logger.info(f"  Link: {len(snapshot.topology.links)}")
                         
-                        # Mostra anomalie se presenti
-                        if snapshot.anomalies:
-                            logger.warning(f"  ⚠ Anomalie rilevate: {len(snapshot.anomalies)}")
-                            for anomaly in snapshot.anomalies[:3]:  # Mostra prime 3
-                                logger.warning(f"    - {anomaly.type}: {anomaly.description} (severity: {anomaly.severity})")
                     else:
                         logger.error("✗ Errore nella raccolta dello snapshot")
                     
