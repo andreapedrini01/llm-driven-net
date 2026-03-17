@@ -539,11 +539,6 @@ class RyuConnector:
                         if dpid1 == dpid2:
                             continue
                         
-                        # Evita duplicati
-                        pair_key = tuple(sorted([(dpid1, port1.port_no), (dpid2, 0)]))
-                        if pair_key in processed_pairs:
-                            continue
-                        
                         port_states2 = all_port_states.get(dpid2, {})
                         for port2 in stats2:
                             # Salta porte fisicamente DOWN
