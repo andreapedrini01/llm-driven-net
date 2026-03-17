@@ -47,7 +47,7 @@ from main import (
 
 # ── Configurazione ──
 COOKIE_AUTO = 0x1000
-POLL_INTERVAL = 30          # secondi tra un check e l'altro
+POLL_INTERVAL = 15          # secondi tra un check e l'altro
 PRIORITY_AUTO = 40000       # priorità base per regole automatiche
 PRIORITY_REROUTE = 41000    # priorità per regole di rerouting (sopra le auto base)
 HISTORY_DIR = "data/history"
