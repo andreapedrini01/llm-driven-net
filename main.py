@@ -101,6 +101,11 @@ def update_context_cache(context_analyzer: 'ContextAnalyzer', network_state: Net
 # ── Soglia di confidence per generazione rule-based (senza ChatGPT) ──
 RULE_BASED_CONFIDENCE_THRESHOLD = 0.8
 
+# ── Cookie ranges per identificare chi ha installato le flow rules ──
+# main.py (interattivo, comandi utente): 0x2000-0x2FFF, priorità 50000-59999
+# main_auto.py (autonomo, anomaly response): 0x1000-0x1FFF, priorità 40000-49999
+COOKIE_INTERACTIVE = 0x2000
+
 
 def _host_to_ip(host: str) -> Optional[str]:
     """Converte un nome host Mininet (h1, h2, ...) nel suo IP (10.0.0.1, 10.0.0.2, ...)."""
@@ -180,6 +185,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                 "operation": "add",
                 "match": match_fields,
                 "actions": flow_actions,
+                "cookie": COOKIE_INTERACTIVE,
             },
             priority=params.get('priority', 50000),
             timeout=params.get('timeout', 3600) or 3600,
@@ -203,6 +209,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                 "operation": "add",
                 "match": {},
                 "actions": flow_actions,
+                "cookie": COOKIE_INTERACTIVE,
             },
             priority=params.get('priority', 50000),
             timeout=params.get('timeout', 3600) or 3600,
@@ -231,6 +238,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                         "operation": "add",
                         "match": match_fields,
                         "actions": [{"type": "OUTPUT", "port": "NORMAL"}],
+                        "cookie": COOKIE_INTERACTIVE,
                     },
                     priority=params.get('priority', 1000),
                     timeout=params.get('timeout', 30),

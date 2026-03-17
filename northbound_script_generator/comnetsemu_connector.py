@@ -180,6 +180,11 @@ class ComnetsEMUConnector:
                 # Costruisci il body per Ryu ofctl_rest
                 body = {"dpid": dpid, "priority": priority}
 
+                # Cookie per identificare chi ha installato la regola
+                cookie = action.parameters.get("cookie", 0)
+                if cookie:
+                    body["cookie"] = cookie
+
                 if match_fields:
                     body["match"] = match_fields
 
