@@ -102,138 +102,245 @@ def update_context_cache(context_analyzer: 'ContextAnalyzer', network_state: Net
 RULE_BASED_CONFIDENCE_THRESHOLD = 0.8
 
 
+def _host_to_ip(host: str) -> Optional[str]:
+    """Converte un nome host Mininet (h1, h2, ...) nel suo IP (10.0.0.1, 10.0.0.2, ...)."""
+    import re as _re
+    m = _re.match(r'^h(\d+)$', host.strip(), _re.IGNORECASE)
+    if m:
+        return f"10.0.0.{m.group(1)}"
+    return None
+
+
+def _find_switch_target(resources: List[str], network_state: NetworkState) -> str:
+    """Trova il primo switch tra le risorse, oppure usa il primo switch dalla topologia."""
+    for r in resources:
+        if r.lower().startswith(('sw', 's')) and not r.lower().startswith('slice'):
+            return r
+    # Nessuno switch nell'intent → usa il primo switch dalla topologia
+    if network_state and network_state.topology and network_state.topology.switches:
+        sw = network_state.topology.switches[0]
+        return sw.dpid if sw.dpid else sw.id
+    return "sw1"
+
+
 def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List[LLMAction]:
     """
     Genera azioni di rete direttamente dalle entità estratte dal parser,
     senza interpellare ChatGPT. Usata quando la confidence è >= soglia.
     """
+    import re as _re
+
     actions = []
     intent_type = intent_obj.intent_type
     entities = intent_obj.entities
     params = intent_obj.parameters
+    raw = intent_obj.raw_text.lower()
 
     # Raccogli entità utili per tipo
     resources = [e.value for e in entities if e.type == 'resource']
     action_words = [e.value.lower() for e in entities if e.type == 'action']
     targets = [e.value for e in entities if e.type == 'target']
 
-    # Determina il target principale (primo switch/host trovato, o "network")
-    primary_target = resources[0] if resources else (targets[0] if targets else "network")
+    # Separa host e switch
+    hosts = [r for r in resources if _re.match(r'^h\d+$', r, _re.IGNORECASE)]
+    switches = [r for r in resources if _re.match(r'^(?:sw|s)\d+$', r, _re.IGNORECASE)]
+
+    # ── Pattern: block/allow traffic from X to Y ──
+    traffic_match = _re.search(
+        r'\b(block|drop|deny|allow|permit|forward)\b.*\b(?:from|src)\s+(h\d+|[\d.]+).*\b(?:to|dst)\s+(h\d+|[\d.]+)',
+        raw
+    )
+    if traffic_match:
+        verb = traffic_match.group(1)
+        src_raw = traffic_match.group(2)
+        dst_raw = traffic_match.group(3)
+
+        src_ip = _host_to_ip(src_raw) if src_raw.startswith('h') else src_raw
+        dst_ip = _host_to_ip(dst_raw) if dst_raw.startswith('h') else dst_raw
+
+        is_block = verb in ('block', 'drop', 'deny')
+        switch_target = _find_switch_target(resources, network_state)
+
+        match_fields = {"eth_type": 2048}  # 0x0800 = IPv4
+        if src_ip:
+            match_fields["ipv4_src"] = src_ip
+        if dst_ip:
+            match_fields["ipv4_dst"] = dst_ip
+
+        # Block → nessuna action (DROP implicito in OpenFlow)
+        # Allow → OUTPUT NORMAL
+        flow_actions = [] if is_block else [{"type": "OUTPUT", "port": "NORMAL"}]
+        desc = f"{'Block' if is_block else 'Allow'} traffic {src_raw} → {dst_raw}"
+
+        actions.append(LLMAction(
+            id=f"act_{intent_obj.id}_traffic",
+            type=ActionType.FLOW_MOD,
+            target=switch_target,
+            parameters={
+                "operation": "add",
+                "match": match_fields,
+                "actions": flow_actions,
+            },
+            priority=params.get('priority', 32768),
+            timeout=params.get('timeout', 0) or 0,
+            description=desc,
+        ))
+        return actions
+
+    # ── Pattern: block/allow all traffic on switch ──
+    block_all_match = _re.search(r'\b(block|drop|deny|allow|permit)\b.*\b(?:traffic|packets)\b', raw)
+    if block_all_match and not traffic_match:
+        verb = block_all_match.group(1)
+        is_block = verb in ('block', 'drop', 'deny')
+        switch_target = _find_switch_target(resources, network_state)
+        flow_actions = [] if is_block else [{"type": "OUTPUT", "port": "NORMAL"}]
+
+        actions.append(LLMAction(
+            id=f"act_{intent_obj.id}_traffic_all",
+            type=ActionType.FLOW_MOD,
+            target=switch_target,
+            parameters={
+                "operation": "add",
+                "match": {},
+                "actions": flow_actions,
+            },
+            priority=params.get('priority', 32768),
+            timeout=params.get('timeout', 0) or 0,
+            description=f"{'Block' if is_block else 'Allow'} all traffic on {switch_target}",
+        ))
+        return actions
 
     # ── CONFIGURATION intents ──
     if intent_type == IntentType.CONFIGURATION:
 
-        # --- Flow rules ---
+        # --- Flow rules esplicite ---
         if any(w in action_words for w in ['add', 'create', 'configure', 'set']):
-            # Se si parla di flow/rule
-            if any('flow' in t or 'rule' in t for t in targets) or 'flow' in intent_obj.raw_text.lower():
+            if any('flow' in t or 'rule' in t for t in targets) or 'flow' in raw:
                 match_fields = {}
-                action_fields = []
-                # Estrai parametri di match da params
                 for k, v in params.items():
                     if k in ('port', 'in_port'):
                         match_fields['in_port'] = int(v) if str(v).isdigit() else v
                     elif 'ip' in k:
                         match_fields['ip_dst'] = str(v)
-                for r in resources:
-                    if r.startswith(('sw', 'switch')):
-                        primary_target = r
-                action_fields = [{"type": "OUTPUT", "port": "NORMAL"}]
+                switch_target = _find_switch_target(resources, network_state)
                 actions.append(LLMAction(
                     id=f"act_{intent_obj.id}_flow",
                     type=ActionType.FLOW_MOD,
-                    target=primary_target,
-                    parameters={"match": match_fields, "actions": action_fields},
+                    target=switch_target,
+                    parameters={
+                        "operation": "add",
+                        "match": match_fields,
+                        "actions": [{"type": "OUTPUT", "port": "NORMAL"}],
+                    },
                     priority=params.get('priority', 1000),
                     timeout=params.get('timeout', 30),
-                    description=f"Add flow rule on {primary_target}"
+                    description=f"Add flow rule on {switch_target}",
                 ))
 
-            # Se si parla di slice
-            elif any('slice' in t for t in targets) or 'slice' in intent_obj.raw_text.lower():
+            # Slice
+            elif any('slice' in t for t in targets) or 'slice' in raw:
                 slice_name = next((t for t in targets if 'slice' in t), f"slice_{intent_obj.id}")
-                slice_resources = resources if resources else ["network"]
+                switch_target = _find_switch_target(resources, network_state)
                 actions.append(LLMAction(
                     id=f"act_{intent_obj.id}_slice",
                     type=ActionType.SLICE_CREATE,
-                    target=primary_target,
+                    target=switch_target,
                     parameters={
                         "slice_name": slice_name,
-                        "resources": slice_resources,
-                        "bandwidth": params.get('bandwidth', 100)
+                        "resources": resources if resources else ["network"],
+                        "bandwidth": params.get('bandwidth', 100),
                     },
                     priority=1000,
                     timeout=30,
-                    description=f"Create slice '{slice_name}'"
+                    description=f"Create slice '{slice_name}'",
                 ))
 
-            # Generico config change
+            # Generico config
             else:
+                switch_target = _find_switch_target(resources, network_state)
                 actions.append(LLMAction(
                     id=f"act_{intent_obj.id}_config",
                     type=ActionType.CONFIG_CHANGE,
-                    target=primary_target,
+                    target=switch_target,
                     parameters={
                         "config_type": "general",
-                        "config_data": params if params else {"action": action_words[0] if action_words else "configure"}
+                        "config_data": params if params else {"action": action_words[0] if action_words else "configure"},
                     },
                     priority=1000,
                     timeout=30,
-                    description=f"Configuration change on {primary_target}"
+                    description=f"Configuration change on {switch_target}",
                 ))
 
         # --- Remove / delete ---
         elif any(w in action_words for w in ['remove', 'delete']):
-            actions.append(LLMAction(
-                id=f"act_{intent_obj.id}_remove",
-                type=ActionType.CONFIG_CHANGE,
-                target=primary_target,
-                parameters={
-                    "config_type": "remove",
-                    "config_data": {"resources": resources, "targets": targets}
-                },
-                priority=1000,
-                timeout=30,
-                description=f"Remove {primary_target}"
-            ))
+            switch_target = _find_switch_target(resources, network_state)
+            # Se si parla di flow/rule → delete flow entry
+            if any('flow' in t or 'rule' in t for t in targets) or 'flow' in raw:
+                actions.append(LLMAction(
+                    id=f"act_{intent_obj.id}_delflow",
+                    type=ActionType.FLOW_MOD,
+                    target=switch_target,
+                    parameters={
+                        "operation": "delete",
+                        "match": {},
+                        "actions": [],
+                    },
+                    priority=1000,
+                    timeout=30,
+                    description=f"Delete flow rules on {switch_target}",
+                ))
+            else:
+                actions.append(LLMAction(
+                    id=f"act_{intent_obj.id}_remove",
+                    type=ActionType.CONFIG_CHANGE,
+                    target=switch_target,
+                    parameters={
+                        "config_type": "remove",
+                        "config_data": {"resources": resources, "targets": targets},
+                    },
+                    priority=1000,
+                    timeout=30,
+                    description=f"Remove on {switch_target}",
+                ))
 
-        # --- Fallback: generico config ---
+        # --- Fallback config ---
         else:
+            switch_target = _find_switch_target(resources, network_state)
             actions.append(LLMAction(
                 id=f"act_{intent_obj.id}_cfg",
                 type=ActionType.CONFIG_CHANGE,
-                target=primary_target,
+                target=switch_target,
                 parameters={
                     "config_type": "general",
-                    "config_data": params if params else {"raw_text": intent_obj.raw_text}
+                    "config_data": params if params else {"raw_text": intent_obj.raw_text},
                 },
                 priority=1000,
                 timeout=30,
-                description=f"Configuration on {primary_target}"
+                description=f"Configuration on {switch_target}",
             ))
 
     # ── ANOMALY_RESPONSE intents ──
     elif intent_type == IntentType.ANOMALY_RESPONSE:
+        switch_target = _find_switch_target(resources, network_state)
         actions.append(LLMAction(
             id=f"act_{intent_obj.id}_fix",
             type=ActionType.CONFIG_CHANGE,
-            target=primary_target,
+            target=switch_target,
             parameters={
                 "config_type": "anomaly_fix",
                 "config_data": {
                     "action": action_words[0] if action_words else "fix",
                     "resources": resources,
-                    "raw_text": intent_obj.raw_text
-                }
+                    "raw_text": intent_obj.raw_text,
+                },
             },
             priority=500,
             timeout=60,
-            description=f"Anomaly fix on {primary_target}"
+            description=f"Anomaly fix on {switch_target}",
         ))
 
-    # ── QUERY intents → nessuna azione di rete, solo info ──
+    # ── QUERY intents → nessuna azione di rete ──
     elif intent_type == IntentType.QUERY:
-        # Le query non generano azioni di rete
         pass
 
     return actions
