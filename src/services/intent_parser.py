@@ -454,13 +454,21 @@ class IntentParser:
         tech_count = sum(1 for term in tech_terms if term in preprocessed_text.lower())
         quality_boost += min(tech_count * 0.02, 0.08)
         
+        # Boost for short but precise commands (action + resource/target pattern)
+        # Short texts with clear entities and strong type classification are direct commands
+        has_action_entity = any(e.type == 'action' for e in entities)
+        has_resource_entity = any(e.type == 'resource' for e in entities)
+        has_target_entity = any(e.type == 'target' for e in entities)
+        if word_count <= 6 and has_action_entity and (has_resource_entity or has_target_entity):
+            quality_boost += 0.15  # direct command pattern boost
+        
         # Penalties
         penalties = 0.0
         
-        # Penalty for very short texts
-        if len(original_text.strip()) < 5:
+        # Penalty for very short texts — only if no clear entities found
+        if len(original_text.strip()) < 5 and not entities:
             penalties += 0.2
-        elif len(original_text.strip()) < 15:
+        elif len(original_text.strip()) < 15 and not (has_action_entity and (has_resource_entity or has_target_entity)):
             penalties += 0.1
         
         # Penalty for very long texts
