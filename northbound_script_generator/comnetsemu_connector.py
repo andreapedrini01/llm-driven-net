@@ -11,8 +11,8 @@ from typing import Dict, Any
 from dataclasses import dataclass
 from enum import Enum
 
-from models import NetworkAction, ActionType
-from retry_system import SimpleRetrySystem, RetryConfig
+from .models import NetworkAction, ActionType
+from .retry_system import SimpleRetrySystem, RetryConfig
 
 
 class ConnectionStatus(str, Enum):

@@ -11,8 +11,8 @@ from typing import Dict, Any, List, Optional
 from enum import Enum
 from dataclasses import dataclass
 
-from models import NetworkAction, ActionType
-from comnetsemu_connector import ComnetsEMUConnector, ComnetsEMUConfig
+from .models import NetworkAction, ActionType
+from .comnetsemu_connector import ComnetsEMUConnector, ComnetsEMUConfig
 
 
 class ExecutionStatus(str, Enum):
