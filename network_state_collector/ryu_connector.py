@@ -429,12 +429,61 @@ class RyuConnector:
             self.logger.error(error_msg)
             raise RyuConnectionError(error_msg) from e
     
+    def _get_port_states(self, dpid) -> Dict[int, bool]:
+        """
+        Recupera lo stato fisico (UP/DOWN) delle porte di uno switch
+        tramite l'endpoint /stats/portdesc/{dpid}.
+        
+        In OpenFlow, una porta con OFPPS_LINK_DOWN (bit 0x1 di 'state')
+        indica che il link fisico è down.
+        
+        Returns:
+            Dict che mappa port_no -> True se la porta è UP, False se DOWN
+        """
+        try:
+            if isinstance(dpid, int):
+                dpid_param = str(dpid)
+            else:
+                try:
+                    dpid_int = int(str(dpid), 16) if isinstance(dpid, str) and len(str(dpid)) > 2 else int(str(dpid))
+                    dpid_param = str(dpid_int)
+                except (ValueError, TypeError):
+                    dpid_param = str(dpid)
+            
+            desc_data = self._make_request(f'/stats/portdesc/{dpid_param}')
+            
+            if not isinstance(desc_data, dict) or dpid_param not in desc_data:
+                return {}
+            
+            port_states = {}
+            for port_desc in desc_data[dpid_param]:
+                port_no = port_desc.get('port_no')
+                if port_no is None or port_no == 'LOCAL':
+                    continue
+                try:
+                    port_no_int = int(port_no)
+                except (ValueError, TypeError):
+                    continue
+                
+                # OFPPS_LINK_DOWN = 0x1, OFPPC_PORT_DOWN = 0x1 (config)
+                state = int(port_desc.get('state', 0))
+                config = int(port_desc.get('config', 0))
+                is_up = (state & 0x1 == 0) and (config & 0x1 == 0)
+                port_states[port_no_int] = is_up
+            
+            return port_states
+        except Exception as e:
+            self.logger.debug(f"Could not get port descriptions for switch {dpid}: {e}")
+            return {}
+
     def _infer_links_from_ports(self) -> List[LinkInfo]:
         """
         Inferisce i link di topologia analizzando le port statistics
+        e lo stato fisico delle porte (portdesc).
         
         Logica: In una topologia lineare, le porte con traffico bidirezionale
         simile sono probabilmente collegate tra loro.
+        Le porte fisicamente DOWN vengono escluse dall'inferenza.
         
         Returns:
             Lista di LinkInfo inferiti
@@ -445,8 +494,9 @@ class RyuConnector:
             if not isinstance(switches_data, list):
                 return []
             
-            # Raccogli le statistiche di tutte le porte
+            # Raccogli le statistiche e lo stato fisico di tutte le porte
             all_port_stats = {}
+            all_port_states = {}
             for switch_data in switches_data:
                 if isinstance(switch_data, dict):
                     dpid = switch_data.get('dpid')
@@ -464,13 +514,22 @@ class RyuConnector:
                 except Exception as e:
                     self.logger.warning(f"Failed to get port stats for switch {dpid}: {e}")
                     continue
+                
+                # Recupera lo stato fisico delle porte
+                all_port_states[dpid] = self._get_port_states(dpid)
             
             # Inferisci i link analizzando il traffico
             links = []
             processed_pairs = set()
             
             for dpid1, stats1 in all_port_stats.items():
+                port_states1 = all_port_states.get(dpid1, {})
                 for port1 in stats1:
+                    # Salta porte fisicamente DOWN
+                    if not port_states1.get(port1.port_no, True):
+                        self.logger.debug(f"Skipping port {dpid1}:{port1.port_no} - physically DOWN")
+                        continue
+                    
                     # Salta porte senza traffico
                     if port1.tx_packets == 0 and port1.rx_packets == 0:
                         continue
@@ -485,7 +544,12 @@ class RyuConnector:
                         if pair_key in processed_pairs:
                             continue
                         
+                        port_states2 = all_port_states.get(dpid2, {})
                         for port2 in stats2:
+                            # Salta porte fisicamente DOWN
+                            if not port_states2.get(port2.port_no, True):
+                                continue
+                            
                             # Salta porte senza traffico
                             if port2.tx_packets == 0 and port2.rx_packets == 0:
                                 continue
