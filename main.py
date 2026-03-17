@@ -182,7 +182,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                 "actions": flow_actions,
             },
             priority=params.get('priority', 32768),
-            timeout=params.get('timeout', 0) or 0,
+            timeout=params.get('timeout', 3600) or 3600,
             description=desc,
         ))
         return actions
@@ -205,7 +205,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                 "actions": flow_actions,
             },
             priority=params.get('priority', 32768),
-            timeout=params.get('timeout', 0) or 0,
+            timeout=params.get('timeout', 3600) or 3600,
             description=f"{'Block' if is_block else 'Allow'} all traffic on {switch_target}",
         ))
         return actions
