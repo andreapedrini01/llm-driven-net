@@ -116,7 +116,6 @@ def main():
                         logger.info(f"  Timestamp: {snapshot.get_timestamp_iso()}")
                         logger.info(f"  Switch: {len(snapshot.topology.switches)}")
                         logger.info(f"  Link: {len(snapshot.topology.links)}")
-                        logger.info(f"  Host: {len(snapshot.topology.hosts)}")
                         
                         # Mostra anomalie se presenti
                         if snapshot.anomalies:
@@ -164,7 +163,7 @@ def main():
                         continue
                     
                     logger.info(f"✓ Stato della rete raccolto")
-                    logger.info(f"  Switch: {len(snapshot.topology.switches)}, Links: {len(snapshot.topology.links)}, Hosts: {len(snapshot.topology.hosts)}")
+                    logger.info(f"  Switch: {len(snapshot.topology.switches)}, Links: {len(snapshot.topology.links)}")
                     
                     # Step 2: Parsa l'intento
                     logger.info("\nStep 2: Parsing intento...")
@@ -298,7 +297,6 @@ def main():
                                 logger.info("✓ Stato finale raccolto")
                                 logger.info(f"  Switch: {len(final_snapshot.topology.switches)}")
                                 logger.info(f"  Link: {len(final_snapshot.topology.links)}")
-                                logger.info(f"  Host: {len(final_snapshot.topology.hosts)}")
                                 
                                 # Confronta con stato iniziale
                                 if len(final_snapshot.topology.switches) != len(snapshot.topology.switches):
