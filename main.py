@@ -188,7 +188,7 @@ def main():
                     
                     # Step 3: Analizza contesto
                     logger.info("\nStep 3: Analisi contesto di rete...")
-                    contextualized_intent = context_analyzer.analyze_context(intent_obj, snapshot)
+                    contextualized_intent = context_analyzer.analyze_context(intent_obj)
                     logger.info(f"✓ Contesto analizzato")
                     
                     if contextualized_intent.conflicts:
@@ -204,17 +204,32 @@ def main():
                     # Step 4: Genera azioni con LLM
                     logger.info("\nStep 4: Generazione azioni con ChatGPT...")
                     
-                    # Usa il prompt engineering system
-                    prompt = prompt_system.build_action_generation_prompt(
-                        contextualized_intent,
-                        network_state=snapshot
+                    # Costruisci il prompt con il contesto della rete
+                    network_summary = (
+                        f"Current network state:\n"
+                        f"- Switches: {len(snapshot.topology.switches)}\n"
+                        f"- Links: {len(snapshot.topology.links)}\n"
+                        f"- Intent type: {intent_obj.intent_type.value}\n"
+                        f"- Entities: {[e.value for e in intent_obj.entities]}\n"
+                        f"- Context: {contextualized_intent.network_context}\n"
+                    )
+                    user_prompt = (
+                        f"User intent: {intent_text}\n\n"
+                        f"{network_summary}\n"
+                        f"Generate network actions in JSON format. Each action should have: "
+                        f"type (add_switch, remove_switch, add_link, remove_link, add_flow, modify_flow, etc.), "
+                        f"target, and parameters."
+                    )
+                    system_msg = (
+                        "You are a network automation assistant for an SDN network managed by Ryu controller. "
+                        "Generate network actions in JSON format based on the user's intent and current network state."
                     )
                     
                     # Chiamata asincrona a ChatGPT
                     async def generate_actions():
                         response = await chatgpt_client.generate_response(
-                            prompt=prompt,
-                            system_message="You are a network automation assistant. Generate network actions in JSON format based on the user's intent and current network state."
+                            prompt=user_prompt,
+                            system_message=system_msg
                         )
                         return response
                     
@@ -226,7 +241,11 @@ def main():
                         # Step 5: Parsa e sequenzia azioni
                         logger.info("\nStep 5: Parsing e sequenziamento azioni...")
                         actions = action_sequencer.parse_actions_from_response(response.content)
-                        action_sequence = action_sequencer.sequence_actions(actions, contextualized_intent)
+                        action_sequence = action_sequencer.sequence_actions(
+                            actions,
+                            intent_id=intent_obj.id,
+                            sequence_id=f"seq_{intent_obj.id}"
+                        )
                         logger.info(f"✓ {len(action_sequence.actions)} azioni sequenziate")
                         
                         # Mostra le azioni
@@ -249,11 +268,9 @@ def main():
                         # Step 7: Salva azioni per esecuzione
                         logger.info("\nStep 7: Salvataggio azioni...")
                         output_result = action_output.save_actions(
-                            action_sequence,
-                            intent_id=intent_obj.id,
-                            user_id="cli_user"
+                            action_sequence
                         )
-                        logger.info(f"✓ Azioni salvate in: {output_result.output_file}")
+                        logger.info(f"✓ Azioni salvate")
                         
                         # Step 8: Chiedi conferma ed esegui
                         logger.info("\n" + "=" * 60)
