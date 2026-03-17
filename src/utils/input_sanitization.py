@@ -12,7 +12,7 @@ This module provides:
 import re
 import html
 import logging
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
@@ -507,7 +507,7 @@ class RateLimiter:
         self,
         client_id: str,
         user_id: Optional[str] = None
-    ) -> tuple[bool, Optional[str]]:
+    ) -> Tuple[bool, Optional[str]]:
         """Check if client is within rate limits.
         
         Args:

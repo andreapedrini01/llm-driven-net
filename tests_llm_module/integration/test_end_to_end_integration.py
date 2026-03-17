@@ -8,6 +8,7 @@ from src.models.network import (
     NetworkState, Topology, Switch, Host, Link, 
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 )
+from typing import List
 from src.models.actions import NetworkAction, ActionType, ActionSequence
 
 
@@ -312,7 +313,7 @@ class TestEndToEndIntegration:
                     assert action.type in [ActionType.FLOW_MOD, ActionType.CONFIG_CHANGE]
                     assert 0 <= action.priority <= 1000
     
-    def _generate_actions_from_intent(self, intent: IntentObject, contextualized_intent) -> list[NetworkAction]:
+    def _generate_actions_from_intent(self, intent: IntentObject, contextualized_intent) -> List[NetworkAction]:
         """
         Simula la generazione di azioni da un intent (Property 8).
         

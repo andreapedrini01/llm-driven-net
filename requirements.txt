@@ -1,14 +1,18 @@
+# ============================================
+# Python 3.8 compatible requirements
+# ============================================
+
 # Core web frameworks
-fastapi>=0.104.1
-uvicorn[standard]>=0.24.0
-flask>=2.0.0
+fastapi>=0.104.1,<0.109.0
+uvicorn[standard]>=0.24.0,<0.29.0
+flask>=2.0.0,<3.1.0
 
 # Data validation and serialization
-pydantic>=2.5.0
+pydantic>=2.5.0,<2.10.0
 pyyaml>=6.0
 
 # HTTP client for external APIs
-httpx>=0.25.2
+httpx>=0.25.2,<0.28.0
 requests>=2.31.0
 
 # Date/time utilities
@@ -27,20 +31,20 @@ pytest-cov>=4.0.0
 pytest-mock>=3.10.0
 
 # Logging and monitoring
-structlog>=24.5.0
+structlog>=24.4.0,<25.0.0
 
 # Configuration management
 python-dotenv>=1.0.0
 
 # File system monitoring
-watchdog>=3.0.0
+watchdog>=3.0.0,<5.0.0
 
 # Type checking
 typing-extensions>=4.5.0
-mypy>=1.0.0
+mypy>=1.0.0,<1.12.0
 
 # Code formatting and linting
-black>=22.0.0
+black>=22.0.0,<24.9.0
 flake8>=5.0.0
 isort>=5.10.0
 
@@ -53,11 +57,11 @@ python-multipart>=0.0.6
 prometheus-client>=0.20.0
 
 # Secrets management
-cryptography>=41.0.0
+cryptography>=41.0.0,<44.0.0
 
 # Scientific computing (optional dependencies)
-numpy>=1.21.0
-scipy>=1.9.0
+numpy>=1.21.0,<1.25.0
+scipy>=1.9.0,<1.12.0
 
 # ============================================
 # Network Monitoring Integration Dependencies
@@ -68,11 +72,11 @@ netifaces>=0.11.0
 netaddr>=0.8.0
 
 # Async support
-aiohttp>=3.9.0
+aiohttp>=3.9.0,<3.11.0
 asyncio>=3.4.3
 
 # WebSocket support (for real-time updates)
-websockets>=12.0
+websockets>=12.0,<13.0
 
 # Email notifications (optional)
 aiosmtplib>=3.0.0
@@ -81,7 +85,7 @@ aiosmtplib>=3.0.0
 slack-sdk>=3.23.0
 
 # Data processing
-pandas>=2.0.0
+pandas>=2.0.0,<2.1.0
 
 # JSON schema validation
 jsonschema>=4.20.0

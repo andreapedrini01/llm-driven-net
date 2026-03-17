@@ -4,7 +4,7 @@ import smtplib
 import json
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -397,7 +397,7 @@ class NotificationManager:
     
     def __init__(self):
         """Initialize notification manager."""
-        self.channels: List[tuple[str, NotificationChannel]] = []
+        self.channels: List[Tuple[str, NotificationChannel]] = []
         self.severity_filters: Dict[str, List[AlertSeverity]] = {}
     
     def add_channel(

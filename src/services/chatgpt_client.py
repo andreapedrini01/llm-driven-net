@@ -2,7 +2,7 @@
 
 import time
 import logging
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, List
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 import asyncio
@@ -94,7 +94,7 @@ class ChatGPTClient:
         )
         
         # Rate limiting tracking
-        self._request_times: list[datetime] = []
+        self._request_times: List[datetime] = []
         self._rate_limit_info = RateLimitInfo(
             remaining_requests=config.rate_limit_rpm,
             reset_time=datetime.now() + timedelta(minutes=1),
@@ -114,10 +114,10 @@ class ChatGPTClient:
         self._total_cost = 0.0
         
         # Budget tracking and alerts
-        self._budget_alerts: list[BudgetAlert] = []
+        self._budget_alerts: List[BudgetAlert] = []
         self._warning_threshold_reached = False
         self._critical_threshold_reached = False
-        self._alert_callbacks: list[Callable[[BudgetAlert], None]] = []
+        self._alert_callbacks: List[Callable[[BudgetAlert], None]] = []
         
         logger.info(f"ChatGPT client initialized with model: {config.model}")
     
@@ -635,7 +635,7 @@ class ChatGPTClient:
         """
         return len(self._request_queue)
     
-    def get_budget_alerts(self) -> list[BudgetAlert]:
+    def get_budget_alerts(self) -> List[BudgetAlert]:
         """Get all budget alerts that have been triggered.
         
         Returns:
