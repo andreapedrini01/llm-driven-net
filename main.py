@@ -28,13 +28,15 @@ from src.services.validator import Validator
 from src.services.action_output import ActionOutputService
 from src.services.prompt_engineering import PromptEngineeringSystem
 from northbound_script_generator.action_processor import ActionProcessor
-from northbound_script_generator.models import NetworkAction
+from northbound_script_generator.models import NetworkAction as NorthboundAction
 from northbound_script_generator.config_loader import ConfigLoader
+from src.models.actions import NetworkAction as LLMAction, ActionType, ActionSequence
 from src.models.network import (
     NetworkState, Topology, Switch, Link,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 )
 from src.models.core import NetworkSnapshot
+from src.models.intent import IntentType
 
 
 def snapshot_to_network_state(snapshot: NetworkSnapshot) -> NetworkState:
@@ -94,6 +96,147 @@ def save_state_to_history(network_state: NetworkState) -> str:
 def update_context_cache(context_analyzer: 'ContextAnalyzer', network_state: NetworkState):
     """Aggiorna la cache del context_analyzer con lo stato corrente."""
     context_analyzer.state_cache.update_state(network_state)
+
+
+# ── Soglia di confidence per generazione rule-based (senza ChatGPT) ──
+RULE_BASED_CONFIDENCE_THRESHOLD = 0.8
+
+
+def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List[LLMAction]:
+    """
+    Genera azioni di rete direttamente dalle entità estratte dal parser,
+    senza interpellare ChatGPT. Usata quando la confidence è >= soglia.
+    """
+    actions = []
+    intent_type = intent_obj.intent_type
+    entities = intent_obj.entities
+    params = intent_obj.parameters
+
+    # Raccogli entità utili per tipo
+    resources = [e.value for e in entities if e.type == 'resource']
+    action_words = [e.value.lower() for e in entities if e.type == 'action']
+    targets = [e.value for e in entities if e.type == 'target']
+
+    # Determina il target principale (primo switch/host trovato, o "network")
+    primary_target = resources[0] if resources else (targets[0] if targets else "network")
+
+    # ── CONFIGURATION intents ──
+    if intent_type == IntentType.CONFIGURATION:
+
+        # --- Flow rules ---
+        if any(w in action_words for w in ['add', 'create', 'configure', 'set']):
+            # Se si parla di flow/rule
+            if any('flow' in t or 'rule' in t for t in targets) or 'flow' in intent_obj.raw_text.lower():
+                match_fields = {}
+                action_fields = []
+                # Estrai parametri di match da params
+                for k, v in params.items():
+                    if k in ('port', 'in_port'):
+                        match_fields['in_port'] = int(v) if str(v).isdigit() else v
+                    elif 'ip' in k:
+                        match_fields['ip_dst'] = str(v)
+                for r in resources:
+                    if r.startswith(('sw', 'switch')):
+                        primary_target = r
+                action_fields = [{"type": "OUTPUT", "port": "NORMAL"}]
+                actions.append(LLMAction(
+                    id=f"act_{intent_obj.id}_flow",
+                    type=ActionType.FLOW_MOD,
+                    target=primary_target,
+                    parameters={"match": match_fields, "actions": action_fields},
+                    priority=params.get('priority', 1000),
+                    timeout=params.get('timeout', 30),
+                    description=f"Add flow rule on {primary_target}"
+                ))
+
+            # Se si parla di slice
+            elif any('slice' in t for t in targets) or 'slice' in intent_obj.raw_text.lower():
+                slice_name = next((t for t in targets if 'slice' in t), f"slice_{intent_obj.id}")
+                slice_resources = resources if resources else ["network"]
+                actions.append(LLMAction(
+                    id=f"act_{intent_obj.id}_slice",
+                    type=ActionType.SLICE_CREATE,
+                    target=primary_target,
+                    parameters={
+                        "slice_name": slice_name,
+                        "resources": slice_resources,
+                        "bandwidth": params.get('bandwidth', 100)
+                    },
+                    priority=1000,
+                    timeout=30,
+                    description=f"Create slice '{slice_name}'"
+                ))
+
+            # Generico config change
+            else:
+                actions.append(LLMAction(
+                    id=f"act_{intent_obj.id}_config",
+                    type=ActionType.CONFIG_CHANGE,
+                    target=primary_target,
+                    parameters={
+                        "config_type": "general",
+                        "config_data": params if params else {"action": action_words[0] if action_words else "configure"}
+                    },
+                    priority=1000,
+                    timeout=30,
+                    description=f"Configuration change on {primary_target}"
+                ))
+
+        # --- Remove / delete ---
+        elif any(w in action_words for w in ['remove', 'delete']):
+            actions.append(LLMAction(
+                id=f"act_{intent_obj.id}_remove",
+                type=ActionType.CONFIG_CHANGE,
+                target=primary_target,
+                parameters={
+                    "config_type": "remove",
+                    "config_data": {"resources": resources, "targets": targets}
+                },
+                priority=1000,
+                timeout=30,
+                description=f"Remove {primary_target}"
+            ))
+
+        # --- Fallback: generico config ---
+        else:
+            actions.append(LLMAction(
+                id=f"act_{intent_obj.id}_cfg",
+                type=ActionType.CONFIG_CHANGE,
+                target=primary_target,
+                parameters={
+                    "config_type": "general",
+                    "config_data": params if params else {"raw_text": intent_obj.raw_text}
+                },
+                priority=1000,
+                timeout=30,
+                description=f"Configuration on {primary_target}"
+            ))
+
+    # ── ANOMALY_RESPONSE intents ──
+    elif intent_type == IntentType.ANOMALY_RESPONSE:
+        actions.append(LLMAction(
+            id=f"act_{intent_obj.id}_fix",
+            type=ActionType.CONFIG_CHANGE,
+            target=primary_target,
+            parameters={
+                "config_type": "anomaly_fix",
+                "config_data": {
+                    "action": action_words[0] if action_words else "fix",
+                    "resources": resources,
+                    "raw_text": intent_obj.raw_text
+                }
+            },
+            priority=500,
+            timeout=60,
+            description=f"Anomaly fix on {primary_target}"
+        ))
+
+    # ── QUERY intents → nessuna azione di rete, solo info ──
+    elif intent_type == IntentType.QUERY:
+        # Le query non generano azioni di rete
+        pass
+
+    return actions
 
 
 def setup_logging():
@@ -276,90 +419,117 @@ def main():
                         for rec in contextualized_intent.recommendations:
                             logger.info(f"  - {rec}")
                     
-                    # Step 4: Genera azioni con LLM
-                    logger.info("\nStep 4: Generazione azioni con ChatGPT...")
-                    
-                    # Costruisci il prompt con il contesto della rete
-                    network_summary = (
-                        f"Current network state:\n"
-                        f"- Switches: {len(snapshot.topology.switches)}\n"
-                        f"- Links: {len(snapshot.topology.links)}\n"
-                        f"- Intent type: {intent_obj.intent_type.value}\n"
-                        f"- Entities: {[e.value for e in intent_obj.entities]}\n"
-                        f"- Context: {contextualized_intent.network_context}\n"
-                    )
-                    user_prompt = (
-                        f"User intent: {intent_text}\n\n"
-                        f"{network_summary}\n"
-                        f"Generate network actions in JSON format. Each action should have: "
-                        f"type (add_switch, remove_switch, add_link, remove_link, add_flow, modify_flow, etc.), "
-                        f"target, and parameters."
-                    )
-                    system_msg = (
-                        "You are a network automation assistant for an SDN network managed by Ryu controller. "
-                        "Generate network actions in JSON format based on the user's intent and current network state."
-                    )
-                    
-                    # Chiamata asincrona a ChatGPT
-                    async def generate_actions():
-                        response = await chatgpt_client.generate_response(
-                            prompt=user_prompt,
-                            system_message=system_msg
+                    # Step 4: Genera azioni
+                    # Se la confidence è alta, genera azioni rule-based senza ChatGPT
+                    use_rule_based = intent_obj.confidence >= RULE_BASED_CONFIDENCE_THRESHOLD
+
+                    if intent_obj.intent_type == IntentType.QUERY:
+                        logger.info("\nStep 4: Intent di tipo QUERY — nessuna azione di rete da generare.")
+                        logger.info("  Usa 'collect' o 'health' per ottenere informazioni sulla rete.")
+                        continue
+
+                    actions = []
+
+                    if use_rule_based:
+                        logger.info(f"\nStep 4: Generazione azioni RULE-BASED (confidence {intent_obj.confidence:.2f} >= {RULE_BASED_CONFIDENCE_THRESHOLD})")
+                        actions = generate_actions_rule_based(intent_obj, network_state)
+                        if actions:
+                            logger.info(f"✓ {len(actions)} azioni generate (rule-based, senza ChatGPT)")
+                        else:
+                            logger.warning("⚠ Nessuna azione generata dal rule-based, fallback a ChatGPT...")
+                            use_rule_based = False
+
+                    if not use_rule_based:
+                        logger.info(f"\nStep 4: Generazione azioni con ChatGPT (confidence {intent_obj.confidence:.2f} < {RULE_BASED_CONFIDENCE_THRESHOLD})")
+
+                        # Costruisci il prompt con il contesto della rete
+                        network_summary = (
+                            f"Current network state:\n"
+                            f"- Switches: {len(snapshot.topology.switches)}\n"
+                            f"- Links: {len(snapshot.topology.links)}\n"
+                            f"- Intent type: {intent_obj.intent_type.value}\n"
+                            f"- Entities: {[e.value for e in intent_obj.entities]}\n"
+                            f"- Context: {contextualized_intent.network_context}\n"
                         )
-                        return response
-                    
+                        user_prompt = (
+                            f"User intent: {intent_text}\n\n"
+                            f"{network_summary}\n"
+                            f"Generate network actions in JSON format. Each action should have: "
+                            f"type (add_switch, remove_switch, add_link, remove_link, add_flow, modify_flow, etc.), "
+                            f"target, and parameters."
+                        )
+                        system_msg = (
+                            "You are a network automation assistant for an SDN network managed by Ryu controller. "
+                            "Generate network actions in JSON format based on the user's intent and current network state."
+                        )
+
+                        async def generate_actions_llm():
+                            resp = await chatgpt_client.generate_response(
+                                prompt=user_prompt,
+                                system_message=system_msg
+                            )
+                            return resp
+
+                        try:
+                            llm_response = asyncio.run(generate_actions_llm())
+                            logger.info(f"✓ Risposta LLM ricevuta")
+                            logger.info(f"  Tokens: {llm_response.tokens_used}, Latency: {llm_response.latency:.2f}s")
+                            actions = action_sequencer.parse_actions_from_response(llm_response.content)
+                        except Exception as e:
+                            logger.error(f"✗ Errore ChatGPT: {e}", exc_info=True)
+                            continue
+
+                    if not actions:
+                        logger.warning("⚠ Nessuna azione generata. Verifica l'intento e riprova.")
+                        continue
+
                     try:
-                        response = asyncio.run(generate_actions())
-                        logger.info(f"✓ Risposta LLM ricevuta")
-                        logger.info(f"  Tokens: {response.tokens_used}, Latency: {response.latency:.2f}s")
-                        
-                        # Step 5: Parsa e sequenzia azioni
-                        logger.info("\nStep 5: Parsing e sequenziamento azioni...")
-                        actions = action_sequencer.parse_actions_from_response(response.content)
+                        # Step 5: Sequenzia azioni
+                        logger.info(f"\nStep 5: Sequenziamento di {len(actions)} azioni...")
                         action_sequence = action_sequencer.sequence_actions(
                             actions,
                             intent_id=intent_obj.id,
                             sequence_id=f"seq_{intent_obj.id}"
                         )
                         logger.info(f"✓ {len(action_sequence.actions)} azioni sequenziate")
-                        
+
                         # Mostra le azioni
                         logger.info("Azioni proposte:")
                         for i, action in enumerate(action_sequence.actions, 1):
                             logger.info(f"  {i}. {action.type.value} su {action.target}")
-                        
+
                         # Step 6: Valida azioni
                         logger.info("\nStep 6: Validazione azioni...")
                         validation_result = validator.validate_actions(action_sequence)
-                        
+
                         if not validation_result.is_valid:
                             logger.error("✗ Validazione fallita:")
                             for error in validation_result.errors:
                                 logger.error(f"  - {error}")
                             continue
-                        
+
                         logger.info("✓ Azioni validate con successo")
-                        
+
                         # Step 7: Salva azioni per esecuzione
                         logger.info("\nStep 7: Salvataggio azioni...")
                         output_result = action_output.save_actions(
                             action_sequence
                         )
                         logger.info(f"✓ Azioni salvate")
-                        
+
                         # Step 8: Chiedi conferma ed esegui
                         logger.info("\n" + "=" * 60)
                         response = input("Vuoi eseguire queste azioni sulla rete? (s/n): ").strip().lower()
-                        
+
                         if response == 's':
                             logger.info("\nStep 8: Esecuzione azioni sulla rete...")
-                            
+
                             results = []
                             for i, action in enumerate(action_sequence.actions, 1):
                                 logger.info(f"  Esecuzione azione {i}/{len(action_sequence.actions)}: {action.id}")
-                                
-                                # Converti l'azione al formato NetworkAction
-                                network_action = NetworkAction(
+
+                                # Converti l'azione al formato NorthboundAction
+                                network_action = NorthboundAction(
                                     id=action.id,
                                     type=action.type,
                                     target=action.target,
@@ -367,34 +537,33 @@ def main():
                                     priority=getattr(action, 'priority', 100),
                                     timeout=getattr(action, 'timeout', 30)
                                 )
-                                
+
                                 result = action_processor.execute_action(network_action)
                                 results.append(result)
-                                
+
                                 if result.status.value == "success":
                                     logger.info(f"  ✓ Azione {action.id} completata ({result.duration:.2f}s)")
                                 else:
                                     logger.error(f"  ✗ Azione {action.id} fallita: {result.error}")
-                            
+
                             # Step 9: Verifica stato finale
                             logger.info("\nStep 9: Verifica stato finale...")
                             final_snapshot = collector.collect_snapshot()
-                            
+
                             if final_snapshot:
                                 logger.info("✓ Stato finale raccolto")
                                 logger.info(f"  Switch: {len(final_snapshot.topology.switches)}")
                                 logger.info(f"  Link: {len(final_snapshot.topology.links)}")
-                                
-                                # Confronta con stato iniziale
+
                                 if len(final_snapshot.topology.switches) != len(snapshot.topology.switches):
                                     logger.info(f"  Δ Switch: {len(final_snapshot.topology.switches) - len(snapshot.topology.switches)}")
                                 if len(final_snapshot.topology.links) != len(snapshot.topology.links):
                                     logger.info(f"  Δ Links: {len(final_snapshot.topology.links) - len(snapshot.topology.links)}")
-                            
+
                             # Riepilogo
                             successful = sum(1 for r in results if r.status.value == "success")
                             failed = sum(1 for r in results if r.status.value == "failed")
-                            
+
                             logger.info("\n" + "=" * 60)
                             logger.info("RIEPILOGO ESECUZIONE")
                             logger.info("=" * 60)
@@ -405,10 +574,7 @@ def main():
                             logger.info("=" * 60)
                         else:
                             logger.info("Esecuzione annullata dall'utente")
-                        
-                    except json.JSONDecodeError as e:
-                        logger.error(f"✗ Errore nel parsing della risposta LLM: {e}")
-                        logger.error(f"Risposta ricevuta: {response.content[:200]}...")
+
                     except Exception as e:
                         logger.error(f"✗ Errore nel processamento: {e}", exc_info=True)
                     
