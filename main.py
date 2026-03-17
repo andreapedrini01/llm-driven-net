@@ -29,6 +29,52 @@ from src.services.prompt_engineering import PromptEngineeringSystem
 from northbound_script_generator.action_processor import ActionProcessor
 from northbound_script_generator.models import NetworkAction
 from northbound_script_generator.config_loader import ConfigLoader
+from src.models.network import (
+    NetworkState, Topology, Switch, Link,
+    NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+)
+from src.models.core import NetworkSnapshot
+
+
+def snapshot_to_network_state(snapshot: NetworkSnapshot) -> NetworkState:
+    """Converte un NetworkSnapshot (dal collector) in un NetworkState (per i servizi LLM)."""
+    switches = [
+        Switch(
+            id=s.dpid,
+            name=f"switch-{s.dpid}",
+            dpid=s.dpid,
+            ports=s.ports,
+            status="active" if s.active else "inactive"
+        )
+        for s in snapshot.topology.switches
+    ]
+    links = [
+        Link(
+            id=f"{l.src_dpid}:{l.src_port}-{l.dst_dpid}:{l.dst_port}",
+            source_switch=l.src_dpid,
+            source_port=l.src_port,
+            destination_switch=l.dst_dpid,
+            destination_port=l.dst_port
+        )
+        for l in snapshot.topology.links
+    ]
+    return NetworkState(
+        timestamp=datetime.fromtimestamp(snapshot.timestamp),
+        topology=Topology(switches=switches, links=links),
+        metrics=NetworkMetrics(
+            bandwidth=BandwidthMetrics(
+                total_capacity=1000, used_bandwidth=0,
+                available_bandwidth=1000, utilization_percentage=0.0
+            ),
+            latency=LatencyMetrics(
+                average_latency=0.0, min_latency=0.0,
+                max_latency=0.0, jitter=0.0
+            ),
+            utilization=UtilizationMetrics(
+                cpu_utilization=0.0, memory_utilization=0.0
+            )
+        )
+    )
 
 
 def setup_logging():
@@ -160,6 +206,9 @@ def main():
                     logger.info(f"✓ Stato della rete raccolto")
                     logger.info(f"  Switch: {len(snapshot.topology.switches)}, Links: {len(snapshot.topology.links)}")
                     
+                    # Converti snapshot in NetworkState per i servizi LLM
+                    network_state = snapshot_to_network_state(snapshot)
+                    
                     # Step 2: Parsa l'intento
                     logger.info("\nStep 2: Parsing intento...")
                     intent_obj = intent_parser.parse_intent(intent_text, user_id="cli_user")
@@ -171,14 +220,11 @@ def main():
                     # Verifica se serve chiarimento
                     if intent_obj.confidence < 0.7:
                         logger.warning("⚠ Confidence bassa, potrebbe servire chiarimento")
-                        ambiguity_analysis = intent_parser.detect_ambiguity(intent_obj, snapshot)
-                        if ambiguity_analysis['clarification_needed']:
-                            clarifications = intent_parser.generate_clarification_requests(
-                                intent_obj, ambiguity_analysis, snapshot
-                            )
+                        ambiguity_analysis = intent_parser.detect_ambiguity(intent_obj, network_state)
+                        if ambiguity_analysis.get('clarification_needed'):
                             logger.warning("Chiarimenti necessari:")
-                            for clarification in clarifications:
-                                logger.warning(f"  - {clarification}")
+                            for question in ambiguity_analysis.get('questions', []):
+                                logger.warning(f"  - {question}")
                             
                             # Chiedi all'utente se vuole continuare
                             response = input("\nVuoi continuare comunque? (s/n): ").strip().lower()
