@@ -18,7 +18,7 @@ python-dateutil>=2.8.0
 openai>=1.54.0
 
 # Property-based testing
-hypothesis>=6.119.4
+hypothesis>=6.82.0,<=6.113.0
 
 # Standard testing
 pytest>=8.3.4
