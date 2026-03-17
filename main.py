@@ -10,6 +10,7 @@ Integra i tre moduli per monitorare e gestire la rete ComnetsEmu:
 import asyncio
 import json
 import logging
+import os
 import sys
 import time
 from pathlib import Path
@@ -75,6 +76,24 @@ def snapshot_to_network_state(snapshot: NetworkSnapshot) -> NetworkState:
             )
         )
     )
+
+
+HISTORY_DIR = "data/history"
+
+
+def save_state_to_history(network_state: NetworkState) -> str:
+    """Salva il NetworkState in data/history e ritorna il path del file."""
+    os.makedirs(HISTORY_DIR, exist_ok=True)
+    ts = network_state.timestamp.strftime("%Y%m%d_%H%M%S")
+    filepath = os.path.join(HISTORY_DIR, f"state_{ts}.json")
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(network_state.dict(), f, indent=2, default=str)
+    return filepath
+
+
+def update_context_cache(context_analyzer: 'ContextAnalyzer', network_state: NetworkState):
+    """Aggiorna la cache del context_analyzer con lo stato corrente."""
+    context_analyzer.state_cache.update_state(network_state)
 
 
 def setup_logging():
@@ -163,6 +182,12 @@ def main():
                         logger.info(f"  Switch: {len(snapshot.topology.switches)}")
                         logger.info(f"  Link: {len(snapshot.topology.links)}")
                         
+                        # Converti e salva nella cache + history
+                        network_state = snapshot_to_network_state(snapshot)
+                        update_context_cache(context_analyzer, network_state)
+                        history_file = save_state_to_history(network_state)
+                        logger.info(f"  ✓ Stato salvato in cache e in {history_file}")
+                        
                     else:
                         logger.error("✗ Errore nella raccolta dello snapshot")
                     
@@ -208,6 +233,10 @@ def main():
                     
                     # Converti snapshot in NetworkState per i servizi LLM
                     network_state = snapshot_to_network_state(snapshot)
+                    
+                    # Aggiorna cache e salva in history
+                    update_context_cache(context_analyzer, network_state)
+                    save_state_to_history(network_state)
                     
                     # Step 2: Parsa l'intento
                     logger.info("\nStep 2: Parsing intento...")
