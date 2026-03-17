@@ -161,11 +161,11 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
         is_block = verb in ('block', 'drop', 'deny')
         switch_target = _find_switch_target(resources, network_state)
 
-        match_fields = {"eth_type": 2048}  # 0x0800 = IPv4
+        match_fields = {"dl_type": 2048}  # 0x0800 = IPv4
         if src_ip:
-            match_fields["ipv4_src"] = src_ip
+            match_fields["nw_src"] = src_ip
         if dst_ip:
-            match_fields["ipv4_dst"] = dst_ip
+            match_fields["nw_dst"] = dst_ip
 
         # Block → nessuna action (DROP implicito in OpenFlow)
         # Allow → OUTPUT NORMAL
@@ -181,7 +181,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                 "match": match_fields,
                 "actions": flow_actions,
             },
-            priority=params.get('priority', 32768),
+            priority=params.get('priority', 50000),
             timeout=params.get('timeout', 3600) or 3600,
             description=desc,
         ))
@@ -204,7 +204,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                 "match": {},
                 "actions": flow_actions,
             },
-            priority=params.get('priority', 32768),
+            priority=params.get('priority', 50000),
             timeout=params.get('timeout', 3600) or 3600,
             description=f"{'Block' if is_block else 'Allow'} all traffic on {switch_target}",
         ))
