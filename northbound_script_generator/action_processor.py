@@ -72,6 +72,8 @@ class ActionProcessor:
         comnetsemu_config = ComnetsEMUConfig(
             host=config.get("comnetsemu_host", "localhost"),
             port=config.get("comnetsemu_port", 6653),
+            ryu_host=config.get("ryu_host", config.get("comnetsemu_host", "localhost")),
+            ryu_port=config.get("ryu_port", 8080),
             timeout_seconds=config.get("timeout_seconds", 30),
             max_retries=config.get("max_retries", 3),
             retry_delay=config.get("retry_delay", 2.0)
@@ -233,89 +235,19 @@ class ActionProcessor:
             )
     
     def _execute_flow_mod(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute flow modification action."""
+        """Execute flow modification action via Ryu REST API."""
         self.logger.debug(f"Executing flow_mod for action {action.id}")
-        
-        operation = action.parameters.get("operation", "add")
-        match_fields = action.parameters.get("match", {})
-        actions = action.parameters.get("actions", [])
-        
-        result = self.comnetsemu_connector.execute_topology_change(action)
-        
-        if result.get("success"):
-            return {
-                "success": True,
-                "message": f"Flow modification {operation} completed",
-                "operation": operation,
-                "match": match_fields,
-                "actions": actions
-            }
-        else:
-            return {
-                "success": False,
-                "error": result.get("error", "Unknown error")
-            }
+        return self.comnetsemu_connector.execute_flow_mod(action)
     
     def _execute_slice_create(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute slice creation action."""
+        """Execute slice creation action via Ryu REST API."""
         self.logger.debug(f"Executing slice_create for action {action.id}")
-        
-        slice_name = action.parameters.get("slice_name", f"slice_{action.id}")
-        resources = action.parameters.get("resources", {})
-        
-        # Convert to topology change format
-        topology_action = NetworkAction(
-            id=action.id,
-            type=ActionType.CONFIG_CHANGE,
-            target=action.target,
-            parameters={
-                "operation": "add",
-                "element_type": "slice",
-                "element_id": slice_name,
-                "properties": resources
-            },
-            priority=action.priority,
-            timeout=action.timeout,
-            description=action.description
-        )
-        
-        result = self.comnetsemu_connector.execute_topology_change(topology_action)
-        
-        if result.get("success"):
-            return {
-                "success": True,
-                "message": "Slice creation completed",
-                "slice_name": slice_name,
-                "resources": resources
-            }
-        else:
-            return {
-                "success": False,
-                "error": result.get("error", "Unknown error")
-            }
+        return self.comnetsemu_connector.execute_slice_create(action)
     
     def _execute_config_change(self, action: NetworkAction) -> Dict[str, Any]:
-        """Execute configuration change action."""
+        """Execute configuration change action via Ryu REST API."""
         self.logger.debug(f"Executing config_change for action {action.id}")
-        
-        config_type = action.parameters.get("config_type", "unknown")
-        
-        if config_type == "qos":
-            result = self.comnetsemu_connector.execute_qos_policy(action)
-        else:
-            result = self.comnetsemu_connector.execute_topology_change(action)
-        
-        if result.get("success"):
-            return {
-                "success": True,
-                "message": f"Configuration change ({config_type}) completed",
-                "config_type": config_type
-            }
-        else:
-            return {
-                "success": False,
-                "error": result.get("error", "Unknown error")
-            }
+        return self.comnetsemu_connector.execute_config_change(action)
     
     def execute_actions_sequence(self, actions: List[NetworkAction]) -> List[ExecutionResult]:
         """

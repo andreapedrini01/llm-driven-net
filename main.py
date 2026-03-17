@@ -281,7 +281,9 @@ def main():
         logger.info("Inizializzazione Northbound Script Generator...")
         action_processor_config = {
             "comnetsemu_host": "localhost",
-            "comnetsemu_port": 5000,
+            "comnetsemu_port": 6653,
+            "ryu_host": "localhost",
+            "ryu_port": 8080,
             "max_retries": 3,
             "retry_delay": 2.0,
             "timeout_seconds": 30
