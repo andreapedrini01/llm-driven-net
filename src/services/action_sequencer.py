@@ -659,7 +659,7 @@ class ActionSequencer:
                 
                 # Convert to NetworkAction objects
                 for action_data in actions_data:
-                    action = NetworkAction.from_dict(action_data)
+                    action = NetworkAction.model_validate(action_data)
                     actions.append(action)
             
             else:
@@ -677,7 +677,7 @@ class ActionSequencer:
                         actions_data = []
                     
                     for action_data in actions_data:
-                        action = NetworkAction.from_dict(action_data)
+                        action = NetworkAction.model_validate(action_data)
                         actions.append(action)
         
         except Exception as e:
