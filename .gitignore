@@ -320,3 +320,8 @@ RESTRUCTURE_FINAL.md
 
 # Documentation validation scripts
 validate_*.py
+
+# Requirements variants (not tracked)
+requirements-dev.txt
+requirements-minimal.txt
+requirements-lock.txt
