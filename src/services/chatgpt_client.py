@@ -344,7 +344,7 @@ class ChatGPTClient:
         response = await self.client.chat.completions.create(
             model=self.config.model,
             messages=messages,
-            max_tokens=self.config.max_tokens,
+            max_completion_tokens=self.config.max_tokens,
             temperature=self.config.temperature
         )
         return response
