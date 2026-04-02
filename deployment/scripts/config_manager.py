@@ -39,7 +39,7 @@ class ConfigManager:
         # ChatGPT API
         ConfigValidationRule("OPENAI_API_KEY", required=True, type=str),
         ConfigValidationRule("OPENAI_MODEL", required=True, type=str, 
-                           allowed_values=["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"]),
+                           allowed_values=["gpt-5.4-nano", "gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"]),
         ConfigValidationRule("OPENAI_MAX_TOKENS", required=True, type=int, min_value=1, max_value=128000),
         ConfigValidationRule("OPENAI_TEMPERATURE", required=True, type=float, min_value=0.0, max_value=2.0),
         ConfigValidationRule("OPENAI_RATE_LIMIT_RPM", required=True, type=int, min_value=1),

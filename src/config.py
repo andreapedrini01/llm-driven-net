@@ -47,7 +47,7 @@ class Settings(BaseModel):
     # LLM settings
     llm_provider: str = os.getenv("LLM_PROVIDER", "openai")
     openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
-    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-5.4-nano")
     openai_max_tokens: int = int(os.getenv("OPENAI_MAX_TOKENS", "2000"))
     openai_temperature: float = float(os.getenv("OPENAI_TEMPERATURE", "0.1"))
     

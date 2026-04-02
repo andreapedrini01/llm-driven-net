@@ -50,7 +50,7 @@ class BudgetAlert:
 class ChatGPTConfig(BaseModel):
     """Configuration for ChatGPT API client."""
     api_key: str
-    model: str = "gpt-4-turbo"
+    model: str = "gpt-5.4-nano"
     max_tokens: int = 2000
     temperature: float = 0.1
     rate_limit_rpm: int = 60
@@ -436,8 +436,9 @@ class ChatGPTClient:
         Returns:
             Estimated cost in USD
         """
-        # Approximate rates (as of 2024)
+        # Approximate rates (as of 2026)
         rates = {
+            "gpt-5.4-nano": {"input": 0.0001, "output": 0.0004},
             "gpt-4": {"input": 0.03, "output": 0.06},
             "gpt-4-turbo": {"input": 0.01, "output": 0.03},
             "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015}
@@ -445,14 +446,16 @@ class ChatGPTClient:
         
         # Get rates for current model
         model_key = self.config.model
-        if "gpt-4-turbo" in model_key:
+        if "gpt-5.4-nano" in model_key:
+            model_key = "gpt-5.4-nano"
+        elif "gpt-4-turbo" in model_key:
             model_key = "gpt-4-turbo"
         elif "gpt-4" in model_key:
             model_key = "gpt-4"
         elif "gpt-3.5" in model_key:
             model_key = "gpt-3.5-turbo"
         else:
-            model_key = "gpt-4-turbo"  # Default
+            model_key = "gpt-5.4-nano"  # Default
         
         rate = rates.get(model_key, rates["gpt-4-turbo"])
         
