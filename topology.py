@@ -13,7 +13,6 @@ Uso:
   sudo python3 topology.py
 """
 
-from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.node import RemoteController, OVSKernelSwitch
 from mininet.link import TCLink
@@ -24,49 +23,30 @@ try:
     from comnetsemu.net import Containernet
     HAS_CONTAINERNET = True
 except ImportError:
-    try:
-        from mininet.net import Containernet
-        HAS_CONTAINERNET = True
-    except ImportError:
-        HAS_CONTAINERNET = False
+    HAS_CONTAINERNET = False
+
+if not HAS_CONTAINERNET:
+    from mininet.net import Mininet
 
 
-class TreeTopo(Topo):
-    """Topologia ad albero depth=3, fanout=3."""
+def build_tree(net, depth, fanout, switch_counter, host_counter):
+    """Costruisce ricorsivamente l'albero e restituisce (switch, switch_counter, host_counter)."""
+    switch_counter += 1
+    sw = net.addSwitch(f's{switch_counter}', protocols='OpenFlow13')
 
-    def build(self, depth=3, fanout=3):
-        self._build_tree(depth, fanout, 1)
+    if depth == 1:
+        for _ in range(fanout):
+            host_counter += 1
+            h = net.addHost(f'h{host_counter}', ip=f'10.0.0.{host_counter}/24')
+            net.addLink(h, sw, bw=100, delay='2ms', cls=TCLink)
+    else:
+        for _ in range(fanout):
+            child_sw, switch_counter, host_counter = build_tree(
+                net, depth - 1, fanout, switch_counter, host_counter
+            )
+            net.addLink(sw, child_sw, bw=100, delay='2ms', cls=TCLink)
 
-    def _build_tree(self, depth, fanout, switch_num):
-        """Costruisce ricorsivamente l'albero di switch e host."""
-        switch = self.addSwitch(f's{switch_num}', protocols='OpenFlow13')
-
-        if depth == 1:
-            # Foglia: aggiungi host
-            for i in range(fanout):
-                host_num = self._next_host_num()
-                host = self.addHost(f'h{host_num}', ip=f'10.0.0.{host_num}/24')
-                self.addLink(host, switch, bw=100, delay='2ms')
-        else:
-            # Nodo interno: aggiungi sotto-alberi
-            for i in range(fanout):
-                child_num = self._get_next_switch_num()
-                child_switch = self._build_tree(depth - 1, fanout, child_num)
-                self.addLink(switch, child_switch, bw=100, delay='2ms')
-
-        return switch
-
-    def _next_host_num(self):
-        if not hasattr(self, '_host_counter'):
-            self._host_counter = 0
-        self._host_counter += 1
-        return self._host_counter
-
-    def _get_next_switch_num(self):
-        if not hasattr(self, '_switch_counter'):
-            self._switch_counter = 1  # s1 è già usato
-        self._switch_counter += 1
-        return self._switch_counter
+    return sw, switch_counter, host_counter
 
 
 def run():
@@ -75,25 +55,26 @@ def run():
     if HAS_CONTAINERNET:
         info('*** Usando Containernet (con supporto Docker)\n')
         net = Containernet(
-            topo=TreeTopo(depth=3, fanout=3),
             controller=lambda name: RemoteController(name, ip='127.0.0.1', port=6653),
             switch=OVSKernelSwitch,
-            link=TCLink,
             autoSetMacs=True,
         )
     else:
         info('*** Usando Mininet standard (senza Docker)\n')
         net = Mininet(
-            topo=TreeTopo(depth=3, fanout=3),
             controller=lambda name: RemoteController(name, ip='127.0.0.1', port=6653),
             switch=OVSKernelSwitch,
-            link=TCLink,
             autoSetMacs=True,
         )
 
-    net.start()
+    info('*** Aggiunta controller\n')
+    net.addController('c0')
 
-    # Aggiungi host Docker per nmap scanner (solo con Containernet)
+    info('*** Costruzione topologia tree depth=3 fanout=3\n')
+    root_sw, _, _ = build_tree(net, depth=3, fanout=3, switch_counter=0, host_counter=0)
+
+    # Aggiungi host Docker per nmap scanner PRIMA di net.start()
+    scanner_added = False
     if HAS_CONTAINERNET:
         info('*** Aggiunta host Docker scanner (10.0.0.100)\n')
         try:
@@ -102,23 +83,26 @@ def run():
                 dimage='progetto-nmap-manet',
                 ip='10.0.0.100/24',
             )
-            # Collega allo switch root (s1)
-            net.addLink(scanner, net.get('s1'), bw=100, delay='2ms')
-            info('*** Scanner Docker avviato su 10.0.0.100:5000\n')
-            info('*** Testa con: scanner curl http://10.0.0.100:5000/scan?target=10.0.0.1\n')
+            net.addLink(scanner, root_sw, bw=100, delay='2ms', cls=TCLink)
+            scanner_added = True
         except Exception as e:
             info(f'*** ATTENZIONE: impossibile aggiungere host Docker: {e}\n')
             info('*** Assicurati di aver buildato: docker build -t progetto-nmap-manet deployment/progetto-nmap-manet/\n')
-    else:
+
+    info('*** Avvio rete\n')
+    net.start()
+
+    if scanner_added:
+        info('*** Scanner Docker avviato su 10.0.0.100:5000\n')
+        info('*** Testa con: scanner curl http://10.0.0.100:5000/scan?target=10.0.0.1\n')
+    elif not HAS_CONTAINERNET:
         info('*** Containernet non disponibile, scanner Docker non aggiunto\n')
         info('*** Per usare nmap, avvia Flask manualmente su un host:\n')
         info('***   h27 python3 deployment/progetto-nmap-manet/app.py &\n')
 
-    info('\n*** Topologia: tree,depth=3,fanout=3\n')
-    info(f'*** Switch: {len(net.switches)}\n')
+    info(f'\n*** Switch: {len(net.switches)}\n')
     info(f'*** Host: {len(net.hosts)}\n')
-    info('*** Controller: remote 127.0.0.1:6653\n')
-    info('*** Link: bw=100Mbps, delay=2ms\n\n')
+    info('*** Controller: remote 127.0.0.1:6653\n\n')
 
     CLI(net)
     net.stop()
