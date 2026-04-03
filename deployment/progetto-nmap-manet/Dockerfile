@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Installiamo nmap direttamente nel sistema operativo del container
-RUN apt-get update && apt-get install -y nmap && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y nmap iproute2 net-tools iputils-ping curl && rm -rf /var/lib/apt/lists/*
 
 # Cartella di lavoro interna
 WORKDIR /app
