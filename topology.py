@@ -24,7 +24,11 @@ try:
     from comnetsemu.net import Containernet
     HAS_CONTAINERNET = True
 except ImportError:
-    HAS_CONTAINERNET = False
+    try:
+        from mininet.net import Containernet
+        HAS_CONTAINERNET = True
+    except ImportError:
+        HAS_CONTAINERNET = False
 
 
 class TreeTopo(Topo):
@@ -93,14 +97,14 @@ def run():
     if HAS_CONTAINERNET:
         info('*** Aggiunta host Docker scanner (10.0.0.100)\n')
         try:
-            scanner = net.addDockerHost(
+            from mininet.node import Docker
+            scanner = net.addDocker(
                 'scanner',
-                dimage='progetto-nmap-manet',
                 ip='10.0.0.100/24',
+                dimage='progetto-nmap-manet',
             )
             # Collega allo switch root (s1)
             net.addLink(scanner, net.get('s1'), bw=100, delay='2ms')
-            scanner.configDefault()
             info('*** Scanner Docker avviato su 10.0.0.100:5000\n')
             info('*** Testa con: scanner curl http://10.0.0.100:5000/scan?target=10.0.0.1\n')
         except Exception as e:
