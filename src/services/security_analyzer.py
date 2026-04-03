@@ -29,18 +29,36 @@ class SecurityAnalyzer:
 
     def analyze(self, security_snapshot: SecuritySnapshot) -> SecurityReport:
         """
-        Costruisce il prompt, chiama ChatGPTClient (via asyncio.run),
+        Costruisce il prompt, chiama ChatGPTClient,
         parsa la risposta JSON e restituisce un SecurityReport.
         Propaga le eccezioni di ChatGPTClient dopo averle loggato.
         """
         prompt = self._build_prompt(security_snapshot)
         try:
-            response = asyncio.run(
-                self.chatgpt_client.generate_response(
-                    prompt=prompt,
-                    system_message=SYSTEM_MESSAGE
+            # Gestisce sia il caso con event loop già attivo che senza
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop and loop.is_running():
+                # Event loop già attivo: crea un nuovo loop in un thread separato
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    response = pool.submit(
+                        asyncio.run,
+                        self.chatgpt_client.generate_response(
+                            prompt=prompt,
+                            system_message=SYSTEM_MESSAGE
+                        )
+                    ).result()
+            else:
+                response = asyncio.run(
+                    self.chatgpt_client.generate_response(
+                        prompt=prompt,
+                        system_message=SYSTEM_MESSAGE
+                    )
                 )
-            )
         except Exception as e:
             logger.error("Errore chiamata ChatGPTClient: %s", e)
             raise
