@@ -97,11 +97,10 @@ def run():
     if HAS_CONTAINERNET:
         info('*** Aggiunta host Docker scanner (10.0.0.100)\n')
         try:
-            from mininet.node import Docker
-            scanner = net.addDocker(
+            scanner = net.addDockerHost(
                 'scanner',
-                ip='10.0.0.100/24',
                 dimage='progetto-nmap-manet',
+                ip='10.0.0.100/24',
             )
             # Collega allo switch root (s1)
             net.addLink(scanner, net.get('s1'), bw=100, delay='2ms')
