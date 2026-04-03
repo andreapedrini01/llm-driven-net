@@ -30,6 +30,7 @@ MODULE_DEPENDENCIES = [
     ("src.services.validator", "Validator"),
     ("src.services.action_output", "ActionOutputService"),
     ("src.services.prompt_engineering", "PromptEngineeringSystem"),
+    ("src.services.security_analyzer", "SecurityAnalyzer"),
     
     # northbound_script_generator
     ("northbound_script_generator.action_processor", "ActionProcessor"),
@@ -46,6 +47,7 @@ EXTERNAL_DEPENDENCIES = [
     ("openai", "openai"),
     ("aiohttp", "aiohttp"),
     ("structlog", "structlog"),
+    ("nmap", "python-nmap"),
 ]
 
 
