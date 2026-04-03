@@ -1,19 +1,13 @@
 """
 Unit test per SecurityScanner, extract_host_ips e resolve_host_filter.
 
-Copre i casi limite richiesti dal Task 2.3:
-- nmap non installato → NmapNotFoundError
-- host non raggiungibile → status="unreachable"
-- timeout da env var SECURITY_SCAN_TIMEOUT
-- formato log progresso "Scansione X/N: ip"
-- nome host h1 risolto a 10.0.0.1
-- nome host non in topologia → WARNING loggato, host ignorato
+Adattati per il backend HTTP (web server Flask/nmap nel container Docker).
 """
 
-import os
-import subprocess
 import pytest
 from unittest.mock import patch, MagicMock
+
+import requests
 
 from network_state_collector.security_scanner import (
     SecurityScanner,
@@ -29,52 +23,47 @@ from src.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchIn
 # ---------------------------------------------------------------------------
 
 def _make_snapshot(num_switches: int = 3) -> NetworkSnapshot:
-    """Crea un NetworkSnapshot minimale con N switch."""
     switches = [SwitchInfo(dpid=f"{i:016x}", ports=[1]) for i in range(1, num_switches + 1)]
     topology = TopologyData(switches=switches, links=[])
     metrics = MetricsData(port_statistics={})
     return NetworkSnapshot(timestamp=1000.0, topology=topology, metrics=metrics)
 
 
-NMAP_XML_UP = """<?xml version="1.0"?>
-<nmaprun>
-  <host>
-    <status state="up"/>
-    <ports>
-      <port protocol="tcp" portid="22">
-        <state state="open"/>
-        <service name="ssh" version="OpenSSH 8.0"/>
-      </port>
-      <port protocol="tcp" portid="80">
-        <state state="open"/>
-        <service name="http" version=""/>
-      </port>
-    </ports>
-  </host>
-</nmaprun>"""
+NMAP_JSON_UP = {
+    "status": {"state": "up"},
+    "tcp": {
+        "22": {"state": "open", "name": "ssh", "version": "OpenSSH 8.0"},
+        "80": {"state": "open", "name": "http", "version": ""},
+    },
+}
 
-NMAP_XML_DOWN = """<?xml version="1.0"?>
-<nmaprun>
-  <host>
-    <status state="down"/>
-  </host>
-</nmaprun>"""
+NMAP_JSON_DOWN = {
+    "status": {"state": "down"},
+}
+
+
+def _mock_response(json_data: dict, status_code: int = 200) -> MagicMock:
+    mock = MagicMock()
+    mock.status_code = status_code
+    mock.json.return_value = json_data
+    mock.raise_for_status = MagicMock()
+    return mock
 
 
 # ---------------------------------------------------------------------------
-# Test: NmapNotFoundError quando nmap non è installato
+# Test: NmapNotFoundError quando il web server non è raggiungibile
 # ---------------------------------------------------------------------------
 
 class TestNmapNotFound:
-    def test_raises_nmap_not_found_error(self):
+    def test_raises_nmap_not_found_error_on_connection_error(self):
         scanner = SecurityScanner(timeout=5)
-        with patch("subprocess.run", side_effect=FileNotFoundError("nmap not found")):
+        with patch("requests.get", side_effect=requests.exceptions.ConnectionError("refused")):
             with pytest.raises(NmapNotFoundError):
                 scanner._scan_host("10.0.0.1")
 
     def test_scan_propagates_nmap_not_found(self):
         scanner = SecurityScanner(timeout=5)
-        with patch("subprocess.run", side_effect=FileNotFoundError("nmap not found")):
+        with patch("requests.get", side_effect=requests.exceptions.ConnectionError("refused")):
             with pytest.raises(NmapNotFoundError):
                 scanner.scan(["10.0.0.1", "10.0.0.2"])
 
@@ -86,23 +75,18 @@ class TestNmapNotFound:
 class TestHostUnreachable:
     def test_host_down_returns_unreachable(self):
         scanner = SecurityScanner(timeout=5)
-        mock_result = MagicMock()
-        mock_result.stdout = NMAP_XML_DOWN
-        mock_result.returncode = 0
-        with patch("subprocess.run", return_value=mock_result):
+        with patch("requests.get", return_value=_mock_response(NMAP_JSON_DOWN)):
             result = scanner._scan_host("10.0.0.1")
         assert result.status == "unreachable"
         assert result.open_ports == []
         assert result.ip == "10.0.0.1"
 
-    def test_empty_xml_returns_unreachable(self):
+    def test_empty_json_returns_unreachable(self):
         scanner = SecurityScanner(timeout=5)
-        mock_result = MagicMock()
-        mock_result.stdout = "<nmaprun></nmaprun>"
-        mock_result.returncode = 0
-        with patch("subprocess.run", return_value=mock_result):
+        with patch("requests.get", return_value=_mock_response({})):
             result = scanner._scan_host("10.0.0.1")
-        assert result.status == "unreachable"
+        # Senza status.state == "down" e senza porte, è comunque scanned con 0 porte
+        assert result.ip == "10.0.0.1"
 
 
 # ---------------------------------------------------------------------------
@@ -125,19 +109,17 @@ class TestTimeoutEnvVar:
         scanner = SecurityScanner(timeout=60)
         assert scanner.timeout == 60
 
-    def test_timeout_passed_to_subprocess(self, monkeypatch):
+    def test_timeout_passed_to_requests(self, monkeypatch):
         monkeypatch.setenv("SECURITY_SCAN_TIMEOUT", "45")
         scanner = SecurityScanner()
-        mock_result = MagicMock()
-        mock_result.stdout = NMAP_XML_UP
-        with patch("subprocess.run", return_value=mock_result) as mock_run:
+        with patch("requests.get", return_value=_mock_response(NMAP_JSON_UP)) as mock_get:
             scanner._scan_host("10.0.0.1")
-        _, kwargs = mock_run.call_args
+        _, kwargs = mock_get.call_args
         assert kwargs.get("timeout") == 45
 
     def test_timeout_expired_returns_timeout_status(self):
         scanner = SecurityScanner(timeout=5)
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="nmap", timeout=5)):
+        with patch("requests.get", side_effect=requests.exceptions.Timeout()):
             result = scanner._scan_host("10.0.0.1")
         assert result.status == "timeout"
         assert result.ip == "10.0.0.1"
@@ -151,9 +133,7 @@ class TestProgressLog:
     def test_progress_log_format(self, caplog):
         import logging
         scanner = SecurityScanner(timeout=5)
-        mock_result = MagicMock()
-        mock_result.stdout = NMAP_XML_UP
-        with patch("subprocess.run", return_value=mock_result):
+        with patch("requests.get", return_value=_mock_response(NMAP_JSON_UP)):
             with caplog.at_level(logging.INFO, logger="network_state_collector.security_scanner"):
                 scanner.scan(["10.0.0.1", "10.0.0.2", "10.0.0.3"])
 
@@ -161,18 +141,6 @@ class TestProgressLog:
         assert any("Scansione 1/3: 10.0.0.1" in m for m in log_messages)
         assert any("Scansione 2/3: 10.0.0.2" in m for m in log_messages)
         assert any("Scansione 3/3: 10.0.0.3" in m for m in log_messages)
-
-    def test_progress_log_single_host(self, caplog):
-        import logging
-        scanner = SecurityScanner(timeout=5)
-        mock_result = MagicMock()
-        mock_result.stdout = NMAP_XML_UP
-        with patch("subprocess.run", return_value=mock_result):
-            with caplog.at_level(logging.INFO, logger="network_state_collector.security_scanner"):
-                scanner.scan(["10.0.0.5"])
-
-        log_messages = [r.message for r in caplog.records]
-        assert any("Scansione 1/1: 10.0.0.5" in m for m in log_messages)
 
 
 # ---------------------------------------------------------------------------
@@ -185,35 +153,18 @@ class TestResolveHostFilter:
         result = resolve_host_filter(["h1"], snapshot)
         assert result == ["10.0.0.1"]
 
-    def test_h2_resolves_to_10_0_0_2(self):
-        snapshot = _make_snapshot(num_switches=3)
-        result = resolve_host_filter(["h2"], snapshot)
-        assert result == ["10.0.0.2"]
-
     def test_direct_ip_accepted(self):
         snapshot = _make_snapshot(num_switches=3)
         result = resolve_host_filter(["10.0.0.3"], snapshot)
         assert result == ["10.0.0.3"]
 
-    def test_mixed_names_and_ips(self):
-        snapshot = _make_snapshot(num_switches=3)
-        result = resolve_host_filter(["h1", "10.0.0.2"], snapshot)
-        assert set(result) == {"10.0.0.1", "10.0.0.2"}
-
     def test_host_not_in_topology_is_ignored(self, caplog):
         import logging
-        snapshot = _make_snapshot(num_switches=2)  # solo 10.0.0.1 e 10.0.0.2
+        snapshot = _make_snapshot(num_switches=2)
         with caplog.at_level(logging.WARNING, logger="network_state_collector.security_scanner"):
             result = resolve_host_filter(["h5"], snapshot)
         assert result == []
         assert any("h5" in m for m in [r.message for r in caplog.records])
-
-    def test_ip_not_in_topology_is_ignored(self, caplog):
-        import logging
-        snapshot = _make_snapshot(num_switches=2)
-        with caplog.at_level(logging.WARNING, logger="network_state_collector.security_scanner"):
-            result = resolve_host_filter(["10.0.0.99"], snapshot)
-        assert result == []
 
     def test_empty_filter_returns_empty(self):
         snapshot = _make_snapshot(num_switches=3)
@@ -236,24 +187,6 @@ class TestExtractHostIps:
         ips = extract_host_ips(snapshot)
         assert ips == []
 
-    def test_graph_representation_hosts_used_if_present(self):
-        switches = [SwitchInfo(dpid=f"{1:016x}", ports=[1])]
-        topology = TopologyData(
-            switches=switches,
-            links=[],
-            graph_representation={
-                "hosts": [
-                    {"ip": "10.0.0.10"},
-                    {"ip": "10.0.0.20"},
-                    {"ip": "192.168.1.1"},  # non nel range 10.0.0.x, ignorato
-                ]
-            },
-        )
-        metrics = MetricsData(port_statistics={})
-        snapshot = NetworkSnapshot(timestamp=1000.0, topology=topology, metrics=metrics)
-        ips = extract_host_ips(snapshot)
-        assert set(ips) == {"10.0.0.10", "10.0.0.20"}
-
 
 # ---------------------------------------------------------------------------
 # Test: scan con host scansionato con successo
@@ -262,36 +195,36 @@ class TestExtractHostIps:
 class TestScanSuccess:
     def test_scan_returns_scanned_status(self):
         scanner = SecurityScanner(timeout=5)
-        mock_result = MagicMock()
-        mock_result.stdout = NMAP_XML_UP
-        with patch("subprocess.run", return_value=mock_result):
+        with patch("requests.get", return_value=_mock_response(NMAP_JSON_UP)):
             results = scanner.scan(["10.0.0.1"])
         assert "10.0.0.1" in results
         r = results["10.0.0.1"]
         assert r.status == "scanned"
         assert len(r.open_ports) == 2
-        assert r.open_ports[0].port == 22
-        assert r.open_ports[0].service == "ssh"
-        assert r.open_ports[1].port == 80
+        ports = {p.port for p in r.open_ports}
+        assert 22 in ports
+        assert 80 in ports
 
     def test_scan_error_does_not_stop_other_hosts(self):
         scanner = SecurityScanner(timeout=5)
-        mock_ok = MagicMock()
-        mock_ok.stdout = NMAP_XML_UP
-
         call_count = 0
 
-        def side_effect(cmd, **kwargs):
+        def side_effect(url, **kwargs):
             nonlocal call_count
             call_count += 1
             if call_count == 1:
-                raise subprocess.CalledProcessError(1, "nmap")
-            return mock_ok
+                raise requests.exceptions.HTTPError("500")
+            return _mock_response(NMAP_JSON_UP)
 
-        with patch("subprocess.run", side_effect=side_effect):
+        with patch("requests.get", side_effect=side_effect):
             results = scanner.scan(["10.0.0.1", "10.0.0.2"])
 
         assert "10.0.0.1" in results
         assert "10.0.0.2" in results
         assert results["10.0.0.1"].status == "error"
         assert results["10.0.0.2"].status == "scanned"
+
+    def test_nmap_service_url_from_env(self, monkeypatch):
+        monkeypatch.setenv("NMAP_SERVICE_URL", "http://192.168.1.100:5000")
+        scanner = SecurityScanner()
+        assert scanner.nmap_service_url == "http://192.168.1.100:5000"

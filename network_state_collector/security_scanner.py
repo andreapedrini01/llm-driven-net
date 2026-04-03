@@ -1,5 +1,9 @@
 """
-SecurityScanner: esegue scansioni nmap sugli host della rete SDN.
+SecurityScanner: esegue scansioni nmap sugli host della rete SDN
+tramite il web server Flask/nmap in esecuzione nel container Docker.
+
+Il container espone GET http://<host>:<port>/scan?target=<ip>
+e restituisce il JSON con i risultati nmap (inclusi script vuln).
 
 Fornisce:
 - SecurityScanner: classe principale per la scansione
@@ -7,26 +11,30 @@ Fornisce:
 - resolve_host_filter: risolve nomi Mininet in IP verificandone la presenza
 """
 
-import subprocess
-import xml.etree.ElementTree as ET
 import logging
 import os
 import time
 from typing import List, Dict, Optional
+
+import requests
 
 from src.models.security import NmapResult, OpenPort, NmapNotFoundError
 from src.models.core import NetworkSnapshot
 
 logger = logging.getLogger(__name__)
 
+# URL base del web server nmap nel container Docker.
+# Può essere sovrascritto con la variabile d'ambiente NMAP_SERVICE_URL.
+DEFAULT_NMAP_SERVICE_URL = "http://localhost:5000"
+
 
 class SecurityScanner:
-    """Esegue scansioni nmap sugli host della rete SDN."""
+    """Esegue scansioni nmap sugli host della rete SDN via web server Docker."""
 
     def __init__(self, timeout: int = 120):
         """
         Args:
-            timeout: Timeout in secondi per ciascun host (default 120).
+            timeout: Timeout HTTP in secondi per ciascun host (default 120).
                      Può essere sovrascritto dalla variabile d'ambiente SECURITY_SCAN_TIMEOUT.
         """
         env_timeout = os.environ.get("SECURITY_SCAN_TIMEOUT")
@@ -43,9 +51,13 @@ class SecurityScanner:
         else:
             self.timeout = timeout
 
+        self.nmap_service_url = os.environ.get(
+            "NMAP_SERVICE_URL", DEFAULT_NMAP_SERVICE_URL
+        ).rstrip("/")
+
     def scan(self, ip_addresses: List[str]) -> Dict[str, NmapResult]:
         """
-        Esegue nmap su ciascun IP e restituisce i risultati indicizzati per IP.
+        Esegue nmap su ciascun IP tramite il web server e restituisce i risultati.
 
         Logga il progresso nel formato "Scansione X/N: <ip>".
         Non solleva eccezioni per singoli host falliti: li marca come error/timeout/unreachable.
@@ -57,7 +69,7 @@ class SecurityScanner:
             Dizionario {ip: NmapResult} per tutti gli IP forniti.
 
         Raises:
-            NmapNotFoundError: se nmap non è installato sul sistema.
+            NmapNotFoundError: se il web server nmap non è raggiungibile.
         """
         results: Dict[str, NmapResult] = {}
         total = len(ip_addresses)
@@ -86,7 +98,7 @@ class SecurityScanner:
 
     def _scan_host(self, ip: str) -> NmapResult:
         """
-        Scansiona un singolo host con subprocess e timeout.
+        Scansiona un singolo host chiamando il web server Flask/nmap.
 
         Args:
             ip: Indirizzo IP da scansionare.
@@ -95,17 +107,20 @@ class SecurityScanner:
             NmapResult con i dati della scansione.
 
         Raises:
-            NmapNotFoundError: se nmap non è installato.
+            NmapNotFoundError: se il web server non è raggiungibile.
         """
         start = time.time()
+        url = f"{self.nmap_service_url}/scan"
+
         try:
-            proc = subprocess.run(
-                ["nmap", "-sV", "-oX", "-", ip],
-                capture_output=True,
-                text=True,
-                timeout=self.timeout,
-            )
-        except subprocess.TimeoutExpired:
+            response = requests.get(url, params={"target": ip}, timeout=self.timeout)
+            response.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            raise NmapNotFoundError(
+                f"Web server nmap non raggiungibile a {self.nmap_service_url}. "
+                "Assicurarsi che il container Docker sia in esecuzione."
+            ) from e
+        except requests.exceptions.Timeout:
             duration = time.time() - start
             logger.warning("Timeout durante la scansione di %s (>%ds)", ip, self.timeout)
             return NmapResult(
@@ -116,24 +131,9 @@ class SecurityScanner:
                 scan_duration_s=duration,
                 error_message=f"Timeout dopo {self.timeout}s",
             )
-        except FileNotFoundError:
-            raise NmapNotFoundError(
-                "nmap non trovato. Assicurarsi che nmap sia installato e nel PATH."
-            )
-        except subprocess.CalledProcessError as e:
+        except requests.exceptions.HTTPError as e:
             duration = time.time() - start
-            logger.warning("CalledProcessError durante la scansione di %s: %s", ip, e)
-            return NmapResult(
-                ip=ip,
-                status="error",
-                open_ports=[],
-                os_detection=None,
-                scan_duration_s=duration,
-                error_message=str(e),
-            )
-        except Exception as e:
-            duration = time.time() - start
-            logger.warning("Errore imprevisto durante la scansione di %s: %s", ip, e)
+            logger.warning("Errore HTTP durante la scansione di %s: %s", ip, e)
             return NmapResult(
                 ip=ip,
                 status="error",
@@ -144,86 +144,69 @@ class SecurityScanner:
             )
 
         duration = time.time() - start
-        return self._parse_nmap_output(ip, proc.stdout, duration)
+        return self._parse_nmap_json(ip, response.json(), duration)
 
-    def _parse_nmap_output(self, ip: str, xml_output: str, duration: float) -> NmapResult:
+    def _parse_nmap_json(self, ip: str, data: dict, duration: float) -> NmapResult:
         """
-        Parsa l'output XML di nmap e restituisce un NmapResult.
+        Parsa il JSON restituito dal web server Flask/nmap.
+
+        Il formato è quello della libreria python-nmap:
+        {
+          "tcp": {
+            "22": {"state": "open", "name": "ssh", "product": "OpenSSH", "version": "8.0", ...},
+            ...
+          },
+          "status": {"state": "up", ...},
+          ...
+        }
 
         Args:
             ip: Indirizzo IP scansionato.
-            xml_output: Output XML di nmap (stdout).
+            data: JSON restituito dal web server.
             duration: Durata della scansione in secondi.
 
         Returns:
             NmapResult con i dati parsati.
         """
-        try:
-            root = ET.fromstring(xml_output)
-        except ET.ParseError as e:
-            logger.warning("Impossibile parsare l'output XML di nmap per %s: %s", ip, e)
+        # Controlla se l'host è up
+        status_info = data.get("status", {})
+        if status_info.get("state") == "down":
             return NmapResult(
                 ip=ip,
-                status="error",
+                status="unreachable",
                 open_ports=[],
                 os_detection=None,
                 scan_duration_s=duration,
-                error_message=f"XML parse error: {e}",
             )
 
-        for host in root.findall("host"):
-            status_elem = host.find("status")
-            host_status = status_elem.get("state") if status_elem is not None else "unknown"
+        open_ports: List[OpenPort] = []
 
-            if host_status == "down":
-                return NmapResult(
-                    ip=ip,
-                    status="unreachable",
-                    open_ports=[],
-                    os_detection=None,
-                    scan_duration_s=duration,
-                )
+        # Itera sui protocolli (tcp, udp)
+        for protocol in ("tcp", "udp"):
+            proto_data = data.get(protocol, {})
+            for portid_str, port_info in proto_data.items():
+                try:
+                    open_ports.append(OpenPort(
+                        port=int(portid_str),
+                        protocol=protocol,
+                        state=port_info.get("state", ""),
+                        service=port_info.get("name", ""),
+                        version=port_info.get("version", ""),
+                    ))
+                except (ValueError, TypeError) as e:
+                    logger.debug("Impossibile parsare porta %s: %s", portid_str, e)
 
-            # Raccoglie le porte aperte
-            open_ports: List[OpenPort] = []
-            ports_elem = host.find("ports")
-            if ports_elem is not None:
-                for port in ports_elem.findall("port"):
-                    state_elem = port.find("state")
-                    state = state_elem.get("state") if state_elem is not None else ""
-                    service_elem = port.find("service")
-                    open_ports.append(
-                        OpenPort(
-                            port=int(port.get("portid", 0)),
-                            protocol=port.get("protocol", ""),
-                            state=state,
-                            service=service_elem.get("name", "") if service_elem is not None else "",
-                            version=service_elem.get("version", "") if service_elem is not None else "",
-                        )
-                    )
+        # OS detection (presente solo se nmap ha rilevato l'OS)
+        os_detection: Optional[str] = None
+        osmatch = data.get("osmatch", [])
+        if osmatch and isinstance(osmatch, list) and len(osmatch) > 0:
+            os_detection = osmatch[0].get("name")
 
-            # OS detection (richiede -O, normalmente None senza privilegi root)
-            os_detection: Optional[str] = None
-            os_elem = host.find("os")
-            if os_elem is not None:
-                osmatch = os_elem.find("osmatch")
-                if osmatch is not None:
-                    os_detection = osmatch.get("name")
-
-            return NmapResult(
-                ip=ip,
-                status="scanned",
-                open_ports=open_ports,
-                os_detection=os_detection,
-                scan_duration_s=duration,
-            )
-
-        # Nessun host trovato nell'output XML
         return NmapResult(
             ip=ip,
-            status="unreachable",
-            open_ports=[],
-            os_detection=None,
+            status="scanned",
+            open_ports=open_ports,
+            os_detection=os_detection,
             scan_duration_s=duration,
         )
 
