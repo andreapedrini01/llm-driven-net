@@ -79,7 +79,10 @@ def run():
                 'scanner',
                 dimage='progetto-nmap-manet',
                 ip='10.0.0.100/24',
-                docker_args={},
+                docker_args={
+                    'ports': {'5000/tcp': 5000},
+                    'publish_all_ports': True,
+                },
             )
             net.addLink(scanner, root_sw, bw=100, delay='2ms', cls=TCLink)
             scanner_added = True
