@@ -11,7 +11,7 @@ def scan_network():
 
     # Esegue una scansione con script di vulnerabilità per trovare le "falle"
     # chieste dal professore
-    nm.scan(target, arguments='-F --script vuln') 
+    nm.scan(target, arguments='-F -sV') 
 
     # Restituisce i dati in formato JSON, pronto per essere letto dalla LLM
     return jsonify(nm[target])
