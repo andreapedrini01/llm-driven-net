@@ -91,6 +91,13 @@ def run():
     net.start()
 
     if scanner_added:
+        # ComNetsEmu sovrascrive il CMD con una shell, quindi avviamo Flask manualmente
+        info('*** Avvio Flask nel container scanner...\n')
+        scanner_node = net.get('scanner')
+        scanner_node.cmd('cd /app && python app.py &')
+        # Aspetta che Flask sia pronto
+        import time
+        time.sleep(2)
         info('*** Scanner Docker su 10.0.0.100:5000\n')
         info('*** Testa: scanner curl http://10.0.0.100:5000/scan?target=10.0.0.1\n')
     else:
