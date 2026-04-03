@@ -99,6 +99,18 @@ Esempi di utilizzo:
         type=str,
         help="File di output per lo snapshot (opzionale)"
     )
+    collect_parser.add_argument(
+        "--security-scan",
+        dest="security_scan",
+        nargs="*",
+        metavar="HOST",
+        default=None,
+        help=(
+            "Esegui scansione di sicurezza nmap dopo la raccolta. "
+            "Senza argomenti scansiona tutti gli host. "
+            "Con argomenti scansiona solo gli host specificati (es. h1 h2 o 10.0.0.1)."
+        )
+    )
     
     # Comando continuous
     continuous_parser = subparsers.add_parser(
@@ -161,8 +173,22 @@ def cmd_collect(args, config: CollectorConfig) -> int:
     """Esegue raccolta singola"""
     collector = NetworkStateCollector(config)
     
-    print("Raccolta snapshot della rete...")
-    snapshot = collector.collect_snapshot()
+    # Determina parametri security scan
+    security_scan = args.security_scan is not None  # True se --security-scan è presente
+    host_filter = args.security_scan if args.security_scan else None  # lista host o None
+    
+    if security_scan:
+        if host_filter:
+            print(f"Raccolta snapshot con scansione di sicurezza per: {', '.join(host_filter)}")
+        else:
+            print("Raccolta snapshot con scansione di sicurezza (tutti gli host)...")
+    else:
+        print("Raccolta snapshot della rete...")
+    
+    snapshot = collector.collect_snapshot(
+        security_scan=security_scan,
+        host_filter=host_filter
+    )
     
     if snapshot is None:
         print("Errore: Impossibile raccogliere snapshot")

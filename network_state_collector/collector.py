@@ -96,9 +96,17 @@ class NetworkStateCollector:
         
         self.logger.info("NetworkStateCollector initialized successfully")
     
-    def collect_snapshot(self) -> Optional[NetworkSnapshot]:
+    def collect_snapshot(
+        self,
+        security_scan: bool = False,
+        host_filter: Optional[List[str]] = None
+    ) -> Optional[NetworkSnapshot]:
         """
         Raccoglie un singolo snapshot dello stato della rete
+        
+        Args:
+            security_scan: Se True, esegue la scansione di sicurezza dopo la raccolta standard
+            host_filter: Lista opzionale di host da scansionare (nomi Mininet o IP)
         
         Returns:
             NetworkSnapshot: Snapshot raccolto o None in caso di errore
@@ -159,7 +167,14 @@ class NetworkStateCollector:
                 with PerformanceTimer(self.performance_monitor, "save_snapshot"):
                     self._save_snapshot(snapshot, llm_data)
                 
-                # 8. Aggiornamento statistiche
+                # 8. Scansione di sicurezza opzionale
+                if security_scan:
+                    try:
+                        self._run_security_scan(snapshot, host_filter)
+                    except Exception as e:
+                        self.logger.error(f"Errore durante la scansione di sicurezza: {e}")
+
+                # 9. Aggiornamento statistiche
                 collection_time = time.time() - start_time
                 self._update_collection_stats(collection_time, success=True)
                 self._last_snapshot = snapshot
@@ -308,6 +323,79 @@ class NetworkStateCollector:
             self.logger.error(f"Failed to reload configuration: {e}")
             return False
     
+    def _run_security_scan(self, snapshot: NetworkSnapshot, host_filter: Optional[List[str]] = None) -> None:
+        from network_state_collector.security_scanner import SecurityScanner, extract_host_ips, resolve_host_filter
+        from src.services.security_analyzer import SecurityAnalyzer
+        from src.services.chatgpt_client import ChatGPTClient
+        from src.models.security import SecuritySnapshot
+        import json
+        from pathlib import Path
+
+        # 1. Determina gli IP da scansionare
+        if host_filter:
+            ip_list = resolve_host_filter(host_filter, snapshot)
+        else:
+            ip_list = extract_host_ips(snapshot)
+
+        if not ip_list:
+            self.logger.warning("Nessun host trovato per la scansione di sicurezza")
+            return
+
+        # 2. Esegui la scansione nmap
+        scanner = SecurityScanner()
+        nmap_results = scanner.scan(ip_list)
+
+        # 3. Costruisci SecuritySnapshot
+        security_snapshot = SecuritySnapshot(snapshot=snapshot, security_scan=nmap_results)
+
+        # 4. Analisi LLM
+        chatgpt_client = ChatGPTClient()
+        analyzer = SecurityAnalyzer(chatgpt_client=chatgpt_client)
+        report = analyzer.analyze(security_snapshot)
+
+        # 5. Salva il report
+        security_dir = Path("data/security_history")
+        security_dir.mkdir(parents=True, exist_ok=True)
+        report_filename = f"security_report_{report.get_timestamp_iso().replace(':', '-')}.json"
+        report_path = security_dir / report_filename
+        report_path.write_text(report.to_json(), encoding="utf-8")
+        self.logger.info(f"Security report salvato in {report_path}")
+
+        # 6. Stampa il report formattato
+        print(self._format_security_report(report))
+
+    def _format_security_report(self, report) -> str:
+        lines = [
+            "=" * 60,
+            "SECURITY REPORT",
+            f"Timestamp: {report.get_timestamp_iso()}",
+            "=" * 60,
+            "",
+            "Vulnerabilità Potenziali:",
+        ]
+        if report.vulnerabilities:
+            for v in report.vulnerabilities:
+                lines.append(f"  - {v}")
+        else:
+            lines.append("  Nessuna vulnerabilità rilevata.")
+
+        lines += ["", "Problemi di Configurazione:"]
+        if report.configuration_issues:
+            for c in report.configuration_issues:
+                lines.append(f"  - {c}")
+        else:
+            lines.append("  Nessun problema di configurazione rilevato.")
+
+        lines += ["", "Proprietà di Sicurezza da Verificare:"]
+        if report.security_properties:
+            for p in report.security_properties:
+                lines.append(f"  - {p}")
+        else:
+            lines.append("  Nessuna proprietà da verificare.")
+
+        lines.append("=" * 60)
+        return "\n".join(lines)
+
     def _load_configuration(self, config_path: Optional[str], environment: str) -> CollectorConfig:
         """Carica la configurazione"""
         try:

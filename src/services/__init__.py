@@ -1,6 +1,7 @@
 # Services package
 from .intent_parser import IntentParser
 from .chatgpt_client import ChatGPTClient, ChatGPTConfig, ChatGPTResponse, RateLimitInfo, BudgetAlert
+from .security_analyzer import SecurityAnalyzer
 from .prompt_engineering import (
     PromptEngineeringSystem,
     PromptType,
@@ -18,10 +19,12 @@ from .action_output import (
 
 __all__ = [
     'IntentParser',
+    'SecurityAnalyzer',
     'ChatGPTClient',
     'ChatGPTConfig',
     'ChatGPTResponse',
     'RateLimitInfo',
+    'BudgetAlert',
     'PromptEngineeringSystem',
     'PromptType',
     'PromptTemplate',

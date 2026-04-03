@@ -69,6 +69,14 @@ from .llm import (
     LLMNetworkData,
 )
 
+from .security import (
+    NmapNotFoundError,
+    OpenPort,
+    NmapResult,
+    SecuritySnapshot,
+    SecurityReport,
+)
+
 __all__ = [
     # Intent models
     "IntentType",
@@ -126,4 +134,11 @@ __all__ = [
     "SnapshotMetadata",
     "DerivedMetrics",
     "NetworkSnapshot",
+
+    # Security models
+    "NmapNotFoundError",
+    "OpenPort",
+    "NmapResult",
+    "SecuritySnapshot",
+    "SecurityReport",
 ]

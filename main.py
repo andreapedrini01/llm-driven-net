@@ -414,6 +414,8 @@ def main():
         logger.info("\nModalità interattiva attiva")
         logger.info("Comandi disponibili:")
         logger.info("  - 'collect': Raccoglie lo stato della rete")
+        logger.info("  - 'collect --security-scan': Raccoglie + analisi sicurezza su tutti gli host")
+        logger.info("  - 'collect --security-scan h1 h2': Raccoglie + analisi sicurezza su h1 e h2")
         logger.info("  - 'intent <testo>': Processa un intento in linguaggio naturale")
         logger.info("  - 'health': Verifica lo stato di salute del sistema")
         logger.info("  - 'quit' o 'exit': Termina il programma")
@@ -431,26 +433,46 @@ def main():
                     logger.info("Terminazione programma...")
                     break
                 
-                # Comando: collect
-                if user_input.lower() == 'collect':
-                    logger.info("Raccolta stato della rete...")
-                    snapshot = collector.collect_snapshot()
-                    
+                # Comando: collect [--security-scan [host ...]]
+                if user_input.lower().startswith('collect'):
+                    parts = user_input.split()
+                    security_scan = False
+                    host_filter = None
+
+                    if '--security-scan' in parts:
+                        security_scan = True
+                        idx = parts.index('--security-scan')
+                        hosts = parts[idx + 1:]
+                        host_filter = hosts if hosts else None
+
+                    if security_scan:
+                        if host_filter:
+                            logger.info(f"Raccolta stato + scansione sicurezza per: {', '.join(host_filter)}")
+                        else:
+                            logger.info("Raccolta stato + scansione sicurezza (tutti gli host)...")
+                    else:
+                        logger.info("Raccolta stato della rete...")
+
+                    snapshot = collector.collect_snapshot(
+                        security_scan=security_scan,
+                        host_filter=host_filter
+                    )
+
                     if snapshot:
                         logger.info(f"✓ Snapshot raccolto con successo")
                         logger.info(f"  Timestamp: {snapshot.get_timestamp_iso()}")
                         logger.info(f"  Switch: {len(snapshot.topology.switches)}")
                         logger.info(f"  Link: {len(snapshot.topology.links)}")
-                        
+
                         # Converti e salva nella cache + history
                         network_state = snapshot_to_network_state(snapshot)
                         update_context_cache(context_analyzer, network_state)
                         history_file = save_state_to_history(network_state)
                         logger.info(f"  ✓ Stato salvato in cache e in {history_file}")
-                        
+
                     else:
                         logger.error("✗ Errore nella raccolta dello snapshot")
-                    
+
                     continue
                 
                 # Comando: health
@@ -571,13 +593,21 @@ def main():
                         user_prompt = (
                             f"User intent: {intent_text}\n\n"
                             f"{network_summary}\n"
-                            f"Generate network actions in JSON format. Each action should have: "
-                            f"type (add_switch, remove_switch, add_link, remove_link, add_flow, modify_flow, etc.), "
-                            f"target, and parameters."
+                            f"Generate network actions as a JSON object with an 'actions' array. "
+                            f"Each action must have:\n"
+                            f"  - id: unique string (e.g. 'action-1')\n"
+                            f"  - type: one of 'flow_mod', 'slice_create', 'slice_modify', 'config_change'\n"
+                            f"  - target: the switch or resource identifier\n"
+                            f"  - parameters: object with action-specific fields\n"
+                            f"  - priority: integer 0-65535 (optional, default 1000)\n"
+                            f"  - timeout: integer 1-3600 (optional, default 30)\n"
+                            f"Example: {{\"actions\": [{{\"id\": \"action-1\", \"type\": \"flow_mod\", "
+                            f"\"target\": \"switch-1\", \"parameters\": {{\"match\": {{}}, \"actions\": []}}}}]}}"
                         )
                         system_msg = (
                             "You are a network automation assistant for an SDN network managed by Ryu controller. "
-                            "Generate network actions in JSON format based on the user's intent and current network state."
+                            "Respond ONLY with a valid JSON object containing an 'actions' array. "
+                            "Do not include any explanation or markdown, just the JSON."
                         )
 
                         async def generate_actions_llm():
