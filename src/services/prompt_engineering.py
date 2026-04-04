@@ -363,7 +363,10 @@ class PromptEngineeringSystem:
                 "and a detailed breakdown of the confidence scoring criteria with their current values. "
                 "Your primary goal is to return structured parameter suggestions that align with the "
                 "provided confidence criteria, helping the system improve its confidence score. "
-                "Prioritize suggestions that target the weakest confidence factors first."
+                "Prioritize suggestions that target the weakest confidence factors first.\n\n"
+                "IMPORTANT: When generating actions, you MUST use ONLY these valid action types: "
+                "flow_mod, slice_create, slice_modify, config_change. "
+                "Any other action type will be rejected by the system."
             ),
             user_template=(
                 "Analyze the following network intent and provide actions along with parameter suggestions "
@@ -379,14 +382,15 @@ class PromptEngineeringSystem:
                 "- quality_boost (max 1.0): Bonus from overall text quality indicators\n"
                 "- penalties (max 1.0): Deductions for ambiguity, missing info, or low quality\n\n"
                 "Final score = max(0.1, min(1.0, sum_of_contributions - penalties))\n\n"
+                "Valid action types: flow_mod, slice_create, slice_modify, config_change\n\n"
                 "Provide a JSON response matching this schema:\n{response_schema}"
             ),
             response_schema={
                 "actions": [
                     {
                         "id": "string",
-                        "type": "string",
-                        "target": "string",
+                        "type": "string (MUST be one of: flow_mod, slice_create, slice_modify, config_change)",
+                        "target": "string (switch name, e.g. s1, sw1)",
                         "parameters": {},
                         "priority": "int",
                         "timeout": "int",
@@ -1040,6 +1044,25 @@ class PromptEngineeringSystem:
         
         if network_state.anomalies:
             lines.append(f"Active Anomalies: {len(network_state.anomalies)}")
+        
+        # Include flow details so ChatGPT can see existing rules
+        if network_state.flows:
+            lines.append("\nInstalled Flow Rules:")
+            for dpid, flow_list in network_state.flows.items():
+                if isinstance(flow_list, list):
+                    for flow in flow_list:
+                        if isinstance(flow, dict):
+                            match = flow.get('match', {})
+                            actions = flow.get('actions', [])
+                            priority = flow.get('priority', 0)
+                            cookie = flow.get('cookie', 0)
+                            # Skip default controller rules (priority 0)
+                            if priority == 0:
+                                continue
+                            lines.append(
+                                f"  Switch dpid={dpid}: priority={priority}, "
+                                f"match={match}, actions={actions}, cookie={cookie}"
+                            )
         
         return "\n".join(lines)
     
