@@ -678,10 +678,38 @@ def main():
                         validation_result = validator.validate_actions(action_sequence)
 
                         if not validation_result.is_valid:
-                            logger.error("✗ Validazione fallita:")
-                            for error in validation_result.errors:
-                                logger.error(f"  - {error}")
-                            continue
+                            # If from ChatGPT, filter out invalid actions and retry with valid ones
+                            if not use_rule_based and validation_result.errors:
+                                logger.warning("⚠ Some ChatGPT actions failed validation, filtering invalid ones...")
+                                for error in validation_result.errors:
+                                    logger.warning(f"  - {error}")
+
+                                # Identify invalid action IDs from error messages
+                                import re as _re_val
+                                invalid_ids = set()
+                                for error in validation_result.errors:
+                                    m = _re_val.match(r'Action (\S+):', error)
+                                    if m:
+                                        invalid_ids.add(m.group(1))
+
+                                # Filter to valid actions only
+                                valid_actions = [a for a in action_sequence.actions if a.id not in invalid_ids]
+
+                                if valid_actions:
+                                    logger.info(f"  Proceeding with {len(valid_actions)} valid actions (dropped {len(action_sequence.actions) - len(valid_actions)})")
+                                    action_sequence = action_sequencer.sequence_actions(
+                                        valid_actions,
+                                        intent_id=intent_obj.id,
+                                        sequence_id=f"seq_{intent_obj.id}_filtered"
+                                    )
+                                else:
+                                    logger.error("✗ No valid actions remaining after filtering.")
+                                    continue
+                            else:
+                                logger.error("✗ Validazione fallita:")
+                                for error in validation_result.errors:
+                                    logger.error(f"  - {error}")
+                                continue
 
                         logger.info("✓ Azioni validate con successo")
 
