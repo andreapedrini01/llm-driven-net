@@ -37,6 +37,8 @@ from src.models.network import (
 )
 from src.models.core import NetworkSnapshot
 from src.models.intent import IntentType
+from src.models.confidence import ConfidenceCriteriaBreakdown, ParameterSuggestion, ConfidenceModification
+from src.services.confidence_criteria_extractor import ConfidenceCriteriaExtractor
 from src.services.change_summary import generate_summary, generate_llm_summary
 
 
@@ -391,6 +393,7 @@ def main():
         validator = Validator()
         action_output = ActionOutputService()
         prompt_system = PromptEngineeringSystem()
+        confidence_extractor = ConfidenceCriteriaExtractor()
         logger.info("✓ LLM Module inizializzato")
         
         # 3. Inizializza Northbound Script Generator
@@ -582,33 +585,16 @@ def main():
                     if not use_rule_based:
                         logger.info(f"\nStep 4: Generazione azioni con ChatGPT (confidence {intent_obj.confidence:.2f} < {RULE_BASED_CONFIDENCE_THRESHOLD})")
 
-                        # Costruisci il prompt con il contesto della rete
-                        network_summary = (
-                            f"Current network state:\n"
-                            f"- Switches: {len(snapshot.topology.switches)}\n"
-                            f"- Links: {len(snapshot.topology.links)}\n"
-                            f"- Intent type: {intent_obj.intent_type.value}\n"
-                            f"- Entities: {[e.value for e in intent_obj.entities]}\n"
-                            f"- Context: {contextualized_intent.network_context}\n"
-                        )
-                        user_prompt = (
-                            f"User intent: {intent_text}\n\n"
-                            f"{network_summary}\n"
-                            f"Generate network actions as a JSON object with an 'actions' array. "
-                            f"Each action must have:\n"
-                            f"  - id: unique string (e.g. 'action-1')\n"
-                            f"  - type: one of 'flow_mod', 'slice_create', 'slice_modify', 'config_change'\n"
-                            f"  - target: the switch or resource identifier\n"
-                            f"  - parameters: object with action-specific fields\n"
-                            f"  - priority: integer 0-65535 (optional, default 1000)\n"
-                            f"  - timeout: integer 1-3600 (optional, default 30)\n"
-                            f"Example: {{\"actions\": [{{\"id\": \"action-1\", \"type\": \"flow_mod\", "
-                            f"\"target\": \"switch-1\", \"parameters\": {{\"match\": {{}}, \"actions\": []}}}}]}}"
-                        )
-                        system_msg = (
-                            "You are a network automation assistant for an SDN network managed by Ryu controller. "
-                            "Respond ONLY with a valid JSON object containing an 'actions' array. "
-                            "Do not include any explanation or markdown, just the JSON."
+                        # Get confidence criteria breakdown for enriched prompt
+                        breakdown = intent_parser.get_confidence_breakdown(intent_obj)
+                        logger.info(f"  Confidence breakdown: base={breakdown.base_confidence:.3f}, "
+                                    f"entity={breakdown.entity_boost:.3f}, type={breakdown.type_boost:.3f}, "
+                                    f"token={breakdown.token_boost:.3f}, quality={breakdown.quality_boost:.3f}, "
+                                    f"penalties={breakdown.penalties:.3f}, final={breakdown.final_score:.3f}")
+
+                        # Build criteria-enriched prompt
+                        system_msg, user_prompt, prompt_config = prompt_system.build_confidence_enriched_prompt(
+                            intent_obj, breakdown, network_state
                         )
 
                         async def generate_actions_llm():
@@ -622,7 +608,18 @@ def main():
                             llm_response = asyncio.run(generate_actions_llm())
                             logger.info(f"✓ Risposta LLM ricevuta")
                             logger.info(f"  Tokens: {llm_response.tokens_used}, Latency: {llm_response.latency:.2f}s")
-                            actions = action_sequencer.parse_actions_from_response(llm_response.content)
+
+                            # Parse both actions and parameter suggestions
+                            actions, suggestions = action_sequencer.parse_actions_and_suggestions(llm_response.content)
+                            logger.info(f"  Parsed {len(actions)} actions, {len(suggestions)} parameter suggestions")
+
+                            # Extract modifications from suggestions if present
+                            if suggestions:
+                                modifications = confidence_extractor.extract_modifications(breakdown, suggestions)
+                                logger.info(f"  Extracted {len(modifications)} confidence modifications:")
+                                for mod in modifications:
+                                    logger.info(f"    - {mod.target_field}: '{mod.source_suggestion.suggested_parameter}' "
+                                                f"-> '{mod.suggested_value}' (estimated score: {mod.estimated_new_score:.3f})")
                         except Exception as e:
                             logger.error(f"✗ Errore ChatGPT: {e}", exc_info=True)
                             continue

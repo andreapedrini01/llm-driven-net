@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple, Set
 from src.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
 from src.models.network import NetworkState
+from src.models.confidence import ConfidenceCriteriaBreakdown
 
 
 class IntentParser:
@@ -486,7 +487,104 @@ class IntentParser:
         confidence = base_confidence + entity_boost + type_boost + token_boost + quality_boost - penalties
         
         return max(0.1, min(1.0, confidence))
-    
+
+    def get_confidence_breakdown(self, intent_obj: IntentObject) -> ConfidenceCriteriaBreakdown:
+        """Re-compute and return the confidence criteria breakdown for a parsed intent.
+
+        Uses the same logic as ``_calculate_confidence_enhanced`` but returns
+        individual factor values instead of a single float.
+        """
+        original_text = intent_obj.raw_text
+        preprocessed_text = self.preprocess_text(original_text)
+        tokens = self.tokenize(preprocessed_text)
+        entities = intent_obj.entities
+
+        # Re-classify to get type confidence
+        intent_type, type_confidence = self._classify_intent_type_enhanced(preprocessed_text, tokens)
+
+        # --- replicate _calculate_confidence_enhanced factor-by-factor ---
+        if not original_text:
+            return ConfidenceCriteriaBreakdown(
+                base_confidence=0.0, entity_boost=0.0, type_boost=0.0,
+                token_boost=0.0, quality_boost=0.0, penalties=0.0,
+                final_score=0.1, entities_detail=[],
+                intent_type_detail={"type": intent_type.value, "confidence": type_confidence},
+            )
+
+        # Base confidence from text structure and length
+        word_count = len(preprocessed_text.split())
+        base_confidence = min(0.4 + word_count * 0.02, 0.7)
+
+        # Entity confidence contribution
+        if entities:
+            avg_entity_confidence = sum(e.confidence for e in entities) / len(entities)
+            entity_boost = min(len(entities) * 0.03 + avg_entity_confidence * 0.1, 0.2)
+        else:
+            entity_boost = 0.0
+
+        # Intent type confidence contribution
+        type_boost = type_confidence * 0.15
+
+        # Token quality boost
+        meaningful_tokens = [t for t in tokens if not t['is_stopword'] and t['type'] != 'word']
+        token_boost = min(len(meaningful_tokens) * 0.02, 0.1)
+
+        # Text quality factors
+        quality_boost = 0.0
+
+        if re.search(r'^[A-Z].*[.!?]$', original_text.strip()):
+            quality_boost += 0.05
+
+        tech_terms = ['network', 'switch', 'router', 'flow', 'slice', 'vlan', 'bandwidth', 'latency']
+        tech_count = sum(1 for term in tech_terms if term in preprocessed_text.lower())
+        quality_boost += min(tech_count * 0.02, 0.08)
+
+        has_action_entity = any(e.type == 'action' for e in entities)
+        has_resource_entity = any(e.type == 'resource' for e in entities)
+        has_target_entity = any(e.type == 'target' for e in entities)
+        if word_count <= 6 and has_action_entity and (has_resource_entity or has_target_entity):
+            quality_boost += 0.15
+
+        # Penalties
+        penalties = 0.0
+
+        if len(original_text.strip()) < 5 and not entities:
+            penalties += 0.2
+        elif len(original_text.strip()) < 15 and not (has_action_entity and (has_resource_entity or has_target_entity)):
+            penalties += 0.1
+
+        if len(original_text) > 1000:
+            penalties += 0.1
+        elif len(original_text) > 500:
+            penalties += 0.05
+
+        special_char_ratio = len(re.findall(r'[^a-zA-Z0-9\s]', original_text)) / len(original_text)
+        if special_char_ratio > 0.2:
+            penalties += 0.1
+
+        # Final score
+        raw = base_confidence + entity_boost + type_boost + token_boost + quality_boost - penalties
+        final_score = max(0.1, min(1.0, raw))
+
+        # Build detail lists
+        entities_detail = [
+            {"name": e.value, "type": e.type, "confidence": e.confidence}
+            for e in entities
+        ]
+        intent_type_detail = {"type": intent_type.value, "confidence": type_confidence}
+
+        return ConfidenceCriteriaBreakdown(
+            base_confidence=base_confidence,
+            entity_boost=entity_boost,
+            type_boost=type_boost,
+            token_boost=token_boost,
+            quality_boost=quality_boost,
+            penalties=penalties,
+            final_score=final_score,
+            entities_detail=entities_detail,
+            intent_type_detail=intent_type_detail,
+        )
+
     def _calculate_entity_confidence_enhanced(self, entity_text: str, entity_type: str, 
                                            start_pos: int, end_pos: int, 
                                            tokens: List[Dict[str, Any]]) -> float:

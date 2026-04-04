@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, validator
 from src.models.intent import IntentObject, IntentType, ContextualizedIntent
 from src.models.network import NetworkState, Anomaly, AnomalySeverity
 from src.models.actions import ActionSequence, NetworkAction, ActionType
+from src.models.confidence import ConfidenceCriteriaBreakdown
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ class PromptType(str, Enum):
     CLARIFICATION = "clarification"
     VALIDATION = "validation"
     SLICE_ORCHESTRATION = "slice_orchestration"
+    CONFIDENCE_ENRICHED = "confidence_enriched"
 
 
 class PromptTemplate(BaseModel):
@@ -351,6 +353,59 @@ class PromptEngineeringSystem:
             max_tokens=2000,
             temperature=0.1
         )
+        
+        # Confidence Enriched Template
+        self._templates[PromptType.CONFIDENCE_ENRICHED] = PromptTemplate(
+            type=PromptType.CONFIDENCE_ENRICHED,
+            system_message=(
+                "You are an expert SDN network engineer with deep understanding of confidence scoring "
+                "for intent parsing systems. You will receive a user intent, the current network state, "
+                "and a detailed breakdown of the confidence scoring criteria with their current values. "
+                "Your primary goal is to return structured parameter suggestions that align with the "
+                "provided confidence criteria, helping the system improve its confidence score. "
+                "Prioritize suggestions that target the weakest confidence factors first."
+            ),
+            user_template=(
+                "Analyze the following network intent and provide actions along with parameter suggestions "
+                "to improve confidence scoring.\n\n"
+                "Intent: {intent_text}\n\n"
+                "Current Network State:\n{network_state_summary}\n\n"
+                "Confidence Criteria Breakdown:\n{confidence_criteria_breakdown}\n\n"
+                "Each confidence factor contributes to the final score as follows:\n"
+                "- base_confidence (max 1.0): Base text structure and clarity score\n"
+                "- entity_boost (max 1.0): Contribution from extracted entities and their confidence\n"
+                "- type_boost (max 1.0): Contribution from intent type classification confidence\n"
+                "- token_boost (max 1.0): Contribution from token quality and relevance\n"
+                "- quality_boost (max 1.0): Bonus from overall text quality indicators\n"
+                "- penalties (max 1.0): Deductions for ambiguity, missing info, or low quality\n\n"
+                "Final score = max(0.1, min(1.0, sum_of_contributions - penalties))\n\n"
+                "Provide a JSON response matching this schema:\n{response_schema}"
+            ),
+            response_schema={
+                "actions": [
+                    {
+                        "id": "string",
+                        "type": "string",
+                        "target": "string",
+                        "parameters": {},
+                        "priority": "int",
+                        "timeout": "int",
+                        "description": "string"
+                    }
+                ],
+                "parameter_suggestions": [
+                    {
+                        "target_factor": "string (one of: base_confidence, entity_boost, type_boost, token_boost, quality_boost)",
+                        "suggested_parameter": "string",
+                        "suggested_value": "string",
+                        "estimated_improvement": "float (0.0-1.0)",
+                        "reasoning": "string"
+                    }
+                ]
+            },
+            max_tokens=2500,
+            temperature=0.1
+        )
     
     def get_template(self, prompt_type: PromptType) -> PromptTemplate:
         """Get a prompt template by type.
@@ -605,6 +660,68 @@ class PromptEngineeringSystem:
         }
         
         logger.debug(f"Built slice orchestration prompt")
+        return template.system_message, user_prompt, config
+    
+    def build_confidence_enriched_prompt(
+        self,
+        intent: IntentObject,
+        breakdown: ConfidenceCriteriaBreakdown,
+        network_state: NetworkState
+    ) -> Tuple[str, str, Dict[str, Any]]:
+        """Build a criteria-enriched prompt for ChatGPT fallback.
+        
+        Args:
+            intent: The parsed intent object
+            breakdown: Confidence criteria breakdown with factor values
+            network_state: Current network state
+            
+        Returns:
+            Tuple of (system_message, user_prompt, config)
+        """
+        template = self.get_template(PromptType.CONFIDENCE_ENRICHED)
+        
+        # Format breakdown into human-readable string
+        breakdown_lines = [
+            f"base_confidence: {breakdown.base_confidence:.4f}",
+            f"entity_boost: {breakdown.entity_boost:.4f}",
+            f"type_boost: {breakdown.type_boost:.4f}",
+            f"token_boost: {breakdown.token_boost:.4f}",
+            f"quality_boost: {breakdown.quality_boost:.4f}",
+            f"penalties: {breakdown.penalties:.4f}",
+            f"final_score: {breakdown.final_score:.4f}",
+        ]
+        
+        if breakdown.entities_detail:
+            breakdown_lines.append("Entities:")
+            for entity in breakdown.entities_detail:
+                breakdown_lines.append(
+                    f"  - {entity.get('name', 'unknown')}: type={entity.get('type', 'unknown')}, "
+                    f"confidence={entity.get('confidence', 0.0)}"
+                )
+        
+        if breakdown.intent_type_detail:
+            breakdown_lines.append(
+                f"Intent Type: {breakdown.intent_type_detail.get('type', 'unknown')} "
+                f"(confidence={breakdown.intent_type_detail.get('confidence', 0.0)})"
+            )
+        
+        criteria_str = "\n".join(breakdown_lines)
+        
+        network_summary = self._format_network_state_summary(network_state)
+        
+        user_prompt = template.format(
+            intent_text=intent.raw_text,
+            network_state_summary=network_summary,
+            confidence_criteria_breakdown=criteria_str,
+            response_schema=json.dumps(template.response_schema, indent=2)
+        )
+        
+        config = {
+            "max_tokens": template.max_tokens,
+            "temperature": template.temperature
+        }
+        
+        logger.debug(f"Built confidence-enriched prompt for intent: {intent.id}")
         return template.system_message, user_prompt, config
     
     def parse_response(

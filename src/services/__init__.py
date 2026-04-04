@@ -16,6 +16,7 @@ from .action_output import (
     OutputFormat,
     ActionStatus
 )
+from .confidence_criteria_extractor import ConfidenceCriteriaExtractor
 
 __all__ = [
     'IntentParser',
@@ -36,5 +37,6 @@ __all__ = [
     'NorthboundActionPackage',
     'ActionOutputRecord',
     'OutputFormat',
-    'ActionStatus'
+    'ActionStatus',
+    'ConfidenceCriteriaExtractor'
 ]

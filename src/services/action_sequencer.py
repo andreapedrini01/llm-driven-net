@@ -10,6 +10,7 @@ from src.models.actions import (
     ActionType,
     ValidationResult
 )
+from src.models.confidence import ParameterSuggestion
 
 logger = logging.getLogger(__name__)
 
@@ -686,3 +687,95 @@ class ActionSequencer:
             return []
         
         return actions
+
+    # Known confidence factors for validating parameter suggestions
+    KNOWN_FACTORS = {
+        "base_confidence", "entity_boost", "type_boost",
+        "token_boost", "quality_boost"
+    }
+
+    def parse_actions_and_suggestions(
+        self, response_content: str
+    ) -> Tuple[List[NetworkAction], List[ParameterSuggestion]]:
+        """
+        Parse both the actions array and parameter_suggestions array
+        from a ChatGPT response to a confidence-enriched prompt.
+
+        Falls back gracefully if parameter_suggestions is missing/malformed.
+
+        Args:
+            response_content: The response content from ChatGPT
+
+        Returns:
+            Tuple of (NetworkAction list, ParameterSuggestion list)
+        """
+        import json
+        import re
+
+        actions: List[NetworkAction] = []
+        suggestions: List[ParameterSuggestion] = []
+
+        try:
+            # Extract JSON data using the same logic as parse_actions_from_response
+            data = None
+            if response_content.strip().startswith('{') or response_content.strip().startswith('['):
+                data = json.loads(response_content)
+            else:
+                json_match = re.search(
+                    r'```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```',
+                    response_content, re.DOTALL
+                )
+                if json_match:
+                    data = json.loads(json_match.group(1))
+
+            if data is None:
+                self.logger.warning("No valid JSON found in response")
+                return ([], [])
+
+            # Parse actions
+            if isinstance(data, dict):
+                actions_data = data.get('actions', [])
+            elif isinstance(data, list):
+                actions_data = data
+            else:
+                actions_data = []
+
+            for action_data in actions_data:
+                try:
+                    actions.append(NetworkAction.model_validate(action_data))
+                except Exception as e:
+                    self.logger.warning(f"Skipping invalid action entry: {e}")
+
+            # Parse parameter_suggestions
+            if isinstance(data, dict) and 'parameter_suggestions' in data:
+                raw_suggestions = data['parameter_suggestions']
+                if not isinstance(raw_suggestions, list):
+                    self.logger.warning(
+                        "parameter_suggestions is not a list, ignoring"
+                    )
+                else:
+                    for entry in raw_suggestions:
+                        try:
+                            suggestion = ParameterSuggestion.model_validate(entry)
+                            if suggestion.target_factor not in self.KNOWN_FACTORS:
+                                self.logger.warning(
+                                    f"Unknown target_factor '{suggestion.target_factor}' "
+                                    "in parameter suggestion, keeping but flagging"
+                                )
+                            suggestions.append(suggestion)
+                        except Exception as e:
+                            self.logger.warning(
+                                f"Skipping malformed parameter suggestion: {e}"
+                            )
+            else:
+                self.logger.warning(
+                    "parameter_suggestions missing from response"
+                )
+
+        except Exception as e:
+            self.logger.error(
+                f"Failed to parse actions and suggestions from response: {e}"
+            )
+            return ([], [])
+
+        return (actions, suggestions)
