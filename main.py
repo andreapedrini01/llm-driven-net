@@ -37,6 +37,7 @@ from src.models.network import (
 )
 from src.models.core import NetworkSnapshot
 from src.models.intent import IntentType
+from src.services.change_summary import generate_summary, generate_llm_summary
 
 
 def snapshot_to_network_state(snapshot: NetworkSnapshot) -> NetworkState:
@@ -692,6 +693,29 @@ def main():
                                     logger.info(f"  ✓ Azione {action.id} completata ({result.duration:.2f}s)")
                                 else:
                                     logger.error(f"  ✗ Azione {action.id} fallita: {result.error}")
+
+                            # Step 8.5: Change summary
+                            try:
+                                llm_summary_text = None
+                                if os.environ.get("ENABLE_LLM_SUMMARY", "").lower() == "true":
+                                    llm_summary_text = asyncio.run(
+                                        generate_llm_summary(
+                                            chatgpt_client, intent_text,
+                                            action_sequence.actions, results
+                                        )
+                                    )
+
+                                summary = generate_summary(
+                                    intent_text=intent_text,
+                                    confidence=intent_obj.confidence,
+                                    actions=action_sequence.actions,
+                                    results=results,
+                                    llm_summary=llm_summary_text,
+                                    threshold=RULE_BASED_CONFIDENCE_THRESHOLD
+                                )
+                                print(summary)
+                            except Exception as e:
+                                logger.error(f"Error generating change summary: {e}")
 
                             # Step 9: Verifica stato finale
                             logger.info("\nStep 9: Verifica stato finale...")
