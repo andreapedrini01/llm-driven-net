@@ -232,6 +232,24 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                         match_fields['in_port'] = int(v) if str(v).isdigit() else v
                     elif 'ip' in k:
                         match_fields['ip_dst'] = str(v)
+
+                # Extract src/dst hosts from intent text (e.g. "from h1 to h2")
+                host_match = _re.search(
+                    r'\b(?:from|src)\s+(h\d+|[\d.]+).*\b(?:to|dst)\s+(h\d+|[\d.]+)',
+                    raw
+                )
+                if host_match and 'nw_src' not in match_fields and 'nw_dst' not in match_fields:
+                    src_raw = host_match.group(1)
+                    dst_raw = host_match.group(2)
+                    src_ip = _host_to_ip(src_raw) if src_raw.startswith('h') else src_raw
+                    dst_ip = _host_to_ip(dst_raw) if dst_raw.startswith('h') else dst_raw
+                    if src_ip or dst_ip:
+                        match_fields["dl_type"] = 2048  # IPv4
+                    if src_ip:
+                        match_fields["nw_src"] = src_ip
+                    if dst_ip:
+                        match_fields["nw_dst"] = dst_ip
+
                 switch_target = _find_switch_target(resources, network_state)
                 actions.append(LLMAction(
                     id=f"act_{intent_obj.id}_flow",
@@ -243,8 +261,8 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                         "actions": [{"type": "OUTPUT", "port": "NORMAL"}],
                         "cookie": COOKIE_INTERACTIVE,
                     },
-                    priority=params.get('priority', 1000),
-                    timeout=params.get('timeout', 30),
+                    priority=params.get('priority', 50000),
+                    timeout=params.get('timeout', 3600) or 3600,
                     description=f"Add flow rule on {switch_target}",
                 ))
 
