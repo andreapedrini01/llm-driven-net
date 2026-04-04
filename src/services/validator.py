@@ -256,6 +256,12 @@ class ActionValidator:
         resource_fields = rules.get("resource_fields", [])
         if not resources:
             errors.append(f"Action {action.id}: No resources specified for slice")
+        elif isinstance(resources, list):
+            # Resources provided as a list of switch names — valid format
+            if len(resources) > self._safety_thresholds["max_affected_switches"]:
+                warnings.append(
+                    f"Action {action.id}: Slice affects many switches ({len(resources)})"
+                )
         else:
             # Check bandwidth
             bandwidth = resources.get("bandwidth")
