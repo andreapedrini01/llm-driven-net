@@ -383,17 +383,26 @@ class PromptEngineeringSystem:
                 "- penalties (max 1.0): Deductions for ambiguity, missing info, or low quality\n\n"
                 "Final score = max(0.1, min(1.0, sum_of_contributions - penalties))\n\n"
                 "Valid action types: flow_mod, slice_create, slice_modify, config_change\n\n"
+                "Required parameters per action type:\n"
+                "- flow_mod: {\"operation\": \"add|delete\", \"match\": {\"dl_type\": 2048, \"nw_src\": \"IP\", \"nw_dst\": \"IP\"}, "
+                "\"actions\": [{\"type\": \"OUTPUT\", \"port\": \"NORMAL\"}] (empty list = DROP), \"cookie\": int}\n"
+                "- slice_create: {\"slice_name\": \"string\", \"resources\": [\"switch_names\"], \"bandwidth\": int_mbps}\n"
+                "- config_change: {\"config_type\": \"string\", \"config_data\": {details}}\n\n"
                 "Provide a JSON response matching this schema:\n{response_schema}"
             ),
             response_schema={
                 "actions": [
                     {
-                        "id": "string",
+                        "id": "string (unique, e.g. act-1)",
                         "type": "string (MUST be one of: flow_mod, slice_create, slice_modify, config_change)",
-                        "target": "string (switch name, e.g. s1, sw1)",
-                        "parameters": {},
-                        "priority": "int",
-                        "timeout": "int",
+                        "target": "string (switch name e.g. s1, s2, or 'controller')",
+                        "parameters": {
+                            "_flow_mod_example": {"operation": "add", "match": {"dl_type": 2048, "nw_src": "10.0.0.1", "nw_dst": "10.0.0.10"}, "actions": [{"type": "OUTPUT", "port": "NORMAL"}], "cookie": 8192},
+                            "_slice_create_example": {"slice_name": "perf-slice", "resources": ["s1", "s2"], "bandwidth": 100},
+                            "_config_change_example": {"config_type": "qos", "config_data": {"policy": "priority_queuing"}}
+                        },
+                        "priority": "int (1-65535)",
+                        "timeout": "int (seconds)",
                         "description": "string"
                     }
                 ],
