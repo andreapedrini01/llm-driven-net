@@ -384,10 +384,10 @@ class PromptEngineeringSystem:
                 "Final score = max(0.1, min(1.0, sum_of_contributions - penalties))\n\n"
                 "Valid action types: flow_mod, slice_create, slice_modify, config_change\n\n"
                 "Required parameters per action type:\n"
-                "- flow_mod: {\"operation\": \"add|delete\", \"match\": {\"dl_type\": 2048, \"nw_src\": \"IP\", \"nw_dst\": \"IP\"}, "
-                "\"actions\": [{\"type\": \"OUTPUT\", \"port\": \"NORMAL\"}] (empty list = DROP), \"cookie\": int}\n"
-                "- slice_create: {\"slice_name\": \"string\", \"resources\": [\"switch_names\"], \"bandwidth\": int_mbps}\n"
-                "- config_change: {\"config_type\": \"string\", \"config_data\": {details}}\n\n"
+                "- flow_mod: {{\"operation\": \"add|delete\", \"match\": {{\"dl_type\": 2048, \"nw_src\": \"IP\", \"nw_dst\": \"IP\"}}, "
+                "\"actions\": [{{\"type\": \"OUTPUT\", \"port\": \"NORMAL\"}}] (empty list = DROP), \"cookie\": int}}\n"
+                "- slice_create: {{\"slice_name\": \"string\", \"resources\": [\"switch_names\"], \"bandwidth\": int_mbps}}\n"
+                "- config_change: {{\"config_type\": \"string\", \"config_data\": {{details}}}}\n\n"
                 "Provide a JSON response matching this schema:\n{response_schema}"
             ),
             response_schema={
