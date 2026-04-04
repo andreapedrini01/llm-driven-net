@@ -594,10 +594,22 @@ def main():
                     if use_rule_based:
                         logger.info(f"\nStep 4: Generazione azioni RULE-BASED (confidence {intent_obj.confidence:.2f} >= {RULE_BASED_CONFIDENCE_THRESHOLD})")
                         actions = generate_actions_rule_based(intent_obj, network_state)
-                        if actions:
+                        # Check if rule-based produced only generic CONFIG_CHANGE actions
+                        # (these are fallback placeholders that don't do anything useful)
+                        has_specific_actions = any(
+                            a.type in (ActionType.FLOW_MOD, ActionType.SLICE_CREATE)
+                            or (a.type == ActionType.CONFIG_CHANGE
+                                and a.parameters.get("config_type") not in ("general", "anomaly_fix"))
+                            for a in actions
+                        )
+                        if actions and has_specific_actions:
                             logger.info(f"✓ {len(actions)} azioni generate (rule-based, senza ChatGPT)")
                         else:
-                            logger.warning("⚠ Nessuna azione generata dal rule-based, fallback a ChatGPT...")
+                            if actions:
+                                logger.warning("⚠ Rule-based ha generato solo azioni generiche, fallback a ChatGPT...")
+                            else:
+                                logger.warning("⚠ Nessuna azione generata dal rule-based, fallback a ChatGPT...")
+                            actions = []
                             use_rule_based = False
 
                     if not use_rule_based:
