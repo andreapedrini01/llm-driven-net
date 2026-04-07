@@ -613,7 +613,10 @@ def main():
                             use_rule_based = False
 
                     if not use_rule_based:
-                        logger.info(f"\nStep 4: Generazione azioni con ChatGPT (confidence {intent_obj.confidence:.2f} < {RULE_BASED_CONFIDENCE_THRESHOLD})")
+                        if intent_obj.confidence >= RULE_BASED_CONFIDENCE_THRESHOLD:
+                            logger.info(f"\nStep 4: Generating actions with ChatGPT (confidence {intent_obj.confidence:.2f} >= {RULE_BASED_CONFIDENCE_THRESHOLD}, but rule-based produced insufficient results)")
+                        else:
+                            logger.info(f"\nStep 4: Generazione azioni con ChatGPT (confidence {intent_obj.confidence:.2f} < {RULE_BASED_CONFIDENCE_THRESHOLD})")
 
                         # Get confidence criteria breakdown for enriched prompt
                         breakdown = intent_parser.get_confidence_breakdown(intent_obj)
