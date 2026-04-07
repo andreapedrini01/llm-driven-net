@@ -18,8 +18,8 @@ requests>=2.31.0
 # Date/time utilities
 python-dateutil>=2.8.0
 
-# LLM integration - ChatGPT API
-openai>=1.54.0
+# LLM integration - ChatGPT API (pinned for Python 3.8 compatibility)
+openai>=1.40.0,<1.52.0
 
 # Property-based testing
 hypothesis>=6.82.0,<=6.113.0
