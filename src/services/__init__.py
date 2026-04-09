@@ -17,6 +17,7 @@ from .action_output import (
     ActionStatus
 )
 from .confidence_criteria_extractor import ConfidenceCriteriaExtractor
+from .change_summary import generate_summary, generate_llm_summary
 
 __all__ = [
     'IntentParser',
@@ -38,5 +39,7 @@ __all__ = [
     'ActionOutputRecord',
     'OutputFormat',
     'ActionStatus',
-    'ConfidenceCriteriaExtractor'
+    'ConfidenceCriteriaExtractor',
+    'generate_summary',
+    'generate_llm_summary',
 ]
