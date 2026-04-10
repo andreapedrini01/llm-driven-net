@@ -686,6 +686,8 @@ class ComnetsEMUConnector:
                 meters_ok.append(dpid)
 
                 # Step 2: Install metered flow rules
+                # IMPORTANT: Always match BOTH src AND dst IP to avoid
+                # limiting unrelated traffic on the same switch.
                 if src_ip and dst_ip:
                     # Forward direction: src -> dst
                     match_fwd = {"dl_type": 2048, "nw_src": src_ip, "nw_dst": dst_ip}
@@ -696,19 +698,17 @@ class ComnetsEMUConnector:
                     match_rev = {"dl_type": 2048, "nw_src": dst_ip, "nw_dst": src_ip}
                     if self._install_metered_flow(dpid, meter_id, match_rev):
                         flows_ok.append(f"dpid={dpid} {dst_ip}->{src_ip}")
-                elif src_ip:
-                    match_src = {"dl_type": 2048, "nw_src": src_ip}
-                    if self._install_metered_flow(dpid, meter_id, match_src):
-                        flows_ok.append(f"dpid={dpid} src={src_ip}")
-                elif dst_ip:
-                    match_dst = {"dl_type": 2048, "nw_dst": dst_ip}
-                    if self._install_metered_flow(dpid, meter_id, match_dst):
-                        flows_ok.append(f"dpid={dpid} dst={dst_ip}")
                 else:
-                    # No host info — apply meter to all IPv4 on this switch only
+                    # Without both IPs we cannot selectively limit traffic.
+                    # Log a warning but still apply a broad match as last resort.
+                    self.logger.warning(
+                        f"Missing src or dst IP (src={src_ip}, dst={dst_ip}) — "
+                        f"cannot create selective meter rules on dpid={dpid}. "
+                        f"Applying broad IPv4 match (will affect all traffic on this switch)."
+                    )
                     match_all = {"dl_type": 2048}
                     if self._install_metered_flow(dpid, meter_id, match_all):
-                        flows_ok.append(f"dpid={dpid} all-ipv4")
+                        flows_ok.append(f"dpid={dpid} all-ipv4 (broad)")
 
             if not meters_ok:
                 self._record_failure()
