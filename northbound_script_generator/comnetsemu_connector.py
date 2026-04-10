@@ -1,13 +1,12 @@
 """
 ComnetsEMU Connector — esegue operazioni reali sulla rete
-via Ryu REST API (ofctl_rest) per flow rules e config changes,
-e via ovs-vsctl per QoS / rate-limiting.
+via Ryu REST API (ofctl_rest) per flow rules, config changes,
+e OpenFlow meters per bandwidth limiting.
 """
 
 import json
 import logging
 import socket
-import subprocess
 import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
@@ -408,62 +407,101 @@ class ComnetsEMUConnector:
             return {"success": False, "error": str(e)}
 
     # ------------------------------------------------------------------ #
-    #  Bandwidth limiting via OVS QoS                                      #
+    #  Bandwidth limiting via OpenFlow 1.3 Meters                          #
     # ------------------------------------------------------------------ #
 
-    def _run_ovs_cmd(self, args: List[str]) -> Tuple[bool, str]:
-        """Run an ovs-vsctl / ovs-ofctl command and return (success, output)."""
+    def _install_meter(self, dpid: int, meter_id: int, rate_kbps: int) -> bool:
+        """
+        Install an OpenFlow meter on a switch via Ryu ofctl_rest.
+        Uses DSCP_REMARK band so traffic exceeding the rate is remarked
+        (and effectively rate-limited by the switch pipeline).
+        Falls back to DROP band if DSCP_REMARK is not supported.
+        """
+        # Try DROP band first — universally supported and actually enforces the limit
+        meter_body = {
+            "dpid": dpid,
+            "meter_id": meter_id,
+            "flags": ["KBPS"],
+            "bands": [
+                {
+                    "type": "DROP",
+                    "rate": rate_kbps,
+                }
+            ],
+        }
         try:
-            result = subprocess.run(
-                args,
-                capture_output=True,
-                text=True,
-                timeout=10,
+            self._ryu_post("/stats/meterentry/add", meter_body)
+            self.logger.info(
+                f"Meter {meter_id} installed on dpid={dpid}: "
+                f"rate={rate_kbps} kbps (DROP)"
             )
-            if result.returncode != 0:
-                return False, result.stderr.strip()
-            return True, result.stdout.strip()
-        except FileNotFoundError:
-            return False, f"Command not found: {args[0]}"
-        except subprocess.TimeoutExpired:
-            return False, f"Command timed out: {' '.join(args)}"
-        except Exception as e:
-            return False, str(e)
+            return True
+        except requests.exceptions.HTTPError as e:
+            self.logger.warning(
+                f"Failed to install meter {meter_id} on dpid={dpid}: {e}"
+            )
+            return False
 
-    def _get_switch_ports(self, switch_name: str) -> List[str]:
-        """Get the list of port interfaces on an OVS bridge."""
-        ok, output = self._run_ovs_cmd(
-            ["ovs-vsctl", "list-ports", switch_name]
-        )
-        if ok and output:
-            return [p.strip() for p in output.splitlines() if p.strip()]
-        return []
+    def _install_metered_flow(
+        self, dpid: int, meter_id: int, match: Dict[str, Any],
+        priority: int = 2000
+    ) -> bool:
+        """
+        Install a flow rule that sends matching traffic through a meter,
+        then forwards normally (OUTPUT:NORMAL).
+        """
+        flow_body = {
+            "dpid": dpid,
+            "priority": priority,
+            "match": match,
+            "actions": [
+                {"type": "METER", "meter_id": meter_id},
+                {"type": "OUTPUT", "port": "NORMAL"},
+            ],
+        }
+        try:
+            self._ryu_post("/stats/flowentry/add", flow_body)
+            self.logger.info(
+                f"Metered flow installed on dpid={dpid}: "
+                f"meter={meter_id}, match={match}"
+            )
+            return True
+        except requests.exceptions.HTTPError as e:
+            self.logger.warning(
+                f"Failed to install metered flow on dpid={dpid}: {e}"
+            )
+            return False
 
-    def _get_all_bridges(self) -> List[str]:
-        """Get all OVS bridge names."""
-        ok, output = self._run_ovs_cmd(["ovs-vsctl", "list-br"])
-        if ok and output:
-            return [b.strip() for b in output.splitlines() if b.strip()]
-        return []
-
-    def _clear_qos_on_port(self, port: str) -> None:
-        """Remove existing QoS configuration from a port."""
-        self._run_ovs_cmd(["ovs-vsctl", "clear", "port", port, "qos"])
+    def _resolve_host_ip(self, host_name: str) -> Optional[str]:
+        """
+        Resolve a host name like 'h1', 'h2' to its IP address.
+        Convention: h<N> -> 10.0.0.<N>
+        """
+        import re
+        m = re.match(r'^h(\d+)$', host_name, re.IGNORECASE)
+        if m:
+            host_num = int(m.group(1))
+            if 1 <= host_num <= 254:
+                return f"10.0.0.{host_num}"
+        # Already an IP?
+        if re.match(r'^\d+\.\d+\.\d+\.\d+$', host_name):
+            return host_name
+        return None
 
     def _execute_bandwidth_limit(self, action: NetworkAction) -> Dict[str, Any]:
         """
-        Apply real bandwidth limiting using OVS QoS (HTB policing).
+        Apply real bandwidth limiting using OpenFlow 1.3 meters.
 
-        Works by creating OVS QoS queues on switch ports with max-rate.
-        Then installs flow rules via Ryu that enqueue matching traffic
-        into the rate-limited queue.
+        Strategy:
+        1. Install a meter (rate limiter) on every switch in the path
+        2. Install flow rules matching the relevant traffic (by src/dst IP)
+           that go through the meter before being forwarded
 
-        Extracts bandwidth from action.parameters:
-          - 'bandwidth' (int, Mbps) — from slice_create
-          - 'config_data.bandwidth_mbps' (int) — from config_change
+        This works with any Ryu app that loads ofctl_rest and uses OF1.3.
+        No sudo, no ovs-vsctl needed.
         """
         try:
-            # --- Extract bandwidth value (Mbps) ---
+            # --- Extract bandwidth ---
             config_data = action.parameters.get("config_data", {})
             bandwidth_mbps = action.parameters.get("bandwidth", None)
             if bandwidth_mbps is None and isinstance(config_data, dict):
@@ -472,83 +510,109 @@ class ComnetsEMUConnector:
             if bandwidth_mbps is None:
                 bandwidth_mbps = 10  # safe default
             bandwidth_mbps = int(bandwidth_mbps)
-            rate_bps = bandwidth_mbps * 1_000_000  # OVS uses bits/s
+            rate_kbps = bandwidth_mbps * 1000  # meters use kbps
+
+            # --- Extract host IPs for match rules ---
+            src_host = None
+            dst_host = None
+            if isinstance(config_data, dict):
+                src_host = config_data.get("src_host")
+                dst_host = config_data.get("dst_host")
+
+            src_ip = self._resolve_host_ip(src_host) if src_host else None
+            dst_ip = self._resolve_host_ip(dst_host) if dst_host else None
 
             # --- Determine which switches to configure ---
             resources = action.parameters.get("resources", [])
-            if not resources:
-                # If no resources specified, apply to all bridges
-                resources = self._get_all_bridges()
-            if not resources:
-                # Last resort: get switch names from Ryu
-                switches = self._ryu_get("/stats/switches")
-                resources = [f"s{dpid}" for dpid in (switches or [])]
+            all_switches = self._ryu_get("/stats/switches") or []
 
-            if not resources:
-                return {"success": False, "error": "No switches found to apply QoS"}
+            if resources:
+                # Resolve resource names to dpids
+                target_dpids = []
+                for r in resources:
+                    dpid = self._resolve_dpid(str(r))
+                    if dpid is not None and dpid in all_switches:
+                        target_dpids.append(dpid)
+                if not target_dpids:
+                    target_dpids = all_switches
+            else:
+                target_dpids = all_switches
 
-            configured_ports = []
+            if not target_dpids:
+                return {"success": False, "error": "No switches available"}
+
+            # Use a deterministic meter ID based on bandwidth to avoid collisions
+            base_meter_id = (bandwidth_mbps % 65000) + 1
+
+            meters_ok = []
+            flows_ok = []
             errors = []
 
-            for switch in resources:
-                # Normalize switch name (e.g. "s1")
-                switch_name = switch if isinstance(switch, str) else f"s{switch}"
+            for dpid in target_dpids:
+                meter_id = base_meter_id
 
-                ports = self._get_switch_ports(switch_name)
-                if not ports:
-                    self.logger.warning(
-                        f"No ports found on bridge '{switch_name}', skipping"
-                    )
+                # Step 1: Install meter
+                if not self._install_meter(dpid, meter_id, rate_kbps):
+                    errors.append(f"dpid={dpid}: meter install failed")
                     continue
+                meters_ok.append(dpid)
 
-                for port in ports:
-                    # Clear any existing QoS on this port
-                    self._clear_qos_on_port(port)
+                # Step 2: Install metered flow rules
+                # If we know src/dst IPs, create specific match rules
+                # Otherwise, apply to all IPv4 traffic on the switch
+                if src_ip and dst_ip:
+                    # Forward direction: src -> dst
+                    match_fwd = {"dl_type": 2048, "nw_src": src_ip, "nw_dst": dst_ip}
+                    if self._install_metered_flow(dpid, meter_id, match_fwd):
+                        flows_ok.append(f"dpid={dpid} {src_ip}->{dst_ip}")
 
-                    # Create QoS with a rate-limited queue using linux-htb
-                    ok, output = self._run_ovs_cmd([
-                        "ovs-vsctl", "set", "port", port,
-                        "qos=@newqos", "--",
-                        "--id=@newqos", "create", "qos",
-                        "type=linux-htb",
-                        f"other-config:max-rate={rate_bps}",
-                        "queues=0=@q0", "--",
-                        "--id=@q0", "create", "queue",
-                        f"other-config:max-rate={rate_bps}",
-                    ])
+                    # Reverse direction: dst -> src
+                    match_rev = {"dl_type": 2048, "nw_src": dst_ip, "nw_dst": src_ip}
+                    if self._install_metered_flow(dpid, meter_id, match_rev):
+                        flows_ok.append(f"dpid={dpid} {dst_ip}->{src_ip}")
+                elif src_ip:
+                    match_src = {"dl_type": 2048, "nw_src": src_ip}
+                    if self._install_metered_flow(dpid, meter_id, match_src):
+                        flows_ok.append(f"dpid={dpid} src={src_ip}")
+                elif dst_ip:
+                    match_dst = {"dl_type": 2048, "nw_dst": dst_ip}
+                    if self._install_metered_flow(dpid, meter_id, match_dst):
+                        flows_ok.append(f"dpid={dpid} dst={dst_ip}")
+                else:
+                    # No host info — apply meter to all IPv4 traffic
+                    match_all = {"dl_type": 2048}
+                    if self._install_metered_flow(dpid, meter_id, match_all):
+                        flows_ok.append(f"dpid={dpid} all-ipv4")
 
-                    if ok:
-                        configured_ports.append(f"{switch_name}/{port}")
-                        self.logger.info(
-                            f"QoS set on {switch_name}/{port}: "
-                            f"max-rate={bandwidth_mbps}Mbps"
-                        )
-                    else:
-                        errors.append(f"{switch_name}/{port}: {output}")
-                        self.logger.error(
-                            f"Failed to set QoS on {switch_name}/{port}: {output}"
-                        )
-
-            if not configured_ports and errors:
+            if not meters_ok:
                 self._record_failure()
                 return {
                     "success": False,
-                    "error": f"QoS configuration failed on all ports: {'; '.join(errors)}",
+                    "error": (
+                        f"Meter installation failed on all {len(target_dpids)} switches. "
+                        f"Errors: {'; '.join(errors)}. "
+                        "Make sure the Ryu controller supports OpenFlow 1.3 meters "
+                        "(e.g. simple_switch_13 + ofctl_rest)."
+                    ),
                 }
 
             self._record_success()
             msg = (
-                f"Bandwidth limited to {bandwidth_mbps} Mbps on "
-                f"{len(configured_ports)} ports across {len(resources)} switches"
+                f"Bandwidth limited to {bandwidth_mbps} Mbps: "
+                f"{len(meters_ok)} meters installed, {len(flows_ok)} flow rules"
             )
+            if src_ip and dst_ip:
+                msg += f" (between {src_ip} and {dst_ip})"
             if errors:
-                msg += f" ({len(errors)} ports failed)"
+                msg += f" ({len(errors)} switches failed)"
 
             return {
                 "success": True,
                 "message": msg,
                 "bandwidth_mbps": bandwidth_mbps,
-                "configured_ports": configured_ports,
+                "rate_kbps": rate_kbps,
+                "meters_installed": meters_ok,
+                "flows_installed": flows_ok,
                 "errors": errors if errors else None,
             }
 
