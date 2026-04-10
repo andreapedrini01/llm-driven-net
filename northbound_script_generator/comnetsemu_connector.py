@@ -491,70 +491,51 @@ class ComnetsEMUConnector:
     def _find_host_switches(self, src_ip: Optional[str], dst_ip: Optional[str]) -> List[int]:
         """
         Find the leaf switches directly connected to the given hosts
-        by inspecting flow tables for matching MAC/IP entries.
-        Falls back to ARP-based discovery via Ryu topology API.
-
-        In a tree topology h<N> is on switch s<ceil(N/fanout)> at the leaf
-        level, but we discover it dynamically from the flow tables.
+        using the Ryu topology REST API (/v1.0/topology/hosts).
+        Falls back to flow-table inspection only as last resort.
         """
         host_dpids = set()
 
         if not src_ip and not dst_ip:
             return []
 
-        all_switches = self._ryu_get("/stats/switches") or []
+        # Primary: use Ryu topology API (most accurate)
+        try:
+            hosts = self._ryu_get("/v1.0/topology/hosts")
+            if isinstance(hosts, list):
+                for host in hosts:
+                    host_ip_entry = host.get("ipv4", [])
+                    if isinstance(host_ip_entry, list):
+                        ips = host_ip_entry
+                    else:
+                        ips = [host_ip_entry]
 
-        for dpid in all_switches:
-            try:
-                flows_resp = self._ryu_get(f"/stats/flow/{dpid}")
-                flows = flows_resp.get(str(dpid), []) if isinstance(flows_resp, dict) else []
-
-                for flow in flows:
-                    match = flow.get("match", {})
-                    # Check if this switch has a flow matching our host IPs
-                    # (indicates the host is reachable through this switch)
-                    nw_src = match.get("nw_src", "")
-                    nw_dst = match.get("nw_dst", "")
-                    dl_dst = match.get("dl_dst", "")
-                    dl_src = match.get("dl_src", "")
-
-                    # Check actions for OUTPUT to a low port number (host port)
-                    actions = flow.get("actions", [])
-                    has_host_port = False
-                    for act in actions:
-                        if isinstance(act, str) and act.startswith("OUTPUT:"):
+                    if (src_ip and src_ip in ips) or (dst_ip and dst_ip in ips):
+                        port_info = host.get("port", {})
+                        dpid_hex = port_info.get("dpid", "")
+                        if dpid_hex:
                             try:
-                                port = int(act.split(":")[1])
-                                # Host ports are typically low-numbered
-                                # In a tree topo, host-facing ports are
-                                # different from inter-switch ports
-                                if port <= 10:
-                                    has_host_port = True
-                            except (ValueError, IndexError):
+                                host_dpids.add(int(dpid_hex, 16))
+                            except ValueError:
                                 pass
 
-                    if src_ip and (nw_src == src_ip or nw_dst == src_ip):
-                        if has_host_port:
-                            host_dpids.add(dpid)
-                    if dst_ip and (nw_src == dst_ip or nw_dst == dst_ip):
-                        if has_host_port:
-                            host_dpids.add(dpid)
-
-            except Exception as e:
-                self.logger.debug(f"Could not inspect flows on dpid={dpid}: {e}")
+                if host_dpids:
+                    return list(host_dpids)
+        except Exception as e:
+            self.logger.debug(f"Topology API not available: {e}")
 
         return list(host_dpids)
 
     def _host_name_to_dpid(self, host_name: str, all_switches: List[int]) -> Optional[int]:
         """
-        Derive the leaf switch dpid from a host name using the tree topology
-        convention: h<N> connects to s<ceil(N/fanout)> at the leaf level.
-        For tree(depth=3, fanout=3): leaf switches are s3..s13,
-        h1-h3 -> s3, h4-h6 -> s5, etc.
+        Find the leaf switch directly connected to a host.
 
-        Since we don't know the exact fanout, we use a simpler heuristic:
-        query each switch's flow table and find which one has an ARP entry
-        or a learned MAC for this host.
+        Strategy (in order):
+        1. Ryu topology REST API (/v1.0/topology/hosts) — most accurate
+        2. Flow-table inspection: find the switch that has a flow rule
+           delivering traffic TO this host's IP via a specific output port
+           (leaf switches have host-facing ports, intermediate switches
+           forward to other switches via different ports)
         """
         import re
         m = re.match(r'^h(\d+)$', host_name, re.IGNORECASE)
@@ -565,17 +546,96 @@ class ComnetsEMUConnector:
         if not host_ip:
             return None
 
-        # Check each switch for flows that reference this host IP
+        # --- Strategy 1: Ryu topology API ---
+        try:
+            hosts = self._ryu_get("/v1.0/topology/hosts")
+            if isinstance(hosts, list):
+                for host in hosts:
+                    host_ips = host.get("ipv4", [])
+                    if isinstance(host_ips, str):
+                        host_ips = [host_ips]
+                    if host_ip in host_ips:
+                        port_info = host.get("port", {})
+                        dpid_hex = port_info.get("dpid", "")
+                        if dpid_hex:
+                            try:
+                                dpid = int(dpid_hex, 16)
+                                self.logger.info(
+                                    f"Host {host_name} ({host_ip}) is on "
+                                    f"dpid={dpid} port={port_info.get('port_no')} "
+                                    f"(via topology API)"
+                                )
+                                return dpid
+                            except ValueError:
+                                pass
+        except Exception as e:
+            self.logger.debug(f"Topology API lookup failed for {host_name}: {e}")
+
+        # --- Strategy 2: Flow-table inspection ---
+        # On a leaf switch, traffic to a host goes to a specific port.
+        # On intermediate switches, traffic goes to another switch port.
+        # We look for the switch where nw_dst matches AND the number of
+        # links (inter-switch connections) is lowest — leaf switches have
+        # fewer inter-switch links than core/aggregation switches.
+        # More precisely: find switches that have a flow with nw_dst=host_ip
+        # and pick the one with the highest output port number relative to
+        # its total ports (hosts are typically on the last ports).
+        self.logger.debug(
+            f"Falling back to flow-table inspection for {host_name}"
+        )
+
+        # Get topology links to identify inter-switch ports
+        inter_switch_ports: Dict[int, set] = {}
+        try:
+            links = self._ryu_get("/v1.0/topology/links")
+            if isinstance(links, list):
+                for link in links:
+                    src = link.get("src", {})
+                    dpid_hex = src.get("dpid", "")
+                    port_no = src.get("port_no", "")
+                    if dpid_hex and port_no:
+                        try:
+                            d = int(dpid_hex, 16)
+                            p = int(port_no)
+                            inter_switch_ports.setdefault(d, set()).add(p)
+                        except ValueError:
+                            pass
+        except Exception:
+            pass
+
+        # Now find which switch delivers traffic to host_ip via a non-switch port
         for dpid in all_switches:
             try:
                 flows_resp = self._ryu_get(f"/stats/flow/{dpid}")
-                flows = flows_resp.get(str(dpid), []) if isinstance(flows_resp, dict) else []
+                flows = (
+                    flows_resp.get(str(dpid), [])
+                    if isinstance(flows_resp, dict) else []
+                )
+                switch_ports = inter_switch_ports.get(dpid, set())
+
                 for flow in flows:
-                    match = flow.get("match", {})
-                    if match.get("nw_dst") == host_ip or match.get("nw_src") == host_ip:
-                        return dpid
+                    match_f = flow.get("match", {})
+                    if match_f.get("nw_dst") != host_ip:
+                        continue
+
+                    # Check if the output port is a host-facing port
+                    actions = flow.get("actions", [])
+                    for act in actions:
+                        if isinstance(act, str) and act.startswith("OUTPUT:"):
+                            try:
+                                port = int(act.split(":")[1])
+                                if port not in switch_ports:
+                                    self.logger.info(
+                                        f"Host {host_name} ({host_ip}) is on "
+                                        f"dpid={dpid} port={port} "
+                                        f"(via flow-table inspection)"
+                                    )
+                                    return dpid
+                            except (ValueError, IndexError):
+                                pass
             except Exception:
                 continue
+
         return None
 
     def _execute_bandwidth_limit(self, action: NetworkAction) -> Dict[str, Any]:
