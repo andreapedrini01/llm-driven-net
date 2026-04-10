@@ -250,8 +250,8 @@ class ComnetsEMUConnector:
             config_type = action.parameters.get("config_type", "general")
 
             # Route any QoS-related config_type to the bandwidth limiter
-            if config_type in ("qos", "qos_bandwidth_policy", "bandwidth_limit",
-                               "rate_limit", "qos_policy"):
+            qos_keywords = ("qos", "bandwidth", "rate_limit", "throttle", "shaping", "policing")
+            if any(kw in config_type.lower() for kw in qos_keywords):
                 return self._execute_bandwidth_limit(action)
 
             # Per operazioni topologiche, prova a usare le API Ryu disponibili
@@ -663,12 +663,50 @@ class ComnetsEMUConnector:
             bandwidth_mbps = int(bandwidth_mbps)
             rate_kbps = bandwidth_mbps * 1000  # meters use kbps
 
-            # --- Extract host IPs for match rules ---
+            # --- Extract host names/IPs for match rules ---
             src_host = None
             dst_host = None
+
+            # 1. Try config_data (from config_change actions)
             if isinstance(config_data, dict):
                 src_host = config_data.get("src_host")
                 dst_host = config_data.get("dst_host")
+
+            # 2. Fallback: parse host names from slice_name, description,
+            #    or any text field. ChatGPT often puts them in slice_name
+            #    like "bw-h1-h2-10mbps" or "bw-limit-h1-h2-10mbps"
+            if not src_host or not dst_host:
+                import re
+                # Collect all text fields that might contain host references
+                text_sources = [
+                    action.parameters.get("slice_name", ""),
+                    action.description or "",
+                    str(action.parameters),
+                ]
+                search_text = " ".join(text_sources)
+
+                # Find all h<N> patterns
+                host_matches = re.findall(r'\bh(\d+)\b', search_text, re.IGNORECASE)
+                # Deduplicate while preserving order
+                seen = set()
+                unique_hosts = []
+                for h in host_matches:
+                    if h not in seen:
+                        seen.add(h)
+                        unique_hosts.append(f"h{h}")
+
+                if len(unique_hosts) >= 2:
+                    if not src_host:
+                        src_host = unique_hosts[0]
+                    if not dst_host:
+                        dst_host = unique_hosts[1]
+                elif len(unique_hosts) == 1:
+                    if not src_host:
+                        src_host = unique_hosts[0]
+
+            self.logger.info(
+                f"Bandwidth limit: extracted hosts src={src_host}, dst={dst_host}"
+            )
 
             src_ip = self._resolve_host_ip(src_host) if src_host else None
             dst_ip = self._resolve_host_ip(dst_host) if dst_host else None
