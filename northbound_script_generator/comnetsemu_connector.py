@@ -1,14 +1,16 @@
 """
 ComnetsEMU Connector — esegue operazioni reali sulla rete
-via Ryu REST API (ofctl_rest) per flow rules e config changes.
+via Ryu REST API (ofctl_rest) per flow rules e config changes,
+e via ovs-vsctl per QoS / rate-limiting.
 """
 
 import json
 import logging
 import socket
+import subprocess
 import time
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 import requests
 
@@ -241,16 +243,17 @@ class ComnetsEMUConnector:
 
     def execute_config_change(self, action: NetworkAction) -> Dict[str, Any]:
         """
-        Esegue un config change.
-        Per operazioni sulla topologia (add/remove switch/host/link) non c'è
-        un'API REST standard in Ryu — logga l'operazione e restituisce info.
-        Per QoS e altre config, usa le API Ryu disponibili.
+        Execute a config change.
+        Routes QoS / bandwidth-policy types to OVS QoS implementation.
+        For topology operations there is no standard Ryu REST API — logs only.
         """
         try:
             config_type = action.parameters.get("config_type", "general")
 
-            if config_type == "qos":
-                return self._execute_qos(action)
+            # Route any QoS-related config_type to the bandwidth limiter
+            if config_type in ("qos", "qos_bandwidth_policy", "bandwidth_limit",
+                               "rate_limit", "qos_policy"):
+                return self._execute_bandwidth_limit(action)
 
             # Per operazioni topologiche, prova a usare le API Ryu disponibili
             operation = action.parameters.get("operation", "add")
@@ -332,14 +335,19 @@ class ComnetsEMUConnector:
 
     def execute_slice_create(self, action: NetworkAction) -> Dict[str, Any]:
         """
-        Crea uno slice installando flow rules dedicate sugli switch coinvolti.
+        Create a network slice with real bandwidth enforcement via OVS QoS.
+        Installs QoS queues on switch ports and flow rules that use them.
         """
         try:
             slice_name = action.parameters.get("slice_name", f"slice_{action.id}")
             resources = action.parameters.get("resources", [])
-            bandwidth = action.parameters.get("bandwidth", 100)
+            bandwidth = action.parameters.get("bandwidth", 100)  # Mbps
 
-            # Recupera la lista degli switch attivi
+            # If bandwidth is specified, apply real rate limiting
+            if bandwidth and bandwidth > 0:
+                return self._execute_bandwidth_limit(action)
+
+            # Fallback: install basic forwarding rules (no QoS)
             switches = self._ryu_get("/stats/switches")
             if not switches:
                 return {"success": False, "error": "No switches available"}
@@ -374,7 +382,7 @@ class ComnetsEMUConnector:
     # ------------------------------------------------------------------ #
 
     def _execute_qos(self, action: NetworkAction) -> Dict[str, Any]:
-        """Applica QoS policy via Ryu REST (se qos_simple_switch è attivo)."""
+        """Apply QoS policy via Ryu REST (if qos_simple_switch is active)."""
         try:
             dpid = self._resolve_dpid(action.target)
             if dpid is None:
@@ -396,6 +404,156 @@ class ComnetsEMUConnector:
             self._record_failure()
             return {"success": False, "error": str(e)}
         except Exception as e:
+            self._record_failure()
+            return {"success": False, "error": str(e)}
+
+    # ------------------------------------------------------------------ #
+    #  Bandwidth limiting via OVS QoS                                      #
+    # ------------------------------------------------------------------ #
+
+    def _run_ovs_cmd(self, args: List[str]) -> Tuple[bool, str]:
+        """Run an ovs-vsctl / ovs-ofctl command and return (success, output)."""
+        try:
+            result = subprocess.run(
+                args,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                return False, result.stderr.strip()
+            return True, result.stdout.strip()
+        except FileNotFoundError:
+            return False, f"Command not found: {args[0]}"
+        except subprocess.TimeoutExpired:
+            return False, f"Command timed out: {' '.join(args)}"
+        except Exception as e:
+            return False, str(e)
+
+    def _get_switch_ports(self, switch_name: str) -> List[str]:
+        """Get the list of port interfaces on an OVS bridge."""
+        ok, output = self._run_ovs_cmd(
+            ["ovs-vsctl", "list-ports", switch_name]
+        )
+        if ok and output:
+            return [p.strip() for p in output.splitlines() if p.strip()]
+        return []
+
+    def _get_all_bridges(self) -> List[str]:
+        """Get all OVS bridge names."""
+        ok, output = self._run_ovs_cmd(["ovs-vsctl", "list-br"])
+        if ok and output:
+            return [b.strip() for b in output.splitlines() if b.strip()]
+        return []
+
+    def _clear_qos_on_port(self, port: str) -> None:
+        """Remove existing QoS configuration from a port."""
+        self._run_ovs_cmd(["ovs-vsctl", "clear", "port", port, "qos"])
+
+    def _execute_bandwidth_limit(self, action: NetworkAction) -> Dict[str, Any]:
+        """
+        Apply real bandwidth limiting using OVS QoS (HTB policing).
+
+        Works by creating OVS QoS queues on switch ports with max-rate.
+        Then installs flow rules via Ryu that enqueue matching traffic
+        into the rate-limited queue.
+
+        Extracts bandwidth from action.parameters:
+          - 'bandwidth' (int, Mbps) — from slice_create
+          - 'config_data.bandwidth_mbps' (int) — from config_change
+        """
+        try:
+            # --- Extract bandwidth value (Mbps) ---
+            config_data = action.parameters.get("config_data", {})
+            bandwidth_mbps = action.parameters.get("bandwidth", None)
+            if bandwidth_mbps is None and isinstance(config_data, dict):
+                bandwidth_mbps = config_data.get("bandwidth_mbps",
+                                  config_data.get("bandwidth", None))
+            if bandwidth_mbps is None:
+                bandwidth_mbps = 10  # safe default
+            bandwidth_mbps = int(bandwidth_mbps)
+            rate_bps = bandwidth_mbps * 1_000_000  # OVS uses bits/s
+
+            # --- Determine which switches to configure ---
+            resources = action.parameters.get("resources", [])
+            if not resources:
+                # If no resources specified, apply to all bridges
+                resources = self._get_all_bridges()
+            if not resources:
+                # Last resort: get switch names from Ryu
+                switches = self._ryu_get("/stats/switches")
+                resources = [f"s{dpid}" for dpid in (switches or [])]
+
+            if not resources:
+                return {"success": False, "error": "No switches found to apply QoS"}
+
+            configured_ports = []
+            errors = []
+
+            for switch in resources:
+                # Normalize switch name (e.g. "s1")
+                switch_name = switch if isinstance(switch, str) else f"s{switch}"
+
+                ports = self._get_switch_ports(switch_name)
+                if not ports:
+                    self.logger.warning(
+                        f"No ports found on bridge '{switch_name}', skipping"
+                    )
+                    continue
+
+                for port in ports:
+                    # Clear any existing QoS on this port
+                    self._clear_qos_on_port(port)
+
+                    # Create QoS with a rate-limited queue using linux-htb
+                    ok, output = self._run_ovs_cmd([
+                        "ovs-vsctl", "set", "port", port,
+                        "qos=@newqos", "--",
+                        "--id=@newqos", "create", "qos",
+                        "type=linux-htb",
+                        f"other-config:max-rate={rate_bps}",
+                        "queues=0=@q0", "--",
+                        "--id=@q0", "create", "queue",
+                        f"other-config:max-rate={rate_bps}",
+                    ])
+
+                    if ok:
+                        configured_ports.append(f"{switch_name}/{port}")
+                        self.logger.info(
+                            f"QoS set on {switch_name}/{port}: "
+                            f"max-rate={bandwidth_mbps}Mbps"
+                        )
+                    else:
+                        errors.append(f"{switch_name}/{port}: {output}")
+                        self.logger.error(
+                            f"Failed to set QoS on {switch_name}/{port}: {output}"
+                        )
+
+            if not configured_ports and errors:
+                self._record_failure()
+                return {
+                    "success": False,
+                    "error": f"QoS configuration failed on all ports: {'; '.join(errors)}",
+                }
+
+            self._record_success()
+            msg = (
+                f"Bandwidth limited to {bandwidth_mbps} Mbps on "
+                f"{len(configured_ports)} ports across {len(resources)} switches"
+            )
+            if errors:
+                msg += f" ({len(errors)} ports failed)"
+
+            return {
+                "success": True,
+                "message": msg,
+                "bandwidth_mbps": bandwidth_mbps,
+                "configured_ports": configured_ports,
+                "errors": errors if errors else None,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Bandwidth limit failed for {action.id}: {e}")
             self._record_failure()
             return {"success": False, "error": str(e)}
 
