@@ -270,6 +270,20 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
             elif any('slice' in t for t in targets) or 'slice' in raw:
                 slice_name = next((t for t in targets if 'slice' in t), f"slice_{intent_obj.id}")
                 switch_target = _find_switch_target(resources, network_state)
+
+                # Extract source/destination hosts from resources list
+                host_resources = [r for r in (resources or []) if _re.match(r'^h\d+$', str(r), _re.IGNORECASE)]
+                src_host = host_resources[0] if len(host_resources) >= 1 else None
+                dst_host = host_resources[1] if len(host_resources) >= 2 else None
+
+                slice_config_data = {
+                    "bandwidth_mbps": params.get('bandwidth', 100),
+                }
+                if src_host:
+                    slice_config_data["src_host"] = src_host
+                if dst_host:
+                    slice_config_data["dst_host"] = dst_host
+
                 actions.append(LLMAction(
                     id=f"act_{intent_obj.id}_slice",
                     type=ActionType.SLICE_CREATE,
@@ -278,10 +292,12 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                         "slice_name": slice_name,
                         "resources": resources if resources else ["network"],
                         "bandwidth": params.get('bandwidth', 100),
+                        "config_data": slice_config_data,
                     },
                     priority=1000,
                     timeout=30,
-                    description=f"Create slice '{slice_name}'",
+                    description=f"Create slice '{slice_name}'"
+                        + (f" between {src_host} and {dst_host}" if src_host and dst_host else ""),
                 ))
 
             # Generico config
