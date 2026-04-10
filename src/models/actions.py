@@ -12,6 +12,8 @@ class ActionType(str, Enum):
     FLOW_MOD = "flow_mod"
     SLICE_CREATE = "slice_create"
     SLICE_MODIFY = "slice_modify"
+    SLICE_DELETE = "slice_delete"
+    LOAD_BALANCE = "load_balance"
     CONFIG_CHANGE = "config_change"
 
 

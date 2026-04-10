@@ -181,6 +181,12 @@ class ActionProcessor:
                 result = self._execute_flow_mod(action)
             elif action.type == ActionType.SLICE_CREATE:
                 result = self._execute_slice_create(action)
+            elif action.type == ActionType.SLICE_MODIFY:
+                result = self._execute_slice_modify(action)
+            elif action.type == ActionType.SLICE_DELETE:
+                result = self._execute_slice_delete(action)
+            elif action.type == ActionType.LOAD_BALANCE:
+                result = self._execute_load_balance(action)
             elif action.type == ActionType.CONFIG_CHANGE:
                 result = self._execute_config_change(action)
             else:
@@ -243,6 +249,21 @@ class ActionProcessor:
         """Execute slice creation action via Ryu REST API."""
         self.logger.debug(f"Executing slice_create for action {action.id}")
         return self.comnetsemu_connector.execute_slice_create(action)
+    
+    def _execute_slice_modify(self, action: NetworkAction) -> Dict[str, Any]:
+        """Execute slice modification action via Ryu REST API."""
+        self.logger.debug(f"Executing slice_modify for action {action.id}")
+        return self.comnetsemu_connector.execute_slice_modify(action)
+    
+    def _execute_slice_delete(self, action: NetworkAction) -> Dict[str, Any]:
+        """Execute slice deletion action via Ryu REST API."""
+        self.logger.debug(f"Executing slice_delete for action {action.id}")
+        return self.comnetsemu_connector.execute_slice_delete(action)
+    
+    def _execute_load_balance(self, action: NetworkAction) -> Dict[str, Any]:
+        """Execute load balancing action via Ryu REST API."""
+        self.logger.debug(f"Executing load_balance for action {action.id}")
+        return self.comnetsemu_connector.execute_load_balance(action)
     
     def _execute_config_change(self, action: NetworkAction) -> Dict[str, Any]:
         """Execute configuration change action via Ryu REST API."""

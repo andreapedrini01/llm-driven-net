@@ -847,6 +847,309 @@ class ComnetsEMUConnector:
             return {"success": False, "error": str(e)}
 
     # ------------------------------------------------------------------ #
+    #  SLICE_DELETE — remove a network slice (meters + flow rules)         #
+    # ------------------------------------------------------------------ #
+
+    def execute_slice_delete(self, action: NetworkAction) -> Dict[str, Any]:
+        """
+        Delete a network slice by removing its metered flow rules and meters.
+        Identifies the slice by src_host/dst_host or by parsing host names
+        from the slice_name / description fields.
+        """
+        try:
+            import re
+
+            config_data = action.parameters.get("config_data", {})
+            src_host = config_data.get("src_host") if isinstance(config_data, dict) else None
+            dst_host = config_data.get("dst_host") if isinstance(config_data, dict) else None
+
+            # Fallback: parse host names from text fields
+            if not src_host or not dst_host:
+                text_sources = [
+                    action.parameters.get("slice_name", ""),
+                    action.description or "",
+                    str(action.parameters),
+                ]
+                host_matches = re.findall(r'\bh(\d+)\b', " ".join(text_sources), re.IGNORECASE)
+                seen = set()
+                unique_hosts = []
+                for h in host_matches:
+                    if h not in seen:
+                        seen.add(h)
+                        unique_hosts.append(f"h{h}")
+                if len(unique_hosts) >= 2:
+                    src_host = src_host or unique_hosts[0]
+                    dst_host = dst_host or unique_hosts[1]
+
+            src_ip = self._resolve_host_ip(src_host) if src_host else None
+            dst_ip = self._resolve_host_ip(dst_host) if dst_host else None
+
+            if not src_ip or not dst_ip:
+                return {
+                    "success": False,
+                    "error": "Cannot determine slice hosts — provide src_host and dst_host",
+                }
+
+            all_switches = self._ryu_get("/stats/switches") or []
+            flows_removed = []
+            meters_removed = []
+            errors = []
+
+            for dpid in all_switches:
+                try:
+                    flows_resp = self._ryu_get(f"/stats/flow/{dpid}")
+                    flows = flows_resp.get(str(dpid), []) if isinstance(flows_resp, dict) else []
+
+                    for flow in flows:
+                        match = flow.get("match", {})
+                        nw_src = match.get("nw_src")
+                        nw_dst = match.get("nw_dst")
+
+                        is_fwd = (nw_src == src_ip and nw_dst == dst_ip)
+                        is_rev = (nw_src == dst_ip and nw_dst == src_ip)
+
+                        if is_fwd or is_rev:
+                            # Check if this flow uses a meter
+                            actions_list = flow.get("actions", [])
+                            meter_id = None
+                            for act in actions_list:
+                                if isinstance(act, str) and act.startswith("METER:"):
+                                    try:
+                                        meter_id = int(act.split(":")[1])
+                                    except (ValueError, IndexError):
+                                        pass
+
+                            # Delete the flow rule
+                            del_body = {
+                                "dpid": dpid,
+                                "priority": flow.get("priority", 2000),
+                                "match": match,
+                            }
+                            self._ryu_post("/stats/flowentry/delete_strict", del_body)
+                            flows_removed.append(f"dpid={dpid} {nw_src}->{nw_dst}")
+
+                            # Delete the associated meter
+                            if meter_id and meter_id not in [m[1] for m in meters_removed]:
+                                meter_del = {"dpid": dpid, "meter_id": meter_id}
+                                try:
+                                    self._ryu_post("/stats/meterentry/delete", meter_del)
+                                    meters_removed.append((dpid, meter_id))
+                                except Exception as me:
+                                    self.logger.warning(
+                                        f"Failed to delete meter {meter_id} on dpid={dpid}: {me}"
+                                    )
+
+                except Exception as e:
+                    errors.append(f"dpid={dpid}: {e}")
+
+            if not flows_removed:
+                self._record_failure()
+                return {
+                    "success": False,
+                    "error": f"No slice flow rules found between {src_ip} and {dst_ip}",
+                }
+
+            self._record_success()
+            return {
+                "success": True,
+                "message": (
+                    f"Slice deleted: removed {len(flows_removed)} flow rules "
+                    f"and {len(meters_removed)} meters between {src_ip} and {dst_ip}"
+                ),
+                "flows_removed": flows_removed,
+                "meters_removed": [(d, m) for d, m in meters_removed],
+                "errors": errors if errors else None,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Slice delete failed for {action.id}: {e}")
+            self._record_failure()
+            return {"success": False, "error": str(e)}
+
+    # ------------------------------------------------------------------ #
+    #  SLICE_MODIFY — modify bandwidth of an existing slice               #
+    # ------------------------------------------------------------------ #
+
+    def execute_slice_modify(self, action: NetworkAction) -> Dict[str, Any]:
+        """
+        Modify an existing network slice by deleting old meters/flows
+        and reinstalling them with the new bandwidth.
+        """
+        try:
+            # Step 1: Delete the existing slice
+            del_result = self.execute_slice_delete(action)
+            if not del_result.get("success"):
+                self.logger.info(
+                    "No existing slice to modify — creating new slice instead"
+                )
+
+            # Step 2: Recreate with new bandwidth
+            return self._execute_bandwidth_limit(action)
+
+        except Exception as e:
+            self.logger.error(f"Slice modify failed for {action.id}: {e}")
+            self._record_failure()
+            return {"success": False, "error": str(e)}
+
+    # ------------------------------------------------------------------ #
+    #  LOAD_BALANCE — distribute traffic across multiple hosts             #
+    # ------------------------------------------------------------------ #
+
+    def execute_load_balance(self, action: NetworkAction) -> Dict[str, Any]:
+        """
+        Implement load balancing using OpenFlow group tables (SELECT type).
+
+        Distributes traffic destined to a virtual IP across multiple backend
+        hosts using round-robin selection at the switch level.
+
+        Parameters expected in action.parameters:
+            - backends: list of host names (e.g. ["h1", "h2", "h3"])
+            - virtual_ip: optional virtual IP for the service
+            - config_data: dict with dst_hosts, virtual_ip
+        """
+        try:
+            import re
+
+            config_data = action.parameters.get("config_data", {})
+            backends = action.parameters.get("backends", [])
+            virtual_ip = action.parameters.get("virtual_ip")
+
+            if isinstance(config_data, dict):
+                if not backends:
+                    backends = config_data.get("dst_hosts", config_data.get("backends", []))
+                if not virtual_ip:
+                    virtual_ip = config_data.get("virtual_ip")
+
+            # Fallback: parse host names from text fields
+            if not backends:
+                text_sources = [
+                    action.description or "",
+                    str(action.parameters),
+                ]
+                host_matches = re.findall(r'\bh(\d+)\b', " ".join(text_sources), re.IGNORECASE)
+                seen = set()
+                for h in host_matches:
+                    if h not in seen:
+                        seen.add(h)
+                        backends.append(f"h{h}")
+
+            if len(backends) < 2:
+                return {
+                    "success": False,
+                    "error": "Load balancing requires at least 2 backend hosts",
+                }
+
+            # Resolve backend IPs
+            backend_ips = []
+            for host in backends:
+                ip = self._resolve_host_ip(host)
+                if ip:
+                    backend_ips.append({"host": host, "ip": ip})
+                else:
+                    self.logger.warning(f"Cannot resolve IP for backend host {host}")
+
+            if len(backend_ips) < 2:
+                return {
+                    "success": False,
+                    "error": f"Could only resolve {len(backend_ips)} backend IPs, need at least 2",
+                }
+
+            # If no virtual IP, use 10.0.0.100 as default
+            if not virtual_ip:
+                virtual_ip = "10.0.0.100"
+
+            all_switches = self._ryu_get("/stats/switches") or []
+            if not all_switches:
+                return {"success": False, "error": "No switches available"}
+
+            # Find the switch(es) to install the group on
+            target_dpids = set()
+            for b in backend_ips:
+                dpid = self._host_name_to_dpid(b["host"], all_switches)
+                if dpid is not None:
+                    target_dpids.add(dpid)
+
+            if not target_dpids:
+                target_dpids = {all_switches[0]}
+
+            group_id = abs(hash(virtual_ip)) % 65000 + 1
+            groups_ok = []
+            flows_ok = []
+            errors = []
+
+            for dpid in target_dpids:
+                # Step 1: Install SELECT group table with equal-weight buckets
+                buckets = []
+                for b in backend_ips:
+                    buckets.append({
+                        "weight": 1,
+                        "actions": [
+                            {"type": "SET_FIELD", "field": "ipv4_dst", "value": b["ip"]},
+                            {"type": "OUTPUT", "port": "NORMAL"},
+                        ],
+                    })
+
+                group_body = {
+                    "dpid": dpid,
+                    "type": "SELECT",
+                    "group_id": group_id,
+                    "buckets": buckets,
+                }
+
+                try:
+                    # Try modify first (in case group already exists)
+                    self._ryu_post("/stats/groupentry/modify", group_body)
+                    groups_ok.append(dpid)
+                except Exception:
+                    try:
+                        self._ryu_post("/stats/groupentry/add", group_body)
+                        groups_ok.append(dpid)
+                    except Exception as e:
+                        errors.append(f"dpid={dpid}: group install failed: {e}")
+                        continue
+
+                # Step 2: Flow rule to redirect virtual IP traffic to group table
+                flow_body = {
+                    "dpid": dpid,
+                    "priority": 3000,
+                    "match": {"dl_type": 2048, "nw_dst": virtual_ip},
+                    "actions": [{"type": "GROUP", "group_id": group_id}],
+                }
+                try:
+                    self._ryu_post("/stats/flowentry/add", flow_body)
+                    flows_ok.append(f"dpid={dpid} vip={virtual_ip}")
+                except Exception as e:
+                    errors.append(f"dpid={dpid}: flow install failed: {e}")
+
+            if not groups_ok:
+                self._record_failure()
+                return {
+                    "success": False,
+                    "error": f"Group table installation failed on all switches. Errors: {'; '.join(errors)}",
+                }
+
+            self._record_success()
+            backend_str = ", ".join(f"{b['host']}({b['ip']})" for b in backend_ips)
+            return {
+                "success": True,
+                "message": (
+                    f"Load balancing configured: virtual_ip={virtual_ip} -> "
+                    f"[{backend_str}] on {len(groups_ok)} switch(es)"
+                ),
+                "virtual_ip": virtual_ip,
+                "backends": backend_ips,
+                "group_id": group_id,
+                "groups_installed": groups_ok,
+                "flows_installed": flows_ok,
+                "errors": errors if errors else None,
+            }
+
+        except Exception as e:
+            self.logger.error(f"Load balance failed for {action.id}: {e}")
+            self._record_failure()
+            return {"success": False, "error": str(e)}
+
+    # ------------------------------------------------------------------ #
     #  Topology change (legacy interface)                                  #
     # ------------------------------------------------------------------ #
 

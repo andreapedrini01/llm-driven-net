@@ -220,6 +220,133 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
         ))
         return actions
 
+    # ── Pattern: load balance traffic across hosts ──
+    lb_match = _re.search(
+        r'\b(?:load[- ]?balanc|distribute|spread|balance)\b',
+        raw
+    )
+    if lb_match:
+        # Extract all host names from resources or raw text
+        host_resources = [r for r in (resources or []) if _re.match(r'^h\d+$', str(r), _re.IGNORECASE)]
+        if len(host_resources) < 2:
+            # Try to parse from raw text
+            raw_hosts = _re.findall(r'\bh(\d+)\b', raw, _re.IGNORECASE)
+            seen = set()
+            for h in raw_hosts:
+                if h not in seen:
+                    seen.add(h)
+                    if f"h{h}" not in host_resources:
+                        host_resources.append(f"h{h}")
+
+        # Extract virtual IP if specified
+        vip_match = _re.search(r'(?:virtual[- ]?ip|vip)[:\s]*([\d.]+)', raw)
+        virtual_ip = vip_match.group(1) if vip_match else None
+
+        switch_target = _find_switch_target(resources, network_state)
+        lb_config = {"dst_hosts": host_resources}
+        if virtual_ip:
+            lb_config["virtual_ip"] = virtual_ip
+
+        actions.append(LLMAction(
+            id=f"act_{intent_obj.id}_lb",
+            type=ActionType.LOAD_BALANCE,
+            target=switch_target,
+            parameters={
+                "backends": host_resources,
+                "virtual_ip": virtual_ip,
+                "config_data": lb_config,
+            },
+            priority=3000,
+            timeout=30,
+            description=f"Load balance traffic across {', '.join(host_resources)}"
+                + (f" (vip={virtual_ip})" if virtual_ip else ""),
+        ))
+        return actions
+
+    # ── Pattern: delete/remove slice ──
+    slice_del_match = _re.search(
+        r'\b(?:delete|remove|destroy|drop)\b.*\bslice\b|\bslice\b.*\b(?:delete|remove|destroy|drop)\b',
+        raw
+    )
+    if slice_del_match:
+        host_resources = [r for r in (resources or []) if _re.match(r'^h\d+$', str(r), _re.IGNORECASE)]
+        if len(host_resources) < 2:
+            raw_hosts = _re.findall(r'\bh(\d+)\b', raw, _re.IGNORECASE)
+            seen = set()
+            for h in raw_hosts:
+                if h not in seen:
+                    seen.add(h)
+                    if f"h{h}" not in host_resources:
+                        host_resources.append(f"h{h}")
+
+        src_host = host_resources[0] if len(host_resources) >= 1 else None
+        dst_host = host_resources[1] if len(host_resources) >= 2 else None
+        switch_target = _find_switch_target(resources, network_state)
+
+        del_config = {}
+        if src_host:
+            del_config["src_host"] = src_host
+        if dst_host:
+            del_config["dst_host"] = dst_host
+
+        actions.append(LLMAction(
+            id=f"act_{intent_obj.id}_slice_del",
+            type=ActionType.SLICE_DELETE,
+            target=switch_target,
+            parameters={
+                "config_data": del_config,
+            },
+            priority=1000,
+            timeout=30,
+            description=f"Delete slice"
+                + (f" between {src_host} and {dst_host}" if src_host and dst_host else ""),
+        ))
+        return actions
+
+    # ── Pattern: modify slice bandwidth ──
+    slice_mod_match = _re.search(
+        r'\b(?:modify|change|update|resize|adjust)\b.*\bslice\b|\bslice\b.*\b(?:modify|change|update|resize|adjust)\b',
+        raw
+    )
+    if slice_mod_match:
+        host_resources = [r for r in (resources or []) if _re.match(r'^h\d+$', str(r), _re.IGNORECASE)]
+        if len(host_resources) < 2:
+            raw_hosts = _re.findall(r'\bh(\d+)\b', raw, _re.IGNORECASE)
+            seen = set()
+            for h in raw_hosts:
+                if h not in seen:
+                    seen.add(h)
+                    if f"h{h}" not in host_resources:
+                        host_resources.append(f"h{h}")
+
+        src_host = host_resources[0] if len(host_resources) >= 1 else None
+        dst_host = host_resources[1] if len(host_resources) >= 2 else None
+        switch_target = _find_switch_target(resources, network_state)
+
+        mod_config = {
+            "bandwidth_mbps": params.get('bandwidth', 100),
+        }
+        if src_host:
+            mod_config["src_host"] = src_host
+        if dst_host:
+            mod_config["dst_host"] = dst_host
+
+        actions.append(LLMAction(
+            id=f"act_{intent_obj.id}_slice_mod",
+            type=ActionType.SLICE_MODIFY,
+            target=switch_target,
+            parameters={
+                "bandwidth": params.get('bandwidth', 100),
+                "config_data": mod_config,
+            },
+            priority=1000,
+            timeout=30,
+            description=f"Modify slice"
+                + (f" between {src_host} and {dst_host}" if src_host and dst_host else "")
+                + f" to {params.get('bandwidth', 100)} Mbps",
+        ))
+        return actions
+
     # ── CONFIGURATION intents ──
     if intent_type == IntentType.CONFIGURATION:
 
@@ -319,8 +446,30 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
         # --- Remove / delete ---
         elif any(w in action_words for w in ['remove', 'delete']):
             switch_target = _find_switch_target(resources, network_state)
-            # Se si parla di flow/rule → delete flow entry
-            if any('flow' in t or 'rule' in t for t in targets) or 'flow' in raw:
+
+            # Delete slice
+            if any('slice' in t for t in targets) or 'slice' in raw:
+                host_resources = [r for r in (resources or []) if _re.match(r'^h\d+$', str(r), _re.IGNORECASE)]
+                src_host = host_resources[0] if len(host_resources) >= 1 else None
+                dst_host = host_resources[1] if len(host_resources) >= 2 else None
+                del_config = {}
+                if src_host:
+                    del_config["src_host"] = src_host
+                if dst_host:
+                    del_config["dst_host"] = dst_host
+                actions.append(LLMAction(
+                    id=f"act_{intent_obj.id}_slice_del",
+                    type=ActionType.SLICE_DELETE,
+                    target=switch_target,
+                    parameters={"config_data": del_config},
+                    priority=1000,
+                    timeout=30,
+                    description=f"Delete slice"
+                        + (f" between {src_host} and {dst_host}" if src_host and dst_host else ""),
+                ))
+
+            # Delete flow rules
+            elif any('flow' in t or 'rule' in t for t in targets) or 'flow' in raw:
                 actions.append(LLMAction(
                     id=f"act_{intent_obj.id}_delflow",
                     type=ActionType.FLOW_MOD,
