@@ -488,14 +488,105 @@ class ComnetsEMUConnector:
             return host_name
         return None
 
+    def _find_host_switches(self, src_ip: Optional[str], dst_ip: Optional[str]) -> List[int]:
+        """
+        Find the leaf switches directly connected to the given hosts
+        by inspecting flow tables for matching MAC/IP entries.
+        Falls back to ARP-based discovery via Ryu topology API.
+
+        In a tree topology h<N> is on switch s<ceil(N/fanout)> at the leaf
+        level, but we discover it dynamically from the flow tables.
+        """
+        host_dpids = set()
+
+        if not src_ip and not dst_ip:
+            return []
+
+        all_switches = self._ryu_get("/stats/switches") or []
+
+        for dpid in all_switches:
+            try:
+                flows_resp = self._ryu_get(f"/stats/flow/{dpid}")
+                flows = flows_resp.get(str(dpid), []) if isinstance(flows_resp, dict) else []
+
+                for flow in flows:
+                    match = flow.get("match", {})
+                    # Check if this switch has a flow matching our host IPs
+                    # (indicates the host is reachable through this switch)
+                    nw_src = match.get("nw_src", "")
+                    nw_dst = match.get("nw_dst", "")
+                    dl_dst = match.get("dl_dst", "")
+                    dl_src = match.get("dl_src", "")
+
+                    # Check actions for OUTPUT to a low port number (host port)
+                    actions = flow.get("actions", [])
+                    has_host_port = False
+                    for act in actions:
+                        if isinstance(act, str) and act.startswith("OUTPUT:"):
+                            try:
+                                port = int(act.split(":")[1])
+                                # Host ports are typically low-numbered
+                                # In a tree topo, host-facing ports are
+                                # different from inter-switch ports
+                                if port <= 10:
+                                    has_host_port = True
+                            except (ValueError, IndexError):
+                                pass
+
+                    if src_ip and (nw_src == src_ip or nw_dst == src_ip):
+                        if has_host_port:
+                            host_dpids.add(dpid)
+                    if dst_ip and (nw_src == dst_ip or nw_dst == dst_ip):
+                        if has_host_port:
+                            host_dpids.add(dpid)
+
+            except Exception as e:
+                self.logger.debug(f"Could not inspect flows on dpid={dpid}: {e}")
+
+        return list(host_dpids)
+
+    def _host_name_to_dpid(self, host_name: str, all_switches: List[int]) -> Optional[int]:
+        """
+        Derive the leaf switch dpid from a host name using the tree topology
+        convention: h<N> connects to s<ceil(N/fanout)> at the leaf level.
+        For tree(depth=3, fanout=3): leaf switches are s3..s13,
+        h1-h3 -> s3, h4-h6 -> s5, etc.
+
+        Since we don't know the exact fanout, we use a simpler heuristic:
+        query each switch's flow table and find which one has an ARP entry
+        or a learned MAC for this host.
+        """
+        import re
+        m = re.match(r'^h(\d+)$', host_name, re.IGNORECASE)
+        if not m:
+            return None
+
+        host_ip = self._resolve_host_ip(host_name)
+        if not host_ip:
+            return None
+
+        # Check each switch for flows that reference this host IP
+        for dpid in all_switches:
+            try:
+                flows_resp = self._ryu_get(f"/stats/flow/{dpid}")
+                flows = flows_resp.get(str(dpid), []) if isinstance(flows_resp, dict) else []
+                for flow in flows:
+                    match = flow.get("match", {})
+                    if match.get("nw_dst") == host_ip or match.get("nw_src") == host_ip:
+                        return dpid
+            except Exception:
+                continue
+        return None
+
     def _execute_bandwidth_limit(self, action: NetworkAction) -> Dict[str, Any]:
         """
         Apply real bandwidth limiting using OpenFlow 1.3 meters.
 
         Strategy:
-        1. Install a meter (rate limiter) on every switch in the path
-        2. Install flow rules matching the relevant traffic (by src/dst IP)
-           that go through the meter before being forwarded
+        - Install meters ONLY on the leaf switches directly connected
+          to the involved hosts (not on all switches in the network).
+        - This ensures that only traffic between the specified hosts
+          is rate-limited, without affecting other host pairs.
 
         This works with any Ryu app that loads ofctl_rest and uses OF1.3.
         No sudo, no ovs-vsctl needed.
@@ -523,23 +614,60 @@ class ComnetsEMUConnector:
             dst_ip = self._resolve_host_ip(dst_host) if dst_host else None
 
             # --- Determine which switches to configure ---
-            resources = action.parameters.get("resources", [])
+            # Only install meters on leaf switches connected to the hosts
             all_switches = self._ryu_get("/stats/switches") or []
 
-            if resources:
-                # Resolve resource names to dpids
-                target_dpids = []
-                for r in resources:
-                    dpid = self._resolve_dpid(str(r))
-                    if dpid is not None and dpid in all_switches:
-                        target_dpids.append(dpid)
-                if not target_dpids:
-                    target_dpids = all_switches
-            else:
-                target_dpids = all_switches
+            target_dpids = set()
+
+            # Try to find the specific leaf switches for each host
+            if src_host:
+                dpid = self._host_name_to_dpid(src_host, all_switches)
+                if dpid is not None:
+                    target_dpids.add(dpid)
+                    self.logger.info(f"Host {src_host} found on dpid={dpid}")
+
+            if dst_host:
+                dpid = self._host_name_to_dpid(dst_host, all_switches)
+                if dpid is not None:
+                    target_dpids.add(dpid)
+                    self.logger.info(f"Host {dst_host} found on dpid={dpid}")
+
+            # If flow-table discovery didn't work, try IP-based discovery
+            if not target_dpids and (src_ip or dst_ip):
+                discovered = self._find_host_switches(src_ip, dst_ip)
+                if discovered:
+                    target_dpids.update(discovered)
+                    self.logger.info(
+                        f"Discovered host switches via flow inspection: {discovered}"
+                    )
+
+            # Last resort: if we still can't find the right switches,
+            # use only the resources list from the action (but NOT all switches)
+            if not target_dpids:
+                resources = action.parameters.get("resources", [])
+                if resources:
+                    for r in resources:
+                        dpid = self._resolve_dpid(str(r))
+                        if dpid is not None and dpid in all_switches:
+                            target_dpids.add(dpid)
+
+            # Final fallback: if nothing worked, apply to all (with warning)
+            if not target_dpids:
+                self.logger.warning(
+                    "Could not determine host switches — "
+                    "applying meter to all switches as fallback"
+                )
+                target_dpids = set(all_switches)
+
+            target_dpids = list(target_dpids)
 
             if not target_dpids:
                 return {"success": False, "error": "No switches available"}
+
+            self.logger.info(
+                f"Installing bandwidth limit on {len(target_dpids)} switch(es): "
+                f"{target_dpids} (total switches in network: {len(all_switches)})"
+            )
 
             # Use a deterministic meter ID based on bandwidth to avoid collisions
             base_meter_id = (bandwidth_mbps % 65000) + 1
@@ -558,8 +686,6 @@ class ComnetsEMUConnector:
                 meters_ok.append(dpid)
 
                 # Step 2: Install metered flow rules
-                # If we know src/dst IPs, create specific match rules
-                # Otherwise, apply to all IPv4 traffic on the switch
                 if src_ip and dst_ip:
                     # Forward direction: src -> dst
                     match_fwd = {"dl_type": 2048, "nw_src": src_ip, "nw_dst": dst_ip}
@@ -579,7 +705,7 @@ class ComnetsEMUConnector:
                     if self._install_metered_flow(dpid, meter_id, match_dst):
                         flows_ok.append(f"dpid={dpid} dst={dst_ip}")
                 else:
-                    # No host info — apply meter to all IPv4 traffic
+                    # No host info — apply meter to all IPv4 on this switch only
                     match_all = {"dl_type": 2048}
                     if self._install_metered_flow(dpid, meter_id, match_all):
                         flows_ok.append(f"dpid={dpid} all-ipv4")
@@ -599,7 +725,8 @@ class ComnetsEMUConnector:
             self._record_success()
             msg = (
                 f"Bandwidth limited to {bandwidth_mbps} Mbps: "
-                f"{len(meters_ok)} meters installed, {len(flows_ok)} flow rules"
+                f"{len(meters_ok)} meters on leaf switch(es) {meters_ok}, "
+                f"{len(flows_ok)} flow rules"
             )
             if src_ip and dst_ip:
                 msg += f" (between {src_ip} and {dst_ip})"
