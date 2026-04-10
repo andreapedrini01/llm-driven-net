@@ -51,10 +51,17 @@ class NetworkAction(BaseModel):
             raise ValueError("Priority must be an integer between 0 and 65535")
         return v
 
-    @validator('timeout')
+    @validator('timeout', pre=True)
     def validate_timeout(cls, v):
-        """Validate timeout value."""
-        if not isinstance(v, int) or v < 1 or v > 3600:
+        """Validate timeout value. Coerces 0 or missing to default (30s)."""
+        if v is None or v == 0:
+            return 30  # default timeout
+        if not isinstance(v, int):
+            try:
+                v = int(v)
+            except (TypeError, ValueError):
+                raise ValueError("Timeout must be an integer between 1 and 3600 seconds")
+        if v < 0 or v > 3600:
             raise ValueError("Timeout must be an integer between 1 and 3600 seconds")
         return v
 

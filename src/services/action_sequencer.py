@@ -660,6 +660,11 @@ class ActionSequencer:
                 
                 # Convert to NetworkAction objects
                 for action_data in actions_data:
+                    if isinstance(action_data, dict):
+                        if 'timeout' not in action_data or action_data.get('timeout') in (0, None, ""):
+                            action_data['timeout'] = 30
+                        if isinstance(action_data.get('timeout'), (int, float)) and action_data['timeout'] < 0:
+                            action_data['timeout'] = 30
                     action = NetworkAction.model_validate(action_data)
                     actions.append(action)
             
@@ -678,6 +683,11 @@ class ActionSequencer:
                         actions_data = []
                     
                     for action_data in actions_data:
+                        if isinstance(action_data, dict):
+                            if 'timeout' not in action_data or action_data.get('timeout') in (0, None, ""):
+                                action_data['timeout'] = 30
+                            if isinstance(action_data.get('timeout'), (int, float)) and action_data['timeout'] < 0:
+                                action_data['timeout'] = 30
                         action = NetworkAction.model_validate(action_data)
                         actions.append(action)
         
@@ -742,6 +752,14 @@ class ActionSequencer:
 
             for action_data in actions_data:
                 try:
+                    # Sanitize common LLM output issues before validation
+                    if isinstance(action_data, dict):
+                        # Coerce timeout=0 or missing timeout to default
+                        if 'timeout' not in action_data or action_data.get('timeout') in (0, None, ""):
+                            action_data['timeout'] = 30
+                        # Coerce negative timeout to default
+                        if isinstance(action_data.get('timeout'), (int, float)) and action_data['timeout'] < 0:
+                            action_data['timeout'] = 30
                     actions.append(NetworkAction.model_validate(action_data))
                 except Exception as e:
                     self.logger.warning(f"Skipping invalid action entry: {e}")

@@ -144,8 +144,8 @@ class PromptEngineeringSystem:
                         "type": "string",
                         "target": "string",
                         "parameters": {},
-                        "priority": "int",
-                        "timeout": "int",
+                        "priority": "int (0-65535)",
+                        "timeout": "int (seconds, MUST be between 1 and 3600, default 30)",
                         "description": "string"
                     }
                 ],
@@ -402,7 +402,7 @@ class PromptEngineeringSystem:
                             "_config_change_example": {"config_type": "qos", "config_data": {"policy": "priority_queuing"}}
                         },
                         "priority": "int (1-65535)",
-                        "timeout": "int (seconds)",
+                        "timeout": "int (seconds, MUST be between 1 and 3600, default 30)",
                         "description": "string"
                     }
                 ],
