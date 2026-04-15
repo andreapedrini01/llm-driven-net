@@ -1105,16 +1105,28 @@ class ComnetsEMUConnector:
                     "buckets": buckets,
                 }
 
+                self.logger.info(
+                    f"Installing group table on dpid={dpid}: "
+                    f"group_id={group_id}, buckets={len(buckets)}"
+                )
+
                 try:
-                    # Try modify first (in case group already exists)
-                    self._ryu_post("/stats/groupentry/modify", group_body)
+                    self._ryu_post("/stats/groupentry/add", group_body)
                     groups_ok.append(dpid)
-                except Exception:
+                    self.logger.info(f"Group {group_id} installed on dpid={dpid}")
+                except Exception as e1:
+                    self.logger.warning(
+                        f"Group add failed on dpid={dpid}: {e1}, trying modify..."
+                    )
                     try:
-                        self._ryu_post("/stats/groupentry/add", group_body)
+                        self._ryu_post("/stats/groupentry/modify", group_body)
                         groups_ok.append(dpid)
-                    except Exception as e:
-                        errors.append(f"dpid={dpid}: group install failed: {e}")
+                        self.logger.info(f"Group {group_id} modified on dpid={dpid}")
+                    except Exception as e2:
+                        self.logger.error(
+                            f"Group install failed on dpid={dpid}: add={e1}, modify={e2}"
+                        )
+                        errors.append(f"dpid={dpid}: group install failed: add={e1}, modify={e2}")
                         continue
 
                 # Step 2: Flow rule to redirect virtual IP traffic to group table
