@@ -35,14 +35,14 @@ class SecurityAnalyzer:
         """
         prompt = self._build_prompt(security_snapshot)
         try:
-            # Gestisce sia il caso con event loop già attivo che senza
+            # Handle both cases: running event loop and no event loop (Python 3.8+)
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
                 loop = None
 
             if loop and loop.is_running():
-                # Event loop già attivo: crea un nuovo loop in un thread separato
+                # Event loop already running: run in a separate thread
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     response = pool.submit(
@@ -53,14 +53,20 @@ class SecurityAnalyzer:
                         )
                     ).result()
             else:
-                response = asyncio.run(
-                    self.chatgpt_client.generate_response(
-                        prompt=prompt,
-                        system_message=SYSTEM_MESSAGE
+                # No running loop — create one explicitly for Python 3.8 compatibility
+                _loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(_loop)
+                try:
+                    response = _loop.run_until_complete(
+                        self.chatgpt_client.generate_response(
+                            prompt=prompt,
+                            system_message=SYSTEM_MESSAGE
+                        )
                     )
-                )
+                finally:
+                    _loop.close()
         except Exception as e:
-            logger.error("Errore chiamata ChatGPTClient: %s", e)
+            logger.error("ChatGPTClient call error: %s", e)
             raise
 
         snapshot_timestamp = security_snapshot.snapshot.timestamp
@@ -178,7 +184,7 @@ class SecurityAnalyzer:
                     raw_response=None,
                 )
         except (json.JSONDecodeError, KeyError) as e:
-            logger.error("Impossibile parsare la risposta LLM come JSON: %s", e)
+            logger.error("Failed to parse LLM response as JSON: %s", e)
 
         return SecurityReport(
             vulnerabilities=[],

@@ -172,7 +172,7 @@ class NetworkStateCollector:
                     try:
                         self._run_security_scan(snapshot, host_filter)
                     except Exception as e:
-                        self.logger.error(f"Errore durante la scansione di sicurezza: {e}")
+                        self.logger.error(f"Error during security scan: {e}")
 
                 # 9. Aggiornamento statistiche
                 collection_time = time.time() - start_time
@@ -328,40 +328,48 @@ class NetworkStateCollector:
         from src.services.security_analyzer import SecurityAnalyzer
         from src.services.chatgpt_client import ChatGPTClient
         from src.models.security import SecuritySnapshot
+        import asyncio
         import json
         from pathlib import Path
 
-        # 1. Determina gli IP da scansionare
+        # Ensure an event loop exists for Python 3.8 compatibility
+        # (asyncio.Lock() in ChatGPTClient.__init__ requires one)
+        try:
+            asyncio.get_event_loop()
+        except RuntimeError:
+            asyncio.set_event_loop(asyncio.new_event_loop())
+
+        # 1. Determine IPs to scan
         if host_filter:
             ip_list = resolve_host_filter(host_filter, snapshot)
         else:
             ip_list = extract_host_ips(snapshot)
 
         if not ip_list:
-            self.logger.warning("Nessun host trovato per la scansione di sicurezza")
+            self.logger.warning("No hosts found for security scan")
             return
 
-        # 2. Esegui la scansione nmap
+        # 2. Run nmap scan
         scanner = SecurityScanner()
         nmap_results = scanner.scan(ip_list)
 
-        # 3. Costruisci SecuritySnapshot
+        # 3. Build SecuritySnapshot
         security_snapshot = SecuritySnapshot(snapshot=snapshot, security_scan=nmap_results)
 
-        # 4. Analisi LLM
+        # 4. LLM analysis
         chatgpt_client = ChatGPTClient()
         analyzer = SecurityAnalyzer(chatgpt_client=chatgpt_client)
         report = analyzer.analyze(security_snapshot)
 
-        # 5. Salva il report
+        # 5. Save report
         security_dir = Path("data/security_history")
         security_dir.mkdir(parents=True, exist_ok=True)
         report_filename = f"security_report_{report.get_timestamp_iso().replace(':', '-')}.json"
         report_path = security_dir / report_filename
         report_path.write_text(report.to_json(), encoding="utf-8")
-        self.logger.info(f"Security report salvato in {report_path}")
+        self.logger.info(f"Security report saved to {report_path}")
 
-        # 6. Stampa il report formattato
+        # 6. Print formatted report
         print(self._format_security_report(report))
 
     def _format_security_report(self, report) -> str:
@@ -371,27 +379,27 @@ class NetworkStateCollector:
             f"Timestamp: {report.get_timestamp_iso()}",
             "=" * 60,
             "",
-            "Vulnerabilità Potenziali:",
+            "Potential Vulnerabilities:",
         ]
         if report.vulnerabilities:
             for v in report.vulnerabilities:
                 lines.append(f"  - {v}")
         else:
-            lines.append("  Nessuna vulnerabilità rilevata.")
+            lines.append("  No vulnerabilities detected.")
 
-        lines += ["", "Problemi di Configurazione:"]
+        lines += ["", "Configuration Issues:"]
         if report.configuration_issues:
             for c in report.configuration_issues:
                 lines.append(f"  - {c}")
         else:
-            lines.append("  Nessun problema di configurazione rilevato.")
+            lines.append("  No configuration issues detected.")
 
-        lines += ["", "Proprietà di Sicurezza da Verificare:"]
+        lines += ["", "Security Properties to Verify:"]
         if report.security_properties:
             for p in report.security_properties:
                 lines.append(f"  - {p}")
         else:
-            lines.append("  Nessuna proprietà da verificare.")
+            lines.append("  No properties to verify.")
 
         lines.append("=" * 60)
         return "\n".join(lines)
