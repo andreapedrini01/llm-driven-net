@@ -337,14 +337,14 @@ class ActionValidator:
         
         slice_name = action.parameters.get("slice_name")
         
-        # Validate slice name
-        if not slice_name or not isinstance(slice_name, str):
+        # Validate slice name (optional — slice can be identified by hosts)
+        if slice_name and not isinstance(slice_name, str):
             errors.append(f"Action {action.id}: Invalid slice name")
         
         # Check that at least one modification is specified
         has_modification = any(
             key in action.parameters
-            for key in ["resources", "policies", "sla"]
+            for key in ["resources", "policies", "sla", "bandwidth", "config_data"]
         )
         
         if not has_modification:
