@@ -918,14 +918,17 @@ class ComnetsEMUConnector:
                                         meter_id = int(act.split(":")[1])
                                     except (ValueError, IndexError):
                                         pass
+                                elif isinstance(act, dict) and act.get("type") == "METER":
+                                    meter_id = act.get("meter_id")
 
-                            # Delete the flow rule
+                            # Delete the flow rule using non-strict delete
                             del_body = {
                                 "dpid": dpid,
+                                "table_id": flow.get("table_id", 0),
                                 "priority": flow.get("priority", 2000),
                                 "match": match,
                             }
-                            self._ryu_post("/stats/flowentry/delete_strict", del_body)
+                            self._ryu_post("/stats/flowentry/delete", del_body)
                             flows_removed.append(f"dpid={dpid} {nw_src}->{nw_dst}")
 
                             # Delete the associated meter
@@ -978,7 +981,13 @@ class ComnetsEMUConnector:
         try:
             # Step 1: Delete the existing slice
             del_result = self.execute_slice_delete(action)
-            if not del_result.get("success"):
+            if del_result.get("success"):
+                self.logger.info(
+                    f"Old slice removed: {del_result.get('message')}"
+                )
+                # Give the switch time to process the deletions
+                time.sleep(0.5)
+            else:
                 self.logger.info(
                     "No existing slice to modify — creating new slice instead"
                 )
