@@ -721,7 +721,7 @@ class IntentParser:
         
         # Extract common networking parameters with context
         networking_params = {
-            'bandwidth': r'\b(\d+(?:\.\d+)?)\s*(?:mbps|gbps|kbps)\b',
+            'bandwidth': r'\bbandwidth\s+(\d+(?:\.\d+)?)\s*(?:[mkgt]?bps|[mkgt]?bits?/?s(?:ec)?)?\b|\b(?:at|to)\s+(\d+(?:\.\d+)?)\s*(?:[mkgt]?bps|[mkgt]?bits?/?s(?:ec)?)\b|\b(\d+(?:\.\d+)?)\s*(?:[mkgt]?bps|[mkgt]?bits?/?s(?:ec)?)\b',
             'latency': r'\b(\d+(?:\.\d+)?)\s*(?:ms|milliseconds?)\b',
             'priority': r'\bpriority\s+(\d+|high|medium|low|critical)\b',
             'vlan_id': r'\bvlan\s+(\d+)\b',
@@ -732,7 +732,10 @@ class IntentParser:
         for param_name, pattern in networking_params.items():
             matches = re.finditer(pattern, text, re.IGNORECASE)
             for match in matches:
-                value = match.group(1)
+                # Handle patterns with multiple capture groups (alternation)
+                value = next((g for g in match.groups() if g is not None), None)
+                if value is None:
+                    continue
                 # Convert to appropriate type
                 if value.isdigit():
                     value = int(value)
@@ -740,6 +743,28 @@ class IntentParser:
                     value = float(value)
                 
                 parameters[param_name] = value
+        
+        # Normalize bandwidth to Mbps based on unit
+        if 'bandwidth' in parameters:
+            bw_val = parameters['bandwidth']
+            # Find the unit from the original text
+            bw_unit_match = re.search(
+                r'(\d+(?:\.\d+)?)\s*([mkgt]?)(bps|bits?/?s(?:ec)?)',
+                text, re.IGNORECASE
+            )
+            if bw_unit_match:
+                prefix = bw_unit_match.group(2).lower()
+                raw_val = float(bw_val)
+                if prefix == 'k':
+                    parameters['bandwidth'] = raw_val / 1000
+                elif prefix == 'g':
+                    parameters['bandwidth'] = raw_val * 1000
+                elif prefix == 't':
+                    parameters['bandwidth'] = raw_val * 1000000
+                # 'm' or empty → already Mbps, no conversion
+            # Ensure integer if whole number
+            if isinstance(parameters['bandwidth'], float) and parameters['bandwidth'] == int(parameters['bandwidth']):
+                parameters['bandwidth'] = int(parameters['bandwidth'])
         
         return parameters
     
