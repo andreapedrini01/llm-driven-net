@@ -49,9 +49,17 @@ class ActionValidator:
                 "resource_fields": ["bandwidth", "switches", "paths"]
             },
             ActionType.SLICE_MODIFY: {
-                "required_params": ["slice_name"],
-                "optional_params": ["resources", "policies", "sla"],
+                "required_params": [],
+                "optional_params": ["slice_name", "resources", "policies", "sla", "bandwidth", "config_data"],
                 "resource_fields": ["bandwidth", "switches", "paths"]
+            },
+            ActionType.SLICE_DELETE: {
+                "required_params": [],
+                "optional_params": ["slice_name", "config_data"],
+            },
+            ActionType.LOAD_BALANCE: {
+                "required_params": [],
+                "optional_params": ["backends", "virtual_ip", "config_data"],
             },
             ActionType.CONFIG_CHANGE: {
                 "required_params": ["config_type", "config_data"],
@@ -168,6 +176,10 @@ class ActionValidator:
             errors.extend(slice_validation["errors"])
             warnings.extend(slice_validation["warnings"])
             suggestions.extend(slice_validation["suggestions"])
+        
+        elif action.type in (ActionType.SLICE_DELETE, ActionType.LOAD_BALANCE):
+            # Basic validation only — no special rules needed
+            pass
         
         elif action.type == ActionType.CONFIG_CHANGE:
             config_validation = self._validate_config_change(action, rules)
@@ -345,10 +357,15 @@ class ActionValidator:
         
         # Validate resources if provided (similar to slice_create)
         resources = action.parameters.get("resources")
-        if resources:
+        if resources and isinstance(resources, dict):
             bandwidth = resources.get("bandwidth")
             if bandwidth is not None and bandwidth <= 0:
                 errors.append(f"Action {action.id}: Invalid bandwidth value")
+        
+        # Also check bandwidth at top level
+        bandwidth = action.parameters.get("bandwidth")
+        if bandwidth is not None and isinstance(bandwidth, (int, float)) and bandwidth <= 0:
+            errors.append(f"Action {action.id}: Invalid bandwidth value")
         
         return {"errors": errors, "warnings": warnings, "suggestions": suggestions}
     

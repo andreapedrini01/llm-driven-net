@@ -762,7 +762,9 @@ def main():
                         # Check if rule-based produced only generic CONFIG_CHANGE actions
                         # (these are fallback placeholders that don't do anything useful)
                         has_specific_actions = any(
-                            a.type in (ActionType.FLOW_MOD, ActionType.SLICE_CREATE)
+                            a.type in (ActionType.FLOW_MOD, ActionType.SLICE_CREATE,
+                                       ActionType.SLICE_MODIFY, ActionType.SLICE_DELETE,
+                                       ActionType.LOAD_BALANCE)
                             or (a.type == ActionType.CONFIG_CHANGE
                                 and a.parameters.get("config_type") not in ("general", "anomaly_fix"))
                             for a in actions
