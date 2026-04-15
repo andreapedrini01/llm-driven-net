@@ -654,6 +654,64 @@ class RyuConnector:
             self.logger.error(error_msg)
             raise RyuConnectionError(error_msg) from e
     
+    def get_flow_stats(self, dpid: str) -> List[Dict[str, Any]]:
+        """
+        Retrieve flow table entries for a specific switch.
+
+        Calls Ryu REST API endpoint /stats/flow/<dpid>.
+
+        Args:
+            dpid: Switch DPID (hex string or int).
+
+        Returns:
+            List of flow entry dicts with match, actions, priority, counters, etc.
+        """
+        self.logger.debug(f"Fetching flow stats for switch {dpid}")
+
+        try:
+            if isinstance(dpid, int):
+                dpid_param = str(dpid)
+            else:
+                try:
+                    dpid_int = int(str(dpid), 16) if isinstance(dpid, str) and len(str(dpid)) > 2 else int(str(dpid))
+                    dpid_param = str(dpid_int)
+                except (ValueError, TypeError):
+                    dpid_param = str(dpid)
+
+            stats_data = self._make_request(f'/stats/flow/{dpid_param}')
+
+            if not isinstance(stats_data, dict) or dpid_param not in stats_data:
+                self.logger.debug(f"No flow stats found for switch {dpid}")
+                return []
+
+            flows = []
+            for flow_data in stats_data[dpid_param]:
+                try:
+                    flows.append({
+                        "dpid": dpid,
+                        "priority": int(flow_data.get("priority", 0)),
+                        "match": flow_data.get("match", {}),
+                        "actions": flow_data.get("actions", []),
+                        "idle_timeout": int(flow_data.get("idle_timeout", 0)),
+                        "hard_timeout": int(flow_data.get("hard_timeout", 0)),
+                        "byte_count": int(flow_data.get("byte_count", 0)),
+                        "packet_count": int(flow_data.get("packet_count", 0)),
+                        "table_id": int(flow_data.get("table_id", 0)),
+                    })
+                except Exception as e:
+                    self.logger.warning(f"Error processing flow entry for switch {dpid}: {e}")
+                    continue
+
+            self.logger.debug(f"Retrieved {len(flows)} flow entries for switch {dpid}")
+            return flows
+
+        except (RyuConnectionError, RyuTimeoutError, RyuDataError):
+            raise
+        except Exception as e:
+            error_msg = f"Unexpected error getting flow stats for switch {dpid}: {e}"
+            self.logger.error(error_msg)
+            raise RyuConnectionError(error_msg) from e
+
     def is_healthy(self) -> bool:
         """
         Verifica se la connessione al controller Ryu è sana

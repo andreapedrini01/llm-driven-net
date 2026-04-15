@@ -330,6 +330,7 @@ class NetworkSnapshot:
     metrics: MetricsData
     derived_metrics: Optional[DerivedMetrics] = None
     metadata: Optional[SnapshotMetadata] = None
+    flow_stats: Optional[Dict[str, List[Dict[str, Any]]]] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
         """Converte in dizionario per serializzazione JSON"""
@@ -338,7 +339,8 @@ class NetworkSnapshot:
             "topology": self.topology.to_dict(),
             "metrics": self.metrics.to_dict(),
             "derived_metrics": self.derived_metrics.to_dict() if self.derived_metrics else None,
-            "metadata": self.metadata.to_dict() if self.metadata else None
+            "metadata": self.metadata.to_dict() if self.metadata else None,
+            "flow_stats": self.flow_stats if self.flow_stats else {}
         }
     
     @classmethod
@@ -360,7 +362,8 @@ class NetworkSnapshot:
             topology=topology,
             metrics=metrics,
             derived_metrics=derived_metrics,
-            metadata=metadata
+            metadata=metadata,
+            flow_stats=data.get("flow_stats", {})
         )
     
     def to_json(self, indent: int = 2) -> str:

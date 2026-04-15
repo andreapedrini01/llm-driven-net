@@ -119,7 +119,7 @@ class NetworkStateCollector:
                 
                 # 1. Raccolta dati dal controller Ryu
                 with PerformanceTimer(self.performance_monitor, "collect_raw_data"):
-                    switches, links, port_stats = self._collect_raw_data()
+                    switches, links, port_stats, flow_stats = self._collect_raw_data()
                 
                 if not switches:
                     self.logger.warning("No switches found, skipping snapshot")
@@ -136,6 +136,7 @@ class NetworkStateCollector:
                     timestamp=timestamp,
                     topology=topology_data,
                     metrics=metrics_data,
+                    flow_stats=flow_stats,
                     metadata={
                         "collection_time": time.time() - start_time,
                         "environment": self.config.environment,
@@ -418,6 +419,7 @@ class NetworkStateCollector:
         switches = []
         links = []
         port_stats = {}
+        flow_stats = {}
         
         try:
             # Raccolta switches
@@ -437,12 +439,17 @@ class NetworkStateCollector:
             total_ports = sum(len(stats) for stats in port_stats.values())
             self.logger.debug(f"Collected statistics for {total_ports} ports")
             
+            # Raccolta flow stats
+            flow_stats = self._collect_flow_stats(switches)
+            total_flows = sum(len(flows) for flows in flow_stats.values())
+            self.logger.debug(f"Collected {total_flows} flow entries across {len(switches)} switches")
+            
         except Exception as e:
             self.logger.error(f"Error collecting raw data: {e}")
             # Re-raise l'eccezione per contarla come fallimento
             raise
         
-        return switches, links, port_stats
+        return switches, links, port_stats, flow_stats
     
     def _collect_port_stats_sequential(self, switches: List[SwitchInfo]) -> Dict[str, List[Dict[str, Any]]]:
         """Raccoglie statistiche porte in modo sequenziale"""
@@ -495,6 +502,19 @@ class NetworkStateCollector:
                     self.logger.warning(f"Exception collecting stats for switch {dpid}: {e}")
         
         return port_stats
+    
+    def _collect_flow_stats(self, switches: List[SwitchInfo]) -> Dict[str, List[Dict[str, Any]]]:
+        """Collect flow table entries from all switches."""
+        flow_stats = {}
+        for switch in switches:
+            dpid = switch.dpid
+            try:
+                flows = self.ryu_connector.get_flow_stats(dpid)
+                if flows:
+                    flow_stats[dpid] = flows
+            except Exception as e:
+                self.logger.warning(f"Failed to get flow stats for switch {dpid}: {e}")
+        return flow_stats
     
     def _save_snapshot(self, snapshot: NetworkSnapshot, llm_data) -> None:
         """Salva lo snapshot su file system"""

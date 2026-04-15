@@ -32,7 +32,7 @@ from northbound_script_generator.models import NetworkAction as NorthboundAction
 from northbound_script_generator.config_loader import ConfigLoader
 from src.models.actions import NetworkAction as LLMAction, ActionType, ActionSequence
 from src.models.network import (
-    NetworkState, Topology, Switch, Link,
+    NetworkState, Topology, Switch, Link, Flow,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 )
 from src.models.core import NetworkSnapshot
@@ -64,9 +64,29 @@ def snapshot_to_network_state(snapshot: NetworkSnapshot) -> NetworkState:
         )
         for l in snapshot.topology.links
     ]
+
+    # Map flow stats from collector to Flow model
+    flows = []
+    flow_stats = snapshot.flow_stats or {}
+    for dpid, dpid_flows in flow_stats.items():
+        for idx, f in enumerate(dpid_flows):
+            flows.append(Flow(
+                id=f"{dpid}-flow-{idx}",
+                switch_id=dpid,
+                match_fields=f.get("match", {}),
+                actions=[{"type": "OUTPUT", "port": a} if isinstance(a, str) else a
+                         for a in f.get("actions", [])],
+                priority=f.get("priority", 0),
+                idle_timeout=f.get("idle_timeout", 0),
+                hard_timeout=f.get("hard_timeout", 0),
+                byte_count=f.get("byte_count", 0),
+                packet_count=f.get("packet_count", 0),
+            ))
+
     return NetworkState(
         timestamp=datetime.fromtimestamp(snapshot.timestamp),
         topology=Topology(switches=switches, links=links),
+        flows=flows,
         metrics=NetworkMetrics(
             bandwidth=BandwidthMetrics(
                 total_capacity=1000, used_bandwidth=0,
