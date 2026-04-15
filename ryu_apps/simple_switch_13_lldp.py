@@ -15,14 +15,16 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, set_ev_cls
 from ryu.ofproto import ofproto_v1_3, ether
 from ryu.lib.packet import packet, ethernet
-from ryu.topology import event as topo_event
+from ryu.topology.switches import Switches
 
 
 class SimpleSwitchLLDP13(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
+    _CONTEXTS = {'switches': Switches}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.switches = kwargs['switches']
         self.mac_to_port = {}
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
