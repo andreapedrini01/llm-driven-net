@@ -12,6 +12,9 @@ class ActionType(str, Enum):
     """Types of network actions."""
     FLOW_MOD = "flow_mod"
     SLICE_CREATE = "slice_create"
+    SLICE_MODIFY = "slice_modify"
+    SLICE_DELETE = "slice_delete"
+    LOAD_BALANCE = "load_balance"
     CONFIG_CHANGE = "config_change"
 
 
@@ -62,6 +65,9 @@ class NetworkAction:
             for field in required_fields:
                 if field not in self.parameters:
                     issues.append(f"Slice creation requires '{field}' parameter")
+        
+        elif self.type in (ActionType.SLICE_MODIFY, ActionType.SLICE_DELETE, ActionType.LOAD_BALANCE):
+            pass  # Flexible parameters, validated at execution time
         
         elif self.type == ActionType.CONFIG_CHANGE:
             if 'config_type' not in self.parameters:
