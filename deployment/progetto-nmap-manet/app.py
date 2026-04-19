@@ -6,14 +6,25 @@ nm = nmap.PortScanner()
 
 @app.route('/scan', methods=['GET'])
 def scan_network():
-    # L'host da scansionare viene passato come parametro (es. ?target=10.0.0.1)
+    # The target host is passed as a query parameter (e.g. ?target=10.0.0.1)
     target = request.args.get('target', '127.0.0.1')
 
-    # Esegue una scansione con script di vulnerabilità per trovare le "falle"
-    # chieste dal professore
-    nm.scan(target, arguments='-F -sV') 
+    try:
+        # Run a fast service-version scan to detect open ports and services
+        nm.scan(target, arguments='-F -sV')
+    except Exception as e:
+        return jsonify({
+            "status": {"state": "error"},
+            "error": f"nmap scan failed: {e}"
+        }), 200  # Return 200 so the caller can parse the JSON
 
-    # Restituisce i dati in formato JSON, pronto per essere letto dalla LLM
+    # If the target is not in the results, the host is unreachable
+    if target not in nm.all_hosts():
+        return jsonify({
+            "status": {"state": "down"},
+            "tcp": {},
+        })
+
     return jsonify(nm[target])
 
 if __name__ == '__main__':
