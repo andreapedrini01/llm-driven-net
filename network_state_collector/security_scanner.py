@@ -211,24 +211,62 @@ class SecurityScanner:
         )
 
 
-def extract_host_ips(snapshot: NetworkSnapshot) -> List[str]:
+def _query_ryu_hosts() -> List[str]:
     """
-    Estrae gli indirizzi IP nel range 10.0.0.x dalla topologia del NetworkSnapshot.
-
-    La convenzione Mininet assegna IP 10.0.0.N agli host hN.
-    Gli IP vengono derivati dal numero di switch presenti nella topologia
-    (ogni switch corrisponde a un host nella topologia Mininet standard).
-
-    Args:
-        snapshot: NetworkSnapshot con la topologia corrente.
+    Query the Ryu topology REST API for discovered hosts.
 
     Returns:
-        Lista di indirizzi IP nel range 10.0.0.x.
+        List of host IPs in the 10.0.0.x range, or empty list on failure.
+    """
+    import os
+    ryu_base = os.environ.get("RYU_BASE_URL", "http://localhost:8080")
+    try:
+        resp = requests.get(f"{ryu_base}/v1.0/topology/hosts", timeout=5)
+        resp.raise_for_status()
+        hosts_data = resp.json()
+        ips: List[str] = []
+        if isinstance(hosts_data, list):
+            for host in hosts_data:
+                ipv4_list = host.get("ipv4", [])
+                if isinstance(ipv4_list, str):
+                    ipv4_list = [ipv4_list]
+                for ip in ipv4_list:
+                    if ip and ip.startswith("10.0.0.") and ip not in ips:
+                        ips.append(ip)
+        return ips
+    except Exception as e:
+        logger.debug("Ryu hosts API not available: %s", e)
+        return []
+
+
+def extract_host_ips(snapshot: NetworkSnapshot) -> List[str]:
+    """
+    Extract host IPs from the network topology.
+
+    Strategy (in order):
+    1. Ryu topology REST API (/v1.0/topology/hosts) — most accurate.
+    2. graph_representation 'hosts' key if populated.
+    3. Port-counting heuristic: for each switch, host-facing ports are
+       those NOT used by inter-switch links.  Each such port corresponds
+       to one host (Mininet convention: hN -> 10.0.0.N).
+    4. Last resort: assume N switches -> N hosts (original fallback).
+
+    Args:
+        snapshot: NetworkSnapshot with the current topology.
+
+    Returns:
+        List of IP addresses in the 10.0.0.x range.
     """
     topology = snapshot.topology
-    ips: List[str] = []
 
-    # Usa graph_representation se disponibile
+    # --- Strategy 1: Ryu REST API ---
+    ryu_ips = _query_ryu_hosts()
+    if ryu_ips:
+        logger.debug("Host IPs from Ryu API: %s", ryu_ips)
+        return ryu_ips
+
+    # --- Strategy 2: graph_representation hosts ---
+    ips: List[str] = []
     graph = topology.graph_representation
     if graph:
         hosts = graph.get("hosts", [])
@@ -239,8 +277,31 @@ def extract_host_ips(snapshot: NetworkSnapshot) -> List[str]:
         if ips:
             return ips
 
-    # Fallback: deriva gli IP dal numero di switch (convenzione Mininet)
-    # In una topologia Mininet standard, N switch → N host con IP 10.0.0.1..N
+    # --- Strategy 3: port-counting heuristic ---
+    # Count ports used by inter-switch links per switch
+    link_ports: Dict[str, set] = {}
+    for link in topology.links:
+        src = link.src_dpid
+        dst = link.dst_dpid
+        link_ports.setdefault(src, set()).add(link.src_port)
+        link_ports.setdefault(dst, set()).add(link.dst_port)
+
+    total_host_ports = 0
+    for switch in topology.switches:
+        switch_link_ports = link_ports.get(switch.dpid, set())
+        host_ports = [p for p in switch.ports if p not in switch_link_ports]
+        total_host_ports += len(host_ports)
+
+    if total_host_ports > 0:
+        for i in range(1, total_host_ports + 1):
+            ips.append(f"10.0.0.{i}")
+        logger.debug(
+            "Host IPs from port-counting heuristic (%d host-facing ports): %s",
+            total_host_ports, ips,
+        )
+        return ips
+
+    # --- Strategy 4: last resort fallback ---
     num_switches = len(topology.switches)
     for i in range(1, num_switches + 1):
         ips.append(f"10.0.0.{i}")
