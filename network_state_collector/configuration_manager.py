@@ -135,7 +135,11 @@ class ConfigurationManager:
             
             self.logger.info(f"Configuration loaded successfully from {file_path}")
             return config
-            
+
+        except FileNotFoundError:
+            # Missing config file is expected — caller falls back to defaults
+            raise
+
         except Exception as e:
             self.error_manager.handle_error(
                 e,

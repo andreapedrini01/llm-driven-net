@@ -406,12 +406,14 @@ class NetworkStateCollector:
         return "\n".join(lines)
 
     def _load_configuration(self, config_path: Optional[str], environment: str) -> CollectorConfig:
-        """Carica la configurazione"""
+        """Load configuration from file, falling back to defaults if not found."""
         try:
             return self.config_manager.load_config(config_path, environment)
+        except FileNotFoundError:
+            self.logger.debug(f"No configuration file found for '{environment}', using defaults")
+            return CollectorConfig()
         except Exception as e:
-            self.logger.error(f"Failed to load configuration: {e}")
-            # Usa configurazione di default in caso di errore
+            self.logger.warning(f"Failed to load configuration: {e} — using defaults")
             return CollectorConfig()
     
     def _collect_raw_data(self) -> tuple:

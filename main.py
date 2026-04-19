@@ -579,18 +579,7 @@ def main():
     """Main entry point"""
     setup_logging()
     logger = logging.getLogger("MainIntegration")
-
-    # Suppress sub-module logs during initialization (they go to file only)
-    console_handler = None
-    root_logger = logging.getLogger()
-    for handler in root_logger.handlers:
-        if isinstance(handler, logging.StreamHandler) and handler.stream == sys.stdout:
-            console_handler = handler
-            break
-
-    if console_handler:
-        console_handler.setLevel(logging.CRITICAL)
-
+    
     try:
         # 1. Initialize Network State Collector
         errors = []
@@ -628,8 +617,6 @@ def main():
             errors.append(("Northbound Script Generator", str(e)))
 
         # Restore console logging
-        if console_handler:
-            console_handler.setLevel(logging.INFO)
 
         # Show startup result
         if errors:
