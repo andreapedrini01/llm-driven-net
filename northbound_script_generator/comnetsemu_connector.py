@@ -531,7 +531,9 @@ class ComnetsEMUConnector:
         Find the leaf switch directly connected to a host.
 
         Strategy (in order):
-        1. Ryu topology REST API (/v1.0/topology/hosts) — most accurate
+        1. Ryu topology REST API (/v1.0/topology/hosts) — most accurate,
+           but we MUST verify the port is a host-facing port (not an
+           inter-switch link) to avoid misidentifying intermediate switches.
         2. Flow-table inspection: find the switch that has a flow rule
            delivering traffic TO this host's IP via a specific output port
            (leaf switches have host-facing ports, intermediate switches
@@ -546,45 +548,7 @@ class ComnetsEMUConnector:
         if not host_ip:
             return None
 
-        # --- Strategy 1: Ryu topology API ---
-        try:
-            hosts = self._ryu_get("/v1.0/topology/hosts")
-            if isinstance(hosts, list):
-                for host in hosts:
-                    host_ips = host.get("ipv4", [])
-                    if isinstance(host_ips, str):
-                        host_ips = [host_ips]
-                    if host_ip in host_ips:
-                        port_info = host.get("port", {})
-                        dpid_hex = port_info.get("dpid", "")
-                        if dpid_hex:
-                            try:
-                                dpid = int(dpid_hex, 16)
-                                self.logger.info(
-                                    f"Host {host_name} ({host_ip}) is on "
-                                    f"dpid={dpid} port={port_info.get('port_no')} "
-                                    f"(via topology API)"
-                                )
-                                return dpid
-                            except ValueError:
-                                pass
-        except Exception as e:
-            self.logger.debug(f"Topology API lookup failed for {host_name}: {e}")
-
-        # --- Strategy 2: Flow-table inspection ---
-        # On a leaf switch, traffic to a host goes to a specific port.
-        # On intermediate switches, traffic goes to another switch port.
-        # We look for the switch where nw_dst matches AND the number of
-        # links (inter-switch connections) is lowest — leaf switches have
-        # fewer inter-switch links than core/aggregation switches.
-        # More precisely: find switches that have a flow with nw_dst=host_ip
-        # and pick the one with the highest output port number relative to
-        # its total ports (hosts are typically on the last ports).
-        self.logger.debug(
-            f"Falling back to flow-table inspection for {host_name}"
-        )
-
-        # Get topology links to identify inter-switch ports
+        # Pre-fetch inter-switch ports for validation
         inter_switch_ports: Dict[int, set] = {}
         try:
             links = self._ryu_get("/v1.0/topology/links")
@@ -602,6 +566,57 @@ class ComnetsEMUConnector:
                             pass
         except Exception:
             pass
+
+        # --- Strategy 1: Ryu topology API ---
+        try:
+            hosts = self._ryu_get("/v1.0/topology/hosts")
+            if isinstance(hosts, list):
+                for host in hosts:
+                    host_ips = host.get("ipv4", [])
+                    if isinstance(host_ips, str):
+                        host_ips = [host_ips]
+                    if host_ip in host_ips:
+                        port_info = host.get("port", {})
+                        dpid_hex = port_info.get("dpid", "")
+                        port_no_str = port_info.get("port_no", "")
+                        if dpid_hex:
+                            try:
+                                dpid = int(dpid_hex, 16)
+                                # Validate: the port must be host-facing,
+                                # not an inter-switch link port
+                                port_num = None
+                                if port_no_str:
+                                    try:
+                                        port_num = int(port_no_str)
+                                    except ValueError:
+                                        port_num = int(port_no_str, 16)
+                                switch_ports = inter_switch_ports.get(dpid, set())
+                                if port_num is not None and port_num in switch_ports:
+                                    self.logger.debug(
+                                        f"Topology API says {host_name} ({host_ip}) "
+                                        f"is on dpid={dpid} port={port_num}, but that "
+                                        f"port is an inter-switch link — skipping"
+                                    )
+                                else:
+                                    self.logger.info(
+                                        f"Host {host_name} ({host_ip}) is on "
+                                        f"dpid={dpid} port={port_no_str} "
+                                        f"(via topology API)"
+                                    )
+                                    return dpid
+                            except ValueError:
+                                pass
+        except Exception as e:
+            self.logger.debug(f"Topology API lookup failed for {host_name}: {e}")
+
+        # --- Strategy 2: Flow-table inspection ---
+        # On a leaf switch, traffic to a host goes to a specific port.
+        # On intermediate switches, traffic goes to another switch port.
+        # Find switches that have a flow with nw_dst=host_ip and the output
+        # port is a host-facing port (not an inter-switch link).
+        self.logger.debug(
+            f"Falling back to flow-table inspection for {host_name}"
+        )
 
         # Now find which switch delivers traffic to host_ip via a non-switch port
         for dpid in all_switches:
@@ -1071,15 +1086,23 @@ class ComnetsEMUConnector:
             if not all_switches:
                 return {"success": False, "error": "No switches available"}
 
-            # Find the switch(es) to install the group on
-            target_dpids = set()
+            # Install group table on ALL switches so that traffic from any
+            # part of the network towards the virtual IP gets load-balanced.
+            # In a tree topology, installing only on backend leaf switches
+            # would miss traffic entering from other branches.
+            target_dpids = set(all_switches)
+
+            # Also resolve backend leaf switches for logging
+            backend_leaf_dpids = set()
             for b in backend_ips:
                 dpid = self._host_name_to_dpid(b["host"], all_switches)
                 if dpid is not None:
-                    target_dpids.add(dpid)
+                    backend_leaf_dpids.add(dpid)
 
-            if not target_dpids:
-                target_dpids = {all_switches[0]}
+            self.logger.info(
+                f"Backend hosts on leaf switches: {backend_leaf_dpids}, "
+                f"installing group on all {len(target_dpids)} switches"
+            )
 
             group_id = abs(hash(virtual_ip)) % 65000 + 1
             groups_ok = []
