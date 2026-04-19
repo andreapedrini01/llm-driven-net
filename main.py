@@ -579,15 +579,25 @@ def main():
     """Main entry point"""
     setup_logging()
     logger = logging.getLogger("MainIntegration")
-    
+
+    # Suppress sub-module logs during initialization (they go to file only)
+    console_handler = None
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers:
+        if isinstance(handler, logging.StreamHandler) and handler.stream == sys.stdout:
+            console_handler = handler
+            break
+
+    if console_handler:
+        console_handler.setLevel(logging.CRITICAL)
+
     try:
         # 1. Initialize Network State Collector
         errors = []
         try:
             collector = NetworkStateCollector(config_path=None, environment="development")
         except Exception as e:
-            errors.append(f"Network State Collector: {e}")
-            raise
+            errors.append(("Network State Collector", str(e)))
 
         # 2. Initialize LLM Module (all components)
         try:
@@ -600,8 +610,7 @@ def main():
             prompt_system = PromptEngineeringSystem()
             confidence_extractor = ConfidenceCriteriaExtractor()
         except Exception as e:
-            errors.append(f"LLM Module: {e}")
-            raise
+            errors.append(("LLM Module", str(e)))
 
         # 3. Initialize Northbound Script Generator
         try:
@@ -616,13 +625,35 @@ def main():
             }
             action_processor = ActionProcessor(action_processor_config)
         except Exception as e:
-            errors.append(f"Northbound Script Generator: {e}")
-            raise
+            errors.append(("Northbound Script Generator", str(e)))
 
-        logger.info("All modules initialized successfully. Interactive mode active.")
-        logger.info("Commands: 'collect', 'collect --security-scan [hosts]', "
-                     "'intent <text>', 'health', 'quit'")
-        logger.info("")
+        # Restore console logging
+        if console_handler:
+            console_handler.setLevel(logging.INFO)
+
+        # Show startup result
+        if errors:
+            print("\n╔══════════════════════════════════════════════════════════╗")
+            print("║  ⚠  STARTUP COMPLETED WITH ERRORS                      ║")
+            print("╚══════════════════════════════════════════════════════════╝")
+            for module, err in errors:
+                print(f"  ✗ {module}: {err}")
+            print()
+            # If critical modules failed, abort
+            if any(m in ("Network State Collector",) for m, _ in errors):
+                logger.error("Critical module failed to initialize. Exiting.")
+                sys.exit(1)
+        else:
+            print("\n╔══════════════════════════════════════════════════════════╗")
+            print("║  ✓  All modules initialized — ready                     ║")
+            print("╠══════════════════════════════════════════════════════════╣")
+            print("║  Commands:                                              ║")
+            print("║    collect                  Collect network state        ║")
+            print("║    collect --security-scan  + security scan (all hosts)  ║")
+            print("║    intent <text>            Process a natural language   ║")
+            print("║    health                   System health check          ║")
+            print("║    quit                     Exit                         ║")
+            print("╚══════════════════════════════════════════════════════════╝\n")
         
         while True:
             try:
