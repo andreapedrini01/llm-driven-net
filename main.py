@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Main Integration Script
-Integra i tre moduli per monitorare e gestire la rete ComnetsEmu:
-- network_state_collector: raccoglie lo stato della rete
-- src/services (LLM module): interpreta intenti e propone azioni
-- northbound_script_generator: applica le azioni validate alla rete
+Integrates the three modules to monitor and manage the ComnetsEmu network:
+- network_state_collector: collects network state
+- src/services (LLM module): interprets intents and proposes actions
+- northbound_script_generator: applies validated actions to the network
 """
 
 import asyncio
@@ -17,7 +17,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
-# Import moduli esistenti
+# Import existing modules
 from network_state_collector.collector import NetworkStateCollector
 from src.models import CollectorConfig
 from src.services.intent_parser import IntentParser
@@ -43,7 +43,7 @@ from src.services.change_summary import generate_summary, generate_llm_summary
 
 
 def snapshot_to_network_state(snapshot: NetworkSnapshot) -> NetworkState:
-    """Converte un NetworkSnapshot (dal collector) in un NetworkState (per i servizi LLM)."""
+    """Converts a NetworkSnapshot (from collector) into a NetworkState (for LLM services)."""
     switches = [
         Switch(
             id=s.dpid,
@@ -107,7 +107,7 @@ HISTORY_DIR = "data/history"
 
 
 def save_state_to_history(network_state: NetworkState) -> str:
-    """Salva il NetworkState in data/history e ritorna il path del file."""
+    """Saves the NetworkState to data/history and returns the file path."""
     os.makedirs(HISTORY_DIR, exist_ok=True)
     ts = network_state.timestamp.strftime("%Y%m%d_%H%M%S")
     filepath = os.path.join(HISTORY_DIR, f"state_{ts}.json")
@@ -117,21 +117,21 @@ def save_state_to_history(network_state: NetworkState) -> str:
 
 
 def update_context_cache(context_analyzer: 'ContextAnalyzer', network_state: NetworkState):
-    """Aggiorna la cache del context_analyzer con lo stato corrente."""
+    """Updates the context_analyzer cache with the current state."""
     context_analyzer.state_cache.update_state(network_state)
 
 
-# ── Soglia di confidence per generazione rule-based (senza ChatGPT) ──
+# ── Confidence threshold for rule-based generation (without ChatGPT) ──
 RULE_BASED_CONFIDENCE_THRESHOLD = 0.8
 
-# ── Cookie ranges per identificare chi ha installato le flow rules ──
-# main.py (interattivo, comandi utente): 0x2000-0x2FFF, priorità 50000-59999
-# main_auto.py (autonomo, anomaly response): 0x1000-0x1FFF, priorità 40000-49999
+# ── Cookie ranges to identify who installed the flow rules ──
+# main.py (interactive, user commands): 0x2000-0x2FFF, priority 50000-59999
+# main_auto.py (autonomous, anomaly response): 0x1000-0x1FFF, priority 40000-49999
 COOKIE_INTERACTIVE = 0x2000
 
 
 def _host_to_ip(host: str) -> Optional[str]:
-    """Converte un nome host Mininet (h1, h2, ...) nel suo IP (10.0.0.1, 10.0.0.2, ...)."""
+    """Converts a Mininet host name (h1, h2, ...) to its IP (10.0.0.1, 10.0.0.2, ...)."""
     import re as _re
     m = _re.match(r'^h(\d+)$', host.strip(), _re.IGNORECASE)
     if m:
@@ -140,11 +140,11 @@ def _host_to_ip(host: str) -> Optional[str]:
 
 
 def _find_switch_target(resources: List[str], network_state: NetworkState) -> str:
-    """Trova il primo switch tra le risorse, oppure usa il primo switch dalla topologia."""
+    """Finds the first switch among resources, or uses the first switch from the topology."""
     for r in resources:
         if r.lower().startswith(('sw', 's')) and not r.lower().startswith('slice'):
             return r
-    # Nessuno switch nell'intent → usa il primo switch dalla topologia
+    # No switch in the intent → use the first switch from the topology
     if network_state and network_state.topology and network_state.topology.switches:
         sw = network_state.topology.switches[0]
         return sw.dpid if sw.dpid else sw.id
@@ -153,8 +153,8 @@ def _find_switch_target(resources: List[str], network_state: NetworkState) -> st
 
 def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List[LLMAction]:
     """
-    Genera azioni di rete direttamente dalle entità estratte dal parser,
-    senza interpellare ChatGPT. Usata quando la confidence è >= soglia.
+    Generates network actions directly from entities extracted by the parser,
+    without calling ChatGPT. Used when confidence is >= threshold.
     """
     import re as _re
 
@@ -164,12 +164,12 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
     params = intent_obj.parameters
     raw = intent_obj.raw_text.lower()
 
-    # Raccogli entità utili per tipo
+    # Collect useful entities by type
     resources = [e.value for e in entities if e.type == 'resource']
     action_words = [e.value.lower() for e in entities if e.type == 'action']
     targets = [e.value for e in entities if e.type == 'target']
 
-    # Separa host e switch
+    # Separate hosts and switches
     hosts = [r for r in resources if _re.match(r'^h\d+$', r, _re.IGNORECASE)]
     switches = [r for r in resources if _re.match(r'^(?:sw|s)\d+$', r, _re.IGNORECASE)]
 
@@ -195,7 +195,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
         if dst_ip:
             match_fields["nw_dst"] = dst_ip
 
-        # Block → nessuna action (DROP implicito in OpenFlow)
+        # Block → no action (implicit DROP in OpenFlow)
         # Allow → OUTPUT NORMAL
         flow_actions = [] if is_block else [{"type": "OUTPUT", "port": "NORMAL"}]
         desc = f"{'Block' if is_block else 'Allow'} traffic {src_raw} → {dst_raw}"
@@ -368,9 +368,10 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
         return actions
 
     # ── CONFIGURATION intents ──
+    # --- Explicit flow rules ---
     if intent_type == IntentType.CONFIGURATION:
 
-        # --- Flow rules esplicite ---
+        # --- Explicit flow rules ---
         if any(w in action_words for w in ['add', 'create', 'configure', 'set']):
             if any('flow' in t or 'rule' in t for t in targets) or 'flow' in raw:
                 match_fields = {}
@@ -447,7 +448,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                         + (f" between {src_host} and {dst_host}" if src_host and dst_host else ""),
                 ))
 
-            # Generico config
+            # Generic config
             else:
                 switch_target = _find_switch_target(resources, network_state)
                 actions.append(LLMAction(
@@ -464,6 +465,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                 ))
 
         # --- Remove / delete ---
+        # Delete slice
         elif any(w in action_words for w in ['remove', 'delete']):
             switch_target = _find_switch_target(resources, network_state)
 
@@ -518,6 +520,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
                 ))
 
         # --- Fallback config ---
+        # Generic fallback
         else:
             switch_target = _find_switch_target(resources, network_state)
             actions.append(LLMAction(
@@ -553,7 +556,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
             description=f"Anomaly fix on {switch_target}",
         ))
 
-    # ── QUERY intents → nessuna azione di rete ──
+    # ── QUERY intents → no network actions ──
     elif intent_type == IntentType.QUERY:
         pass
 
@@ -561,7 +564,7 @@ def generate_actions_rule_based(intent_obj, network_state: NetworkState) -> List
 
 
 def setup_logging():
-    """Configura il logging"""
+    """Configure logging"""
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -573,74 +576,67 @@ def setup_logging():
 
 
 def main():
-    """Entry point principale"""
+    """Main entry point"""
     setup_logging()
     logger = logging.getLogger("MainIntegration")
     
-    logger.info("=" * 60)
-    logger.info("Avvio Network Monitoring Integration")
-    logger.info("=" * 60)
-    
     try:
-        # 1. Inizializza Network State Collector
-        logger.info("Inizializzazione Network State Collector...")
-        collector = NetworkStateCollector(config_path=None, environment="development")
-        logger.info("✓ Network State Collector inizializzato")
-        
-        # 2. Inizializza LLM Module (tutti i componenti)
-        logger.info("Inizializzazione LLM Module...")
-        intent_parser = IntentParser()
-        chatgpt_client = ChatGPTClient()
-        context_analyzer = ContextAnalyzer()
-        action_sequencer = ActionSequencer()
-        validator = Validator()
-        action_output = ActionOutputService()
-        prompt_system = PromptEngineeringSystem()
-        confidence_extractor = ConfidenceCriteriaExtractor()
-        logger.info("✓ LLM Module inizializzato")
-        
-        # 3. Inizializza Northbound Script Generator
-        logger.info("Inizializzazione Northbound Script Generator...")
-        action_processor_config = {
-            "comnetsemu_host": "localhost",
-            "comnetsemu_port": 6653,
-            "ryu_host": "localhost",
-            "ryu_port": 8080,
-            "max_retries": 3,
-            "retry_delay": 2.0,
-            "timeout_seconds": 30
-        }
-        action_processor = ActionProcessor(action_processor_config)
-        logger.info("✓ Northbound Script Generator inizializzato")
-        
-        logger.info("=" * 60)
-        logger.info("Tutti i moduli inizializzati con successo!")
-        logger.info("=" * 60)
-        
-        # Modalità interattiva
-        logger.info("\nModalità interattiva attiva")
-        logger.info("Comandi disponibili:")
-        logger.info("  - 'collect': Raccoglie lo stato della rete")
-        logger.info("  - 'collect --security-scan': Raccoglie + analisi sicurezza su tutti gli host")
-        logger.info("  - 'collect --security-scan h1 h2': Raccoglie + analisi sicurezza su h1 e h2")
-        logger.info("  - 'intent <testo>': Processa un intento in linguaggio naturale")
-        logger.info("  - 'health': Verifica lo stato di salute del sistema")
-        logger.info("  - 'quit' o 'exit': Termina il programma")
+        # 1. Initialize Network State Collector
+        errors = []
+        try:
+            collector = NetworkStateCollector(config_path=None, environment="development")
+        except Exception as e:
+            errors.append(f"Network State Collector: {e}")
+            raise
+
+        # 2. Initialize LLM Module (all components)
+        try:
+            intent_parser = IntentParser()
+            chatgpt_client = ChatGPTClient()
+            context_analyzer = ContextAnalyzer()
+            action_sequencer = ActionSequencer()
+            validator = Validator()
+            action_output = ActionOutputService()
+            prompt_system = PromptEngineeringSystem()
+            confidence_extractor = ConfidenceCriteriaExtractor()
+        except Exception as e:
+            errors.append(f"LLM Module: {e}")
+            raise
+
+        # 3. Initialize Northbound Script Generator
+        try:
+            action_processor_config = {
+                "comnetsemu_host": "localhost",
+                "comnetsemu_port": 6653,
+                "ryu_host": "localhost",
+                "ryu_port": 8080,
+                "max_retries": 3,
+                "retry_delay": 2.0,
+                "timeout_seconds": 30
+            }
+            action_processor = ActionProcessor(action_processor_config)
+        except Exception as e:
+            errors.append(f"Northbound Script Generator: {e}")
+            raise
+
+        logger.info("All modules initialized successfully. Interactive mode active.")
+        logger.info("Commands: 'collect', 'collect --security-scan [hosts]', "
+                     "'intent <text>', 'health', 'quit'")
         logger.info("")
         
         while True:
             try:
-                # Leggi comando dall'utente
+                # Read user command
                 user_input = input("\n> ").strip()
                 
                 if not user_input:
                     continue
                 
                 if user_input.lower() in ['quit', 'exit', 'q']:
-                    logger.info("Terminazione programma...")
+                    logger.info("Shutting down...")
                     break
                 
-                # Comando: collect [--security-scan [host ...]]
+                # Command: collect [--security-scan [host ...]]
                 if user_input.lower().startswith('collect'):
                     parts = user_input.split()
                     security_scan = False
@@ -654,11 +650,11 @@ def main():
 
                     if security_scan:
                         if host_filter:
-                            logger.info(f"Raccolta stato + scansione sicurezza per: {', '.join(host_filter)}")
+                            logger.info(f"Collecting state + security scan for: {', '.join(host_filter)}")
                         else:
-                            logger.info("Raccolta stato + scansione sicurezza (tutti gli host)...")
+                            logger.info("Collecting state + security scan (all hosts)...")
                     else:
-                        logger.info("Raccolta stato della rete...")
+                        logger.info("Collecting network state...")
 
                     snapshot = collector.collect_snapshot(
                         security_scan=security_scan,
@@ -666,118 +662,118 @@ def main():
                     )
 
                     if snapshot:
-                        logger.info(f"✓ Snapshot raccolto con successo")
+                        logger.info(f"✓ Snapshot collected successfully")
                         logger.info(f"  Timestamp: {snapshot.get_timestamp_iso()}")
-                        logger.info(f"  Switch: {len(snapshot.topology.switches)}")
-                        logger.info(f"  Link: {len(snapshot.topology.links)}")
+                        logger.info(f"  Switches: {len(snapshot.topology.switches)}")
+                        logger.info(f"  Links: {len(snapshot.topology.links)}")
 
-                        # Converti e salva nella cache + history
+                        # Convert and save to cache + history
                         network_state = snapshot_to_network_state(snapshot)
                         update_context_cache(context_analyzer, network_state)
                         history_file = save_state_to_history(network_state)
-                        logger.info(f"  ✓ Stato salvato in cache e in {history_file}")
+                        logger.info(f"  ✓ State saved to cache and {history_file}")
 
                     else:
-                        logger.error("✗ Errore nella raccolta dello snapshot")
+                        logger.error("✗ Error collecting snapshot")
 
                     continue
                 
-                # Comando: health
+                # Command: health
                 if user_input.lower() == 'health':
-                    logger.info("Verifica stato di salute del sistema...")
+                    logger.info("Checking system health...")
                     health = collector.get_health_status()
                     
-                    logger.info(f"Stato generale: {health.overall_status.value}")
-                    logger.info(f"Uptime: {health.uptime_seconds:.1f} secondi")
+                    logger.info(f"Overall status: {health.overall_status.value}")
+                    logger.info(f"Uptime: {health.uptime_seconds:.1f} seconds")
                     
                     if health.components:
-                        logger.info("Componenti:")
+                        logger.info("Components:")
                         for name, component in health.components.items():
                             status_icon = "✓" if component.status.value == "healthy" else "✗"
                             logger.info(f"  {status_icon} {name}: {component.status.value}")
                     
                     continue
                 
-                # Comando: intent
+                # Command: intent
                 if user_input.lower().startswith('intent '):
                     intent_text = user_input[7:].strip()
                     
                     if not intent_text:
-                        logger.warning("Fornisci un intento dopo 'intent'")
+                        logger.warning("Please provide an intent after 'intent'")
                         continue
                     
-                    logger.info(f"Processamento intento: '{intent_text}'")
+                    logger.info(f"Processing intent: '{intent_text}'")
                     logger.info("=" * 60)
                     
-                    # Step 1: Raccogli stato della rete
-                    logger.info("Step 1: Raccolta stato della rete...")
+                    # Step 1: Collect network state
+                    logger.info("Step 1: Collecting network state...")
                     snapshot = collector.collect_snapshot()
                     
                     if not snapshot:
-                        logger.error("✗ Impossibile raccogliere lo stato della rete")
+                        logger.error("✗ Unable to collect network state")
                         continue
                     
-                    logger.info(f"✓ Stato della rete raccolto")
-                    logger.info(f"  Switch: {len(snapshot.topology.switches)}, Links: {len(snapshot.topology.links)}")
+                    logger.info(f"✓ Network state collected")
+                    logger.info(f"  Switches: {len(snapshot.topology.switches)}, Links: {len(snapshot.topology.links)}")
                     
-                    # Converti snapshot in NetworkState per i servizi LLM
+                    # Convert snapshot to NetworkState for LLM services
                     network_state = snapshot_to_network_state(snapshot)
                     
-                    # Aggiorna cache e salva in history
+                    # Update cache and save to history
                     update_context_cache(context_analyzer, network_state)
                     save_state_to_history(network_state)
                     
-                    # Step 2: Parsa l'intento
-                    logger.info("\nStep 2: Parsing intento...")
+                    # Step 2: Parse the intent
+                    logger.info("\nStep 2: Parsing intent...")
                     intent_obj = intent_parser.parse_intent(intent_text, user_id="cli_user")
-                    logger.info(f"✓ Intento parsato")
-                    logger.info(f"  Tipo: {intent_obj.intent_type.value}")
+                    logger.info(f"✓ Intent parsed")
+                    logger.info(f"  Type: {intent_obj.intent_type.value}")
                     logger.info(f"  Confidence: {intent_obj.confidence:.2f}")
-                    logger.info(f"  Entità estratte: {len(intent_obj.entities)}")
+                    logger.info(f"  Entities extracted: {len(intent_obj.entities)}")
                     
-                    # Verifica se serve chiarimento
+                    # Check if clarification is needed
                     if intent_obj.confidence < 0.7:
-                        logger.warning("⚠ Confidence bassa, potrebbe servire chiarimento")
+                        logger.warning("⚠ Low confidence, clarification may be needed")
                         ambiguity_analysis = intent_parser.detect_ambiguity(intent_obj, network_state)
                         if ambiguity_analysis.get('clarification_needed'):
-                            logger.warning("Chiarimenti necessari:")
+                            logger.warning("Clarification needed:")
                             for question in ambiguity_analysis.get('questions', []):
                                 logger.warning(f"  - {question}")
                             
-                            # Chiedi all'utente se vuole continuare
-                            response = input("\nVuoi continuare comunque? (s/n): ").strip().lower()
-                            if response != 's':
-                                logger.info("Operazione annullata")
+                            # Ask the user if they want to continue
+                            response = input("\nContinue anyway? (y/n): ").strip().lower()
+                            if response != 'y':
+                                logger.info("Operation cancelled")
                                 continue
                     
-                    # Step 3: Analizza contesto
-                    logger.info("\nStep 3: Analisi contesto di rete...")
+                    # Step 3: Analyze context
+                    logger.info("\nStep 3: Analyzing network context...")
                     contextualized_intent = context_analyzer.analyze_context(intent_obj)
-                    logger.info(f"✓ Contesto analizzato")
+                    logger.info(f"✓ Context analyzed")
                     
                     if contextualized_intent.conflicts:
-                        logger.warning("⚠ Conflitti rilevati:")
+                        logger.warning("⚠ Conflicts detected:")
                         for conflict in contextualized_intent.conflicts:
                             logger.warning(f"  - {conflict}")
                     
                     if contextualized_intent.recommendations:
-                        logger.info("Raccomandazioni:")
+                        logger.info("Recommendations:")
                         for rec in contextualized_intent.recommendations:
                             logger.info(f"  - {rec}")
                     
-                    # Step 4: Genera azioni
-                    # Se la confidence è alta, genera azioni rule-based senza ChatGPT
+                    # Step 4: Generate actions
+                    # If confidence is high, generate rule-based actions without ChatGPT
                     use_rule_based = intent_obj.confidence >= RULE_BASED_CONFIDENCE_THRESHOLD
 
                     if intent_obj.intent_type == IntentType.QUERY:
-                        logger.info("\nStep 4: Intent di tipo QUERY — nessuna azione di rete da generare.")
-                        logger.info("  Usa 'collect' o 'health' per ottenere informazioni sulla rete.")
+                        logger.info("\nStep 4: QUERY intent — no network actions to generate.")
+                        logger.info("  Use 'collect' or 'health' to get network information.")
                         continue
 
                     actions = []
 
                     if use_rule_based:
-                        logger.info(f"\nStep 4: Generazione azioni RULE-BASED (confidence {intent_obj.confidence:.2f} >= {RULE_BASED_CONFIDENCE_THRESHOLD})")
+                        logger.info(f"\nStep 4: RULE-BASED action generation (confidence {intent_obj.confidence:.2f} >= {RULE_BASED_CONFIDENCE_THRESHOLD})")
                         actions = generate_actions_rule_based(intent_obj, network_state)
                         # Check if rule-based produced only generic CONFIG_CHANGE actions
                         # (these are fallback placeholders that don't do anything useful)
@@ -790,12 +786,12 @@ def main():
                             for a in actions
                         )
                         if actions and has_specific_actions:
-                            logger.info(f"✓ {len(actions)} azioni generate (rule-based, senza ChatGPT)")
+                            logger.info(f"✓ {len(actions)} actions generated (rule-based, no ChatGPT)")
                         else:
                             if actions:
-                                logger.warning("⚠ Rule-based ha generato solo azioni generiche, fallback a ChatGPT...")
+                                logger.warning("⚠ Rule-based produced only generic actions, falling back to ChatGPT...")
                             else:
-                                logger.warning("⚠ Nessuna azione generata dal rule-based, fallback a ChatGPT...")
+                                logger.warning("⚠ No actions generated by rule-based, falling back to ChatGPT...")
                             actions = []
                             use_rule_based = False
 
@@ -803,7 +799,7 @@ def main():
                         if intent_obj.confidence >= RULE_BASED_CONFIDENCE_THRESHOLD:
                             logger.info(f"\nStep 4: Generating actions with ChatGPT (confidence {intent_obj.confidence:.2f} >= {RULE_BASED_CONFIDENCE_THRESHOLD}, but rule-based produced insufficient results)")
                         else:
-                            logger.info(f"\nStep 4: Generazione azioni con ChatGPT (confidence {intent_obj.confidence:.2f} < {RULE_BASED_CONFIDENCE_THRESHOLD})")
+                            logger.info(f"\nStep 4: Generating actions with ChatGPT (confidence {intent_obj.confidence:.2f} < {RULE_BASED_CONFIDENCE_THRESHOLD})")
 
                         # Get confidence criteria breakdown for enriched prompt
                         breakdown = intent_parser.get_confidence_breakdown(intent_obj)
@@ -826,7 +822,7 @@ def main():
 
                         try:
                             llm_response = asyncio.run(generate_actions_llm())
-                            logger.info(f"✓ Risposta LLM ricevuta")
+                            logger.info(f"✓ LLM response received")
                             logger.info(f"  Tokens: {llm_response.tokens_used}, Latency: {llm_response.latency:.2f}s")
 
                             # Parse both actions and parameter suggestions
@@ -841,30 +837,30 @@ def main():
                                     logger.info(f"    - {mod.target_field}: '{mod.source_suggestion.suggested_parameter}' "
                                                 f"-> '{mod.suggested_value}' (estimated score: {mod.estimated_new_score:.3f})")
                         except Exception as e:
-                            logger.error(f"✗ Errore ChatGPT: {e}", exc_info=True)
+                            logger.error(f"✗ ChatGPT error: {e}", exc_info=True)
                             continue
 
                     if not actions:
-                        logger.warning("⚠ Nessuna azione generata. Verifica l'intento e riprova.")
+                        logger.warning("⚠ No actions generated. Check the intent and try again.")
                         continue
 
                     try:
-                        # Step 5: Sequenzia azioni
-                        logger.info(f"\nStep 5: Sequenziamento di {len(actions)} azioni...")
+                        # Step 5: Sequence actions
+                        logger.info(f"\nStep 5: Sequencing {len(actions)} actions...")
                         action_sequence = action_sequencer.sequence_actions(
                             actions,
                             intent_id=intent_obj.id,
                             sequence_id=f"seq_{intent_obj.id}"
                         )
-                        logger.info(f"✓ {len(action_sequence.actions)} azioni sequenziate")
+                        logger.info(f"✓ {len(action_sequence.actions)} actions sequenced")
 
-                        # Mostra le azioni
-                        logger.info("Azioni proposte:")
+                        # Show the actions
+                        logger.info("Proposed actions:")
                         for i, action in enumerate(action_sequence.actions, 1):
-                            logger.info(f"  {i}. {action.type.value} su {action.target}")
+                            logger.info(f"  {i}. {action.type.value} on {action.target}")
 
-                        # Step 6: Valida azioni
-                        logger.info("\nStep 6: Validazione azioni...")
+                        # Step 6: Validate actions
+                        logger.info("\nStep 6: Validating actions...")
                         validation_result = validator.validate_actions(action_sequence)
 
                         if not validation_result.is_valid:
@@ -896,32 +892,32 @@ def main():
                                     logger.error("✗ No valid actions remaining after filtering.")
                                     continue
                             else:
-                                logger.error("✗ Validazione fallita:")
+                                logger.error("✗ Validation failed:")
                                 for error in validation_result.errors:
                                     logger.error(f"  - {error}")
                                 continue
 
-                        logger.info("✓ Azioni validate con successo")
+                        logger.info("✓ Actions validated successfully")
 
-                        # Step 7: Salva azioni per esecuzione
-                        logger.info("\nStep 7: Salvataggio azioni...")
+                        # Step 7: Save actions for execution
+                        logger.info("\nStep 7: Saving actions...")
                         output_result = action_output.save_actions(
                             action_sequence
                         )
-                        logger.info(f"✓ Azioni salvate")
+                        logger.info(f"✓ Actions saved")
 
-                        # Step 8: Chiedi conferma ed esegui
+                        # Step 8: Ask for confirmation and execute
                         logger.info("\n" + "=" * 60)
-                        response = input("Vuoi eseguire queste azioni sulla rete? (s/n): ").strip().lower()
+                        response = input("Execute these actions on the network? (y/n): ").strip().lower()
 
-                        if response == 's':
-                            logger.info("\nStep 8: Esecuzione azioni sulla rete...")
+                        if response == 'y':
+                            logger.info("\nStep 8: Executing actions on the network...")
 
                             results = []
                             for i, action in enumerate(action_sequence.actions, 1):
-                                logger.info(f"  Esecuzione azione {i}/{len(action_sequence.actions)}: {action.id}")
+                                logger.info(f"  Executing action {i}/{len(action_sequence.actions)}: {action.id}")
 
-                                # Converti l'azione al formato NorthboundAction
+                                # Convert the action to NorthboundAction format
                                 network_action = NorthboundAction(
                                     id=action.id,
                                     type=action.type,
@@ -935,9 +931,9 @@ def main():
                                 results.append(result)
 
                                 if result.status.value == "success":
-                                    logger.info(f"  ✓ Azione {action.id} completata ({result.duration:.2f}s)")
+                                    logger.info(f"  ✓ Action {action.id} completed ({result.duration:.2f}s)")
                                 else:
-                                    logger.error(f"  ✗ Azione {action.id} fallita: {result.error}")
+                                    logger.error(f"  ✗ Action {action.id} failed: {result.error}")
 
                             # Step 8.5: Change summary
                             try:
@@ -962,57 +958,57 @@ def main():
                             except Exception as e:
                                 logger.error(f"Error generating change summary: {e}")
 
-                            # Step 9: Verifica stato finale
-                            logger.info("\nStep 9: Verifica stato finale...")
+                            # Step 9: Verify final state
+                            logger.info("\nStep 9: Verifying final state...")
                             final_snapshot = collector.collect_snapshot()
 
                             if final_snapshot:
-                                logger.info("✓ Stato finale raccolto")
-                                logger.info(f"  Switch: {len(final_snapshot.topology.switches)}")
-                                logger.info(f"  Link: {len(final_snapshot.topology.links)}")
+                                logger.info("✓ Final state collected")
+                                logger.info(f"  Switches: {len(final_snapshot.topology.switches)}")
+                                logger.info(f"  Links: {len(final_snapshot.topology.links)}")
 
                                 if len(final_snapshot.topology.switches) != len(snapshot.topology.switches):
-                                    logger.info(f"  Δ Switch: {len(final_snapshot.topology.switches) - len(snapshot.topology.switches)}")
+                                    logger.info(f"  Δ Switches: {len(final_snapshot.topology.switches) - len(snapshot.topology.switches)}")
                                 if len(final_snapshot.topology.links) != len(snapshot.topology.links):
                                     logger.info(f"  Δ Links: {len(final_snapshot.topology.links) - len(snapshot.topology.links)}")
 
-                            # Riepilogo
+                            # Summary
                             successful = sum(1 for r in results if r.status.value == "success")
                             failed = sum(1 for r in results if r.status.value == "failed")
 
                             logger.info("\n" + "=" * 60)
-                            logger.info("RIEPILOGO ESECUZIONE")
+                            logger.info("EXECUTION SUMMARY")
                             logger.info("=" * 60)
-                            logger.info(f"Totale azioni: {len(results)}")
-                            logger.info(f"Successi: {successful}")
-                            logger.info(f"Fallimenti: {failed}")
+                            logger.info(f"Total actions: {len(results)}")
+                            logger.info(f"Succeeded: {successful}")
+                            logger.info(f"Failed: {failed}")
                             logger.info(f"Success rate: {(successful / len(results) * 100):.1f}%")
                             logger.info("=" * 60)
                         else:
-                            logger.info("Esecuzione annullata dall'utente")
+                            logger.info("Execution cancelled by user")
 
                     except Exception as e:
-                        logger.error(f"✗ Errore nel processamento: {e}", exc_info=True)
+                        logger.error(f"✗ Processing error: {e}", exc_info=True)
                     
                     continue
                 
-                # Comando non riconosciuto
-                logger.warning(f"Comando non riconosciuto: '{user_input}'")
-                logger.info("Usa 'collect', 'intent <testo>', 'health', o 'quit'")
+                # Unrecognized command
+                logger.warning(f"Unrecognized command: '{user_input}'")
+                logger.info("Use 'collect', 'intent <text>', 'health', or 'quit'")
                 
             except KeyboardInterrupt:
-                logger.info("\nInterruzione ricevuta...")
+                logger.info("\nInterrupt received...")
                 break
             except Exception as e:
-                logger.error(f"Errore: {e}", exc_info=True)
+                logger.error(f"Error: {e}", exc_info=True)
         
         # Cleanup
-        logger.info("Chiusura connessioni...")
+        logger.info("Closing connections...")
         action_processor.close()
-        logger.info("✓ Programma terminato")
+        logger.info("✓ Program terminated")
         
     except Exception as e:
-        logger.error(f"Errore fatale: {e}", exc_info=True)
+        logger.error(f"Fatal error: {e}", exc_info=True)
         sys.exit(1)
 
 
