@@ -134,14 +134,11 @@ class PromptEngineeringSystem:
                 "4. dependencies: list of external dependencies\n"
                 "5. rollback_plan: actions to revert changes if needed\n"
                 "6. risks: potential risks and mitigation strategies\n\n"
-                "Action types: flow_mod, slice_create, slice_modify, config_change, load_balance\n\n"
+                "Action types: flow_mod, slice_create, slice_modify, config_change\n\n"
                 "Required parameters per action type (place these keys DIRECTLY inside \"parameters\"):\n"
                 "- flow_mod: \"match\" (object) and \"actions\" (list) are REQUIRED. Optional: \"operation\", \"cookie\".\n"
                 "- slice_create: \"slice_name\" (string) and \"resources\" (list) are REQUIRED. Optional: \"bandwidth\".\n"
-                "- config_change: \"config_type\" (string) and \"config_data\" (object) are REQUIRED.\n"
-                "- load_balance: \"backends\" (list of host names) is REQUIRED. Optional: \"virtual_ip\" (string).\n\n"
-                "IMPORTANT: For intents involving load balancing or traffic distribution, use the "
-                "'load_balance' action type, NOT config_change or flow_mod.\n\n"
+                "- config_change: \"config_type\" (string) and \"config_data\" (object) are REQUIRED.\n\n"
                 "Response format:\n{response_schema}"
             ),
             response_schema={
@@ -150,7 +147,7 @@ class PromptEngineeringSystem:
                         "id": "string",
                         "type": "string",
                         "target": "string",
-                        "parameters": "object (flow_mod: {match:{...}, actions:[...]}, slice_create: {slice_name:str, resources:[...]}, config_change: {config_type:str, config_data:{...}}, load_balance: {backends:[...], virtual_ip:str})",
+                        "parameters": "object (flow_mod: {match:{...}, actions:[...]}, slice_create: {slice_name:str, resources:[...]}, config_change: {config_type:str, config_data:{...}})",
                         "priority": "int (0-65535)",
                         "timeout": "int (seconds, MUST be between 1 and 3600, default 30)",
                         "description": "string"
@@ -372,11 +369,8 @@ class PromptEngineeringSystem:
                 "provided confidence criteria, helping the system improve its confidence score. "
                 "Prioritize suggestions that target the weakest confidence factors first.\n\n"
                 "IMPORTANT: When generating actions, you MUST use ONLY these valid action types: "
-                "flow_mod, slice_create, slice_modify, config_change, load_balance. "
-                "Any other action type will be rejected by the system.\n\n"
-                "IMPORTANT: For intents involving load balancing or traffic distribution across hosts, "
-                "you MUST use the 'load_balance' action type. Do NOT use config_change or flow_mod "
-                "to implement load balancing."
+                "flow_mod, slice_create, slice_modify, config_change. "
+                "Any other action type will be rejected by the system."
             ),
             user_template=(
                 "Analyze the following network intent and provide actions along with parameter suggestions "
@@ -392,7 +386,7 @@ class PromptEngineeringSystem:
                 "- quality_boost (max 1.0): Bonus from overall text quality indicators\n"
                 "- penalties (max 1.0): Deductions for ambiguity, missing info, or low quality\n\n"
                 "Final score = max(0.1, min(1.0, sum_of_contributions - penalties))\n\n"
-                "Valid action types: flow_mod, slice_create, slice_modify, config_change, load_balance\n\n"
+                "Valid action types: flow_mod, slice_create, slice_modify, config_change\n\n"
                 "Required parameters per action type (place these keys DIRECTLY inside \"parameters\", "
                 "do NOT nest them under example keys):\n"
                 "- flow_mod: parameters MUST contain \"match\" (object with match fields like "
@@ -402,10 +396,7 @@ class PromptEngineeringSystem:
                 "- slice_create: parameters MUST contain \"slice_name\" (string) and "
                 "\"resources\" (list of switch names). Optional: \"bandwidth\" (int, Mbps).\n"
                 "- config_change: parameters MUST contain \"config_type\" (string) and "
-                "\"config_data\" (object with configuration details).\n"
-                "- load_balance: parameters MUST contain \"backends\" (list of host names, e.g. "
-                "[\"h1\", \"h2\", \"h3\"]). Optional: \"virtual_ip\" (string, default \"10.0.0.100\"). "
-                "Target should be the switch connecting the hosts or \"controller\".\n\n"
+                "\"config_data\" (object with configuration details).\n\n"
                 "CRITICAL: Each action's \"parameters\" object must contain the required keys "
                 "directly. For example, a flow_mod action must have parameters: "
                 "{{\"match\": {{...}}, \"actions\": [{{...}}]}}. "
@@ -416,7 +407,7 @@ class PromptEngineeringSystem:
                 "actions": [
                     {
                         "id": "string (unique, e.g. act-1)",
-                        "type": "string (MUST be one of: flow_mod, slice_create, slice_modify, config_change, load_balance)",
+                        "type": "string (MUST be one of: flow_mod, slice_create, slice_modify, config_change)",
                         "target": "string (switch name e.g. s1, s2, or 'controller')",
                         "parameters": "object (keys depend on action type, see required parameters above)",
                         "priority": "int (1-65535)",
@@ -427,8 +418,7 @@ class PromptEngineeringSystem:
                 "examples_for_parameters_field": {
                     "flow_mod_parameters": {"match": {"dl_type": 2048, "nw_src": "10.0.0.1", "nw_dst": "10.0.0.10"}, "actions": [{"type": "OUTPUT", "port": "NORMAL"}], "operation": "add", "cookie": 8192},
                     "slice_create_parameters": {"slice_name": "perf-slice", "resources": ["s1", "s2"], "bandwidth": 100},
-                    "config_change_parameters": {"config_type": "qos", "config_data": {"policy": "priority_queuing"}},
-                    "load_balance_parameters": {"backends": ["h1", "h2", "h3"], "virtual_ip": "10.0.0.100"}
+                    "config_change_parameters": {"config_type": "qos", "config_data": {"policy": "priority_queuing"}}
                 },
                 "parameter_suggestions": [
                     {
