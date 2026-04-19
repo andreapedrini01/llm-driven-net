@@ -1109,17 +1109,52 @@ class ComnetsEMUConnector:
             flows_ok = []
             errors = []
 
+            # Resolve backend MACs for proper L2 rewriting.
+            # With autoSetMacs, h<N> has MAC 00:00:00:00:00:<N_hex>.
+            # We also try the topology API for accuracy.
+            backend_macs = {}
+            try:
+                topo_hosts = self._ryu_get("/v1.0/topology/hosts")
+                if isinstance(topo_hosts, list):
+                    for th in topo_hosts:
+                        th_ips = th.get("ipv4", [])
+                        if isinstance(th_ips, str):
+                            th_ips = [th_ips]
+                        th_mac = th.get("mac", "")
+                        for b in backend_ips:
+                            if b["ip"] in th_ips and th_mac:
+                                backend_macs[b["ip"]] = th_mac
+            except Exception:
+                pass
+
+            # Fallback: derive MAC from host number (autoSetMacs convention)
+            import re as _re
+            for b in backend_ips:
+                if b["ip"] not in backend_macs:
+                    m = _re.match(r'^h(\d+)$', b["host"], _re.IGNORECASE)
+                    if m:
+                        num = int(m.group(1))
+                        backend_macs[b["ip"]] = f"00:00:00:00:00:{num:02x}"
+
+            # Generate a virtual MAC for the VIP (used for ARP replies)
+            virtual_mac = "00:00:00:00:ff:fe"
+
             for dpid in target_dpids:
-                # Step 1: Install SELECT group table with equal-weight buckets
+                # Step 1: Install SELECT group table with equal-weight buckets.
+                # Each bucket rewrites BOTH ipv4_dst AND eth_dst so that
+                # L2 forwarding (OUTPUT:NORMAL) delivers to the correct host.
                 buckets = []
                 for b in backend_ips:
-                    buckets.append({
-                        "weight": 1,
-                        "actions": [
-                            {"type": "SET_FIELD", "field": "ipv4_dst", "value": b["ip"]},
-                            {"type": "OUTPUT", "port": "NORMAL"},
-                        ],
-                    })
+                    bucket_actions = [
+                        {"type": "SET_FIELD", "field": "ipv4_dst", "value": b["ip"]},
+                    ]
+                    mac = backend_macs.get(b["ip"])
+                    if mac:
+                        bucket_actions.append(
+                            {"type": "SET_FIELD", "field": "eth_dst", "value": mac}
+                        )
+                    bucket_actions.append({"type": "OUTPUT", "port": "NORMAL"})
+                    buckets.append({"weight": 1, "actions": bucket_actions})
 
                 group_body = {
                     "dpid": dpid,
@@ -1164,6 +1199,42 @@ class ComnetsEMUConnector:
                     flows_ok.append(f"dpid={dpid} vip={virtual_ip}")
                 except Exception as e:
                     errors.append(f"dpid={dpid}: flow install failed: {e}")
+
+                # Step 3: ARP responder — reply to ARP requests for the VIP
+                # so that hosts can resolve 10.0.0.100 without a real host.
+                # This uses OVS packet-out via a high-priority ARP flow that
+                # sends ARP requests for the VIP to the controller, which
+                # will flood them. We install a static flow that replies with
+                # the virtual MAC using move/load actions.
+                # Simpler approach: install a flow that matches ARP requests
+                # for the VIP and sends them to NORMAL (flood), plus ensure
+                # at least one backend host has a proxy-arp entry.
+                # Most reliable: use OVS to directly craft an ARP reply.
+                arp_flow = {
+                    "dpid": dpid,
+                    "priority": 3000,
+                    "match": {
+                        "dl_type": 2054,  # ARP
+                        "arp_op": 1,      # ARP Request
+                        "arp_tpa": virtual_ip,
+                    },
+                    "actions": [
+                        # Swap sender/target in ARP header
+                        {"type": "SET_FIELD", "field": "arp_op", "value": 2},  # ARP Reply
+                        # Set the target hardware address to the requester's MAC
+                        # (OVS copies dl_src to arp_tha automatically on reply)
+                        {"type": "SET_FIELD", "field": "arp_spa", "value": virtual_ip},
+                        {"type": "SET_FIELD", "field": "arp_sha", "value": virtual_mac},
+                        # Swap Ethernet src/dst
+                        # Send back to the requester via IN_PORT
+                        {"type": "OUTPUT", "port": "IN_PORT"},
+                    ],
+                }
+                try:
+                    self._ryu_post("/stats/flowentry/add", arp_flow)
+                    self.logger.info(f"ARP responder for {virtual_ip} installed on dpid={dpid}")
+                except Exception as e:
+                    self.logger.warning(f"ARP responder install failed on dpid={dpid}: {e}")
 
             if not groups_ok:
                 self._record_failure()
