@@ -380,27 +380,27 @@ class NetworkStateCollector:
             f"Timestamp: {report.get_timestamp_iso()}",
             "=" * 60,
             "",
-            "Potential Vulnerabilities:",
+            "Vulnerabilità Potenziali:",
         ]
         if report.vulnerabilities:
             for v in report.vulnerabilities:
                 lines.append(f"  - {v}")
         else:
-            lines.append("  No vulnerabilities detected.")
+            lines.append("  Nessuna vulnerabilità rilevata.")
 
-        lines += ["", "Configuration Issues:"]
+        lines += ["", "Problemi di Configurazione:"]
         if report.configuration_issues:
             for c in report.configuration_issues:
                 lines.append(f"  - {c}")
         else:
-            lines.append("  No configuration issues detected.")
+            lines.append("  Nessun problema di configurazione rilevato.")
 
-        lines += ["", "Security Properties to Verify:"]
+        lines += ["", "Proprietà di Sicurezza da Verificare:"]
         if report.security_properties:
             for p in report.security_properties:
                 lines.append(f"  - {p}")
         else:
-            lines.append("  No properties to verify.")
+            lines.append("  Nessuna proprietà da verificare.")
 
         lines.append("=" * 60)
         return "\n".join(lines)
