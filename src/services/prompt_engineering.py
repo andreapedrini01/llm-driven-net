@@ -1057,21 +1057,24 @@ class PromptEngineeringSystem:
         # Include flow details so ChatGPT can see existing rules
         if network_state.flows:
             lines.append("\nInstalled Flow Rules:")
-            for dpid, flow_list in network_state.flows.items():
-                if isinstance(flow_list, list):
-                    for flow in flow_list:
-                        if isinstance(flow, dict):
-                            match = flow.get('match', {})
-                            actions = flow.get('actions', [])
-                            priority = flow.get('priority', 0)
-                            cookie = flow.get('cookie', 0)
-                            # Skip default controller rules (priority 0)
-                            if priority == 0:
-                                continue
-                            lines.append(
-                                f"  Switch dpid={dpid}: priority={priority}, "
-                                f"match={match}, actions={actions}, cookie={cookie}"
-                            )
+            # Group flows by switch_id
+            flows_by_switch: Dict[str, list] = {}
+            for flow in network_state.flows:
+                sid = flow.switch_id if hasattr(flow, 'switch_id') else str(flow)
+                flows_by_switch.setdefault(sid, []).append(flow)
+            for dpid, flow_list in flows_by_switch.items():
+                for flow in flow_list:
+                    match = flow.match_fields if hasattr(flow, 'match_fields') else {}
+                    actions = flow.actions if hasattr(flow, 'actions') else []
+                    priority = flow.priority if hasattr(flow, 'priority') else 0
+                    cookie = getattr(flow, 'cookie', 0)
+                    # Skip default controller rules (priority 0)
+                    if priority == 0:
+                        continue
+                    lines.append(
+                        f"  Switch dpid={dpid}: priority={priority}, "
+                        f"match={match}, actions={actions}, cookie={cookie}"
+                    )
         
         return "\n".join(lines)
     
