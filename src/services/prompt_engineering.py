@@ -135,6 +135,10 @@ class PromptEngineeringSystem:
                 "5. rollback_plan: actions to revert changes if needed\n"
                 "6. risks: potential risks and mitigation strategies\n\n"
                 "Action types: flow_mod, slice_create, slice_modify, config_change\n\n"
+                "Required parameters per action type (place these keys DIRECTLY inside \"parameters\"):\n"
+                "- flow_mod: \"match\" (object) and \"actions\" (list) are REQUIRED. Optional: \"operation\", \"cookie\".\n"
+                "- slice_create: \"slice_name\" (string) and \"resources\" (list) are REQUIRED. Optional: \"bandwidth\".\n"
+                "- config_change: \"config_type\" (string) and \"config_data\" (object) are REQUIRED.\n\n"
                 "Response format:\n{response_schema}"
             ),
             response_schema={
@@ -143,7 +147,7 @@ class PromptEngineeringSystem:
                         "id": "string",
                         "type": "string",
                         "target": "string",
-                        "parameters": {},
+                        "parameters": "object (flow_mod: {match:{...}, actions:[...]}, slice_create: {slice_name:str, resources:[...]}, config_change: {config_type:str, config_data:{...}})",
                         "priority": "int (0-65535)",
                         "timeout": "int (seconds, MUST be between 1 and 3600, default 30)",
                         "description": "string"
@@ -383,11 +387,20 @@ class PromptEngineeringSystem:
                 "- penalties (max 1.0): Deductions for ambiguity, missing info, or low quality\n\n"
                 "Final score = max(0.1, min(1.0, sum_of_contributions - penalties))\n\n"
                 "Valid action types: flow_mod, slice_create, slice_modify, config_change\n\n"
-                "Required parameters per action type:\n"
-                "- flow_mod: {{\"operation\": \"add|delete\", \"match\": {{\"dl_type\": 2048, \"nw_src\": \"IP\", \"nw_dst\": \"IP\"}}, "
-                "\"actions\": [{{\"type\": \"OUTPUT\", \"port\": \"NORMAL\"}}] (empty list = DROP), \"cookie\": int}}\n"
-                "- slice_create: {{\"slice_name\": \"string\", \"resources\": [\"switch_names\"], \"bandwidth\": int_mbps}}\n"
-                "- config_change: {{\"config_type\": \"string\", \"config_data\": {{details}}}}\n\n"
+                "Required parameters per action type (place these keys DIRECTLY inside \"parameters\", "
+                "do NOT nest them under example keys):\n"
+                "- flow_mod: parameters MUST contain \"match\" (object with match fields like "
+                "\"dl_type\", \"nw_src\", \"nw_dst\") and \"actions\" (list of action objects like "
+                "{{\"type\": \"OUTPUT\", \"port\": \"NORMAL\"}}; empty list means DROP). "
+                "Optional: \"operation\" (add|delete), \"cookie\" (int).\n"
+                "- slice_create: parameters MUST contain \"slice_name\" (string) and "
+                "\"resources\" (list of switch names). Optional: \"bandwidth\" (int, Mbps).\n"
+                "- config_change: parameters MUST contain \"config_type\" (string) and "
+                "\"config_data\" (object with configuration details).\n\n"
+                "CRITICAL: Each action's \"parameters\" object must contain the required keys "
+                "directly. For example, a flow_mod action must have parameters: "
+                "{{\"match\": {{...}}, \"actions\": [{{...}}]}}. "
+                "Do NOT wrap them in example keys.\n\n"
                 "Provide a JSON response matching this schema:\n{response_schema}"
             ),
             response_schema={
@@ -396,16 +409,17 @@ class PromptEngineeringSystem:
                         "id": "string (unique, e.g. act-1)",
                         "type": "string (MUST be one of: flow_mod, slice_create, slice_modify, config_change)",
                         "target": "string (switch name e.g. s1, s2, or 'controller')",
-                        "parameters": {
-                            "_flow_mod_example": {"operation": "add", "match": {"dl_type": 2048, "nw_src": "10.0.0.1", "nw_dst": "10.0.0.10"}, "actions": [{"type": "OUTPUT", "port": "NORMAL"}], "cookie": 8192},
-                            "_slice_create_example": {"slice_name": "perf-slice", "resources": ["s1", "s2"], "bandwidth": 100},
-                            "_config_change_example": {"config_type": "qos", "config_data": {"policy": "priority_queuing"}}
-                        },
+                        "parameters": "object (keys depend on action type, see required parameters above)",
                         "priority": "int (1-65535)",
                         "timeout": "int (seconds, MUST be between 1 and 3600, default 30)",
                         "description": "string"
                     }
                 ],
+                "examples_for_parameters_field": {
+                    "flow_mod_parameters": {"match": {"dl_type": 2048, "nw_src": "10.0.0.1", "nw_dst": "10.0.0.10"}, "actions": [{"type": "OUTPUT", "port": "NORMAL"}], "operation": "add", "cookie": 8192},
+                    "slice_create_parameters": {"slice_name": "perf-slice", "resources": ["s1", "s2"], "bandwidth": 100},
+                    "config_change_parameters": {"config_type": "qos", "config_data": {"policy": "priority_queuing"}}
+                },
                 "parameter_suggestions": [
                     {
                         "target_factor": "string (one of: base_confidence, entity_boost, type_boost, token_boost, quality_boost)",
