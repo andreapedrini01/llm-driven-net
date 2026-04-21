@@ -10,10 +10,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
 from pydantic import BaseModel, Field, validator
 
-from src.models.intent import IntentObject, IntentType, ContextualizedIntent
-from src.models.network import NetworkState, Anomaly, AnomalySeverity
-from src.models.actions import ActionSequence, NetworkAction, ActionType
-from src.models.confidence import ConfidenceCriteriaBreakdown
+from llm_integration_module.models.intent import IntentObject, IntentType, ContextualizedIntent
+from llm_integration_module.models.network import NetworkState, Anomaly, AnomalySeverity
+from llm_integration_module.models.actions import ActionSequence, NetworkAction, ActionType
+from llm_integration_module.models.confidence import ConfidenceCriteriaBreakdown
 
 
 logger = logging.getLogger(__name__)

@@ -4,9 +4,9 @@ import pytest
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from typing import List, Dict, Any, Optional
-from src.services.intent_parser import IntentParser
-from src.models.intent import IntentObject, IntentType, Entity
-from src.models.network import NetworkState, Switch, Host, Link, Topology
+from llm_integration_module.services.intent_parser import IntentParser
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity
+from llm_integration_module.models.network import NetworkState, Switch, Host, Link, Topology
 
 
 class TestClarificationProperties:
@@ -138,7 +138,7 @@ class TestClarificationProperties:
         topology = Topology(switches=switches, hosts=hosts, links=links)
         
         # Create basic metrics
-        from src.models.network import NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+        from llm_integration_module.models.network import NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
         from datetime import datetime
         
         bandwidth_metrics = BandwidthMetrics(

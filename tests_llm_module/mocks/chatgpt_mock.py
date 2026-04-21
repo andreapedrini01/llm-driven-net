@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 from enum import Enum
 
-from src.services.chatgpt_client import (
+from llm_integration_module.services.chatgpt_client import (
     ChatGPTResponse,
     ChatGPTConfig,
     RateLimitInfo,

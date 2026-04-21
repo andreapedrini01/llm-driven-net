@@ -15,7 +15,7 @@ from hypothesis import Phase
 from datetime import datetime
 import re
 
-from src.utils.input_sanitization import (
+from llm_integration_module.utils.input_sanitization import (
     InputSanitizer,
     ThreatLevel,
     AttackType,

@@ -54,7 +54,7 @@ For detailed instructions, see the [Quick Start Guide](docs/QUICK_START.md) or [
 ## Project Structure
 
 ```
-├── src/                    # Source code
+├── llm_integration_module/                    # Source code
 ├── tests_llm_module/       # Test suite (unit, property-based, integration)
 ├── docs/                   # Complete documentation
 ├── deployment/             # Kubernetes, Docker, monitoring

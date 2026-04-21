@@ -2,8 +2,8 @@
 
 import pytest
 from datetime import datetime
-from src.services.validator import ActionValidator, RollbackPlanGenerator, ImpactAssessor
-from src.models.actions import (
+from llm_integration_module.services.validator import ActionValidator, RollbackPlanGenerator, ImpactAssessor
+from llm_integration_module.models.actions import (
     NetworkAction,
     ActionSequence,
     ActionType,
@@ -11,7 +11,7 @@ from src.models.actions import (
     SafetyReport,
     ImpactAssessment
 )
-from src.models.network import (
+from llm_integration_module.models.network import (
     NetworkState,
     Topology,
     Switch,

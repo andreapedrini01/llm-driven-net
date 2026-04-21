@@ -5,7 +5,7 @@ import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import Mock, AsyncMock, patch
 
-from src.services.chatgpt_client import (
+from llm_integration_module.services.chatgpt_client import (
     ChatGPTClient,
     ChatGPTConfig,
     ChatGPTResponse,

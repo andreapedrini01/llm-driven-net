@@ -9,8 +9,8 @@ from pathlib import Path
 from datetime import datetime
 import pytest
 
-from src.services.state_file_reader import StateFileReader, FileReadResult
-from src.models.network import NetworkState
+from llm_integration_module.services.state_file_reader import StateFileReader, FileReadResult
+from llm_integration_module.models.network import NetworkState
 
 
 @pytest.fixture

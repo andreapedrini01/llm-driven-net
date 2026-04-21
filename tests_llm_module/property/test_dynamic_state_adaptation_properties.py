@@ -6,13 +6,13 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import copy
 
-from src.services.context_analyzer import NetworkStateCache, ContextCorrelationEngine
-from src.models.network import (
+from llm_integration_module.services.context_analyzer import NetworkStateCache, ContextCorrelationEngine
+from llm_integration_module.models.network import (
     NetworkState, Topology, Switch, Link, Host, Flow,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics,
     Anomaly, AnomalyType, AnomalySeverity
 )
-from src.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
 
 
 class TestDynamicStateAdaptationProperties:

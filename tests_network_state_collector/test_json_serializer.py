@@ -15,10 +15,10 @@ from network_state_collector.json_serializer import (
     JSONSerializationError, 
     JSONDeserializationError
 )
-from src.models.core import (
+from llm_integration_module.models.core import (
     NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
 )
-from src.models.llm import LLMNetworkData, AnomalyIndicator
+from llm_integration_module.models.llm import LLMNetworkData, AnomalyIndicator
 from network_state_collector.data_validator import ValidationResult
 
 

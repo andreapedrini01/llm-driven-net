@@ -5,13 +5,13 @@ from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from typing import List
 
-from src.services.context_analyzer import AnomalyDetectionSystem, NetworkStateCache
-from src.models.network import (
+from llm_integration_module.services.context_analyzer import AnomalyDetectionSystem, NetworkStateCache
+from llm_integration_module.models.network import (
     NetworkState, Topology, Switch, Link, Host,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics,
     Anomaly, AnomalyType, AnomalySeverity
 )
-from src.models.actions import NetworkAction, ActionType
+from llm_integration_module.models.actions import NetworkAction, ActionType
 
 
 class TestAutomaticAnomalyMitigationProperties:

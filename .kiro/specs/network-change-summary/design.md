@@ -34,7 +34,7 @@ Il modulo viene importato in `main.py` e invocato con una singola chiamata dopo 
 
 ## Componenti e Interfacce
 
-### Modulo `src/services/change_summary.py`
+### Modulo `llm_integration_module/services/change_summary.py`
 
 Contiene tutte le funzioni per la generazione del riepilogo.
 
@@ -154,10 +154,10 @@ Il modulo non introduce nuovi modelli dati. Utilizza le strutture esistenti:
 
 | Struttura | Modulo | Campi utilizzati |
 |-----------|--------|-----------------|
-| `NetworkAction` (LLM) | `src/models/actions.py` | `id`, `type`, `target`, `parameters`, `description`, `priority` |
+| `NetworkAction` (LLM) | `llm_integration_module/models/actions.py` | `id`, `type`, `target`, `parameters`, `description`, `priority` |
 | `ExecutionResult` | `northbound_script_generator/action_processor.py` | `action_id`, `status`, `duration`, `error`, `network_state_before`, `network_state_after` |
 | `ExecutionStatus` | `northbound_script_generator/action_processor.py` | `SUCCESS`, `FAILED`, `TIMEOUT` |
-| `ChatGPTResponse` | `src/services/chatgpt_client.py` | `content` |
+| `ChatGPTResponse` | `llm_integration_module/services/chatgpt_client.py` | `content` |
 
 ### Struttura dell'output formattato
 

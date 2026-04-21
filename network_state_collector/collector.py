@@ -12,9 +12,9 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 from pathlib import Path
 
-from src.models.config import CollectorConfig
-from src.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo
-from src.models.health import SystemHealth, HealthCheck, HealthStatus, ComponentType
+from llm_integration_module.models.config import CollectorConfig
+from llm_integration_module.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo
+from llm_integration_module.models.health import SystemHealth, HealthCheck, HealthStatus, ComponentType
 from .configuration_manager import ConfigurationManager
 from .ryu_connector import RyuConnector
 from .data_processor import DataProcessor
@@ -326,9 +326,9 @@ class NetworkStateCollector:
     
     def _run_security_scan(self, snapshot: NetworkSnapshot, host_filter: Optional[List[str]] = None) -> None:
         from network_state_collector.security_scanner import SecurityScanner, extract_host_ips, resolve_host_filter
-        from src.services.security_analyzer import SecurityAnalyzer
-        from src.services.chatgpt_client import ChatGPTClient
-        from src.models.security import SecuritySnapshot
+        from llm_integration_module.services.security_analyzer import SecurityAnalyzer
+        from llm_integration_module.services.chatgpt_client import ChatGPTClient
+        from llm_integration_module.models.security import SecuritySnapshot
         import asyncio
         import json
         from pathlib import Path

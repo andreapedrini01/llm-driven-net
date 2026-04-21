@@ -18,8 +18,8 @@ from typing import List, Dict, Optional
 
 import requests
 
-from src.models.security import NmapResult, OpenPort, NmapNotFoundError
-from src.models.core import NetworkSnapshot
+from llm_integration_module.models.security import NmapResult, OpenPort, NmapNotFoundError
+from llm_integration_module.models.core import NetworkSnapshot
 
 logger = logging.getLogger(__name__)
 

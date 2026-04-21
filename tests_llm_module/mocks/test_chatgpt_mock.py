@@ -11,7 +11,7 @@ from tests.mocks import (
     create_mock_client,
     create_mock_response
 )
-from src.services.chatgpt_client import ChatGPTConfig
+from llm_integration_module.services.chatgpt_client import ChatGPTConfig
 
 
 class TestChatGPTResponseGenerator:

@@ -6,12 +6,12 @@ from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from typing import List, Dict, Any
 
-from src.services.chatgpt_client import ChatGPTClient, ChatGPTConfig
-from src.services.prompt_engineering import PromptEngineeringSystem, PromptType
-from src.services.context_analyzer import ContextCorrelationEngine, NetworkStateCache
-from src.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
-from src.models.network import NetworkState, Topology, Switch, Link, Host, Flow, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
-from src.models.actions import ActionSequence, NetworkAction, ActionType
+from llm_integration_module.services.chatgpt_client import ChatGPTClient, ChatGPTConfig
+from llm_integration_module.services.prompt_engineering import PromptEngineeringSystem, PromptType
+from llm_integration_module.services.context_analyzer import ContextCorrelationEngine, NetworkStateCache
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
+from llm_integration_module.models.network import NetworkState, Topology, Switch, Link, Host, Flow, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+from llm_integration_module.models.actions import ActionSequence, NetworkAction, ActionType
 import json
 
 

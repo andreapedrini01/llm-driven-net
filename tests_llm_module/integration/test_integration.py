@@ -2,11 +2,11 @@
 
 import pytest
 from datetime import datetime
-from src.models.intent import IntentObject, IntentType, Entity
-from src.models.actions import NetworkAction, ActionType, ActionSequence
-from src.models.network import NetworkState, Topology, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
-from src.models.slices import NetworkSlice, SliceStatus, ServiceLevelAgreement, SliceResources
-from src.services.intent_parser import IntentParser
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity
+from llm_integration_module.models.actions import NetworkAction, ActionType, ActionSequence
+from llm_integration_module.models.network import NetworkState, Topology, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+from llm_integration_module.models.slices import NetworkSlice, SliceStatus, ServiceLevelAgreement, SliceResources
+from llm_integration_module.services.intent_parser import IntentParser
 
 
 class TestSystemIntegration:

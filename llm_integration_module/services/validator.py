@@ -5,7 +5,7 @@ from datetime import datetime
 import logging
 import copy
 
-from src.models.actions import (
+from llm_integration_module.models.actions import (
     NetworkAction,
     ActionSequence,
     ActionType,
@@ -14,7 +14,7 @@ from src.models.actions import (
     SimulationResult,
     ImpactAssessment
 )
-from src.models.network import NetworkState, AnomalySeverity
+from llm_integration_module.models.network import NetworkState, AnomalySeverity
 
 
 logger = logging.getLogger(__name__)

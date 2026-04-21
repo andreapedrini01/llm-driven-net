@@ -14,9 +14,9 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from src.models.config import RyuConfig, RetryConfig
-from src.models.core import SwitchInfo, LinkInfo, PortMetrics
-from src.models.health import (
+from llm_integration_module.models.config import RyuConfig, RetryConfig
+from llm_integration_module.models.core import SwitchInfo, LinkInfo, PortMetrics
+from llm_integration_module.models.health import (
     HealthStatus, ComponentType, HealthCheck, ConnectionHealth, 
     StructuredLogEntry
 )

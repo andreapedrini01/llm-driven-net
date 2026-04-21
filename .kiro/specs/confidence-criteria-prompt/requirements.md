@@ -8,12 +8,12 @@ This feature enriches the ChatGPT prompt with the confidence criteria used by `I
 
 ## Glossary
 
-- **IntentParser**: The service (`src/services/intent_parser.py`) responsible for parsing natural language intents, extracting entities, classifying intent type, and calculating a confidence score.
+- **IntentParser**: The service (`llm_integration_module/services/intent_parser.py`) responsible for parsing natural language intents, extracting entities, classifying intent type, and calculating a confidence score.
 - **Confidence_Score**: A float value between 0.0 and 1.0 representing how well the system understood the user's intent, computed by `IntentParser._calculate_confidence_enhanced`.
 - **Confidence_Criteria**: The set of factors and their weights used to compute the Confidence_Score: base text structure score, entity confidence contribution, intent type confidence contribution, token quality boost, text quality bonuses, and penalties.
-- **ChatGPT_Client**: The service (`src/services/chatgpt_client.py`) that sends prompts to the OpenAI API and returns responses.
-- **Prompt_Engineering_System**: The service (`src/services/prompt_engineering.py`) that manages prompt templates, context injection, and response parsing for ChatGPT interactions.
-- **Action_Sequencer**: The service (`src/services/action_sequencer.py`) that parses ChatGPT responses into `NetworkAction` objects and sequences them for execution.
+- **ChatGPT_Client**: The service (`llm_integration_module/services/chatgpt_client.py`) that sends prompts to the OpenAI API and returns responses.
+- **Prompt_Engineering_System**: The service (`llm_integration_module/services/prompt_engineering.py`) that manages prompt templates, context injection, and response parsing for ChatGPT interactions.
+- **Action_Sequencer**: The service (`llm_integration_module/services/action_sequencer.py`) that parses ChatGPT responses into `NetworkAction` objects and sequences them for execution.
 - **Confidence_Criteria_Extractor**: A new component responsible for extracting parameter suggestions from ChatGPT's criteria-aware response and mapping them to confidence factors.
 - **Criteria_Enriched_Prompt**: A ChatGPT prompt that includes the Confidence_Criteria breakdown alongside the intent and network context.
 - **Parameter_Suggestion**: A structured object returned by ChatGPT describing a specific parameter or entity that, if clarified or added, would increase the Confidence_Score.

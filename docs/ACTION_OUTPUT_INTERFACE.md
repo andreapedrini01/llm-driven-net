@@ -403,7 +403,7 @@ Planned improvements for future releases:
 - [Design Document](../design.md) - Overall system design
 - [Requirements Document](../requirements.md) - System requirements
 - [Validator Documentation](./VALIDATOR.md) - Action validation
-- [Action Models](../src/models/actions.py) - Action data models
+- [Action Models](../llm_integration_module/models/actions.py) - Action data models
 
 ## Support
 

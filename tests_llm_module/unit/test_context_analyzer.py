@@ -5,13 +5,13 @@ import time
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
-from src.services.context_analyzer import (
+from llm_integration_module.services.context_analyzer import (
     NetworkStateCache, 
     ContextCorrelationEngine, 
     AnomalyDetectionSystem,
     CacheEntry
 )
-from src.models.network import (
+from llm_integration_module.models.network import (
     NetworkState, 
     Topology, 
     Switch, 
@@ -26,8 +26,8 @@ from src.models.network import (
     AnomalyType,
     AnomalySeverity
 )
-from src.models.intent import IntentObject, IntentType, Entity
-from src.models.actions import NetworkAction, ActionType
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity
+from llm_integration_module.models.actions import NetworkAction, ActionType
 
 
 @pytest.fixture
@@ -572,7 +572,7 @@ class TestAnomalyDetectionSystem:
         uneven_state = sample_network_state.model_copy()
         
         # Add many flows to one switch (more than 10 and 3x average)
-        from src.models.network import Flow
+        from llm_integration_module.models.network import Flow
         for i in range(40):  # Increased to ensure detection
             flow = Flow(
                 id=f"flow-{i}",

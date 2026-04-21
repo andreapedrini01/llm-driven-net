@@ -11,9 +11,9 @@ import numpy as np
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import asdict
 
-from src.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo
-from src.models.llm import LLMNetworkData, AnomalyIndicator, ContextEmbedding
-from src.models.health import QualityMetrics
+from llm_integration_module.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo
+from llm_integration_module.models.llm import LLMNetworkData, AnomalyIndicator, ContextEmbedding
+from llm_integration_module.models.health import QualityMetrics
 from .data_validator import ValidationResult
 
 

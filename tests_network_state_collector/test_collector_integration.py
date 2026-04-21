@@ -8,8 +8,8 @@ RyuConnector e DataProcessor per task 3.1.
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from network_state_collector.collector import NetworkStateCollector
-from src.models.core import SwitchInfo, LinkInfo, PortMetrics
-from src.models.health import HealthStatus, ComponentType
+from llm_integration_module.models.core import SwitchInfo, LinkInfo, PortMetrics
+from llm_integration_module.models.health import HealthStatus, ComponentType
 
 
 class TestCollectorIntegration:

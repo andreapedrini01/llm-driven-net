@@ -14,10 +14,10 @@ from unittest.mock import MagicMock, AsyncMock
 
 import pytest
 
-from src.models.actions import NetworkAction, ActionType
+from llm_integration_module.models.actions import NetworkAction, ActionType
 from northbound_script_generator.action_processor import ExecutionResult, ExecutionStatus
-from src.services.change_summary import generate_summary, generate_llm_summary
-from src.services.chatgpt_client import ChatGPTResponse
+from llm_integration_module.services.change_summary import generate_summary, generate_llm_summary
+from llm_integration_module.services.chatgpt_client import ChatGPTResponse
 
 
 # ---------------------------------------------------------------------------

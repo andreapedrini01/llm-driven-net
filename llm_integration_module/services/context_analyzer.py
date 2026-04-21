@@ -13,9 +13,9 @@ from dataclasses import dataclass
 from collections import defaultdict
 import logging
 
-from src.models.network import NetworkState, Anomaly, AnomalyType, AnomalySeverity
-from src.models.intent import IntentObject, ContextualizedIntent, Entity
-from src.models.actions import NetworkAction, ActionType
+from llm_integration_module.models.network import NetworkState, Anomaly, AnomalyType, AnomalySeverity
+from llm_integration_module.models.intent import IntentObject, ContextualizedIntent, Entity
+from llm_integration_module.models.actions import NetworkAction, ActionType
 
 
 @dataclass

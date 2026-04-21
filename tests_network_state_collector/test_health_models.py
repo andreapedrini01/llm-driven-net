@@ -8,7 +8,7 @@ logging strutturato e metriche di qualità.
 import pytest
 import json
 import time
-from src.models.health import (
+from llm_integration_module.models.health import (
     HealthStatus, ComponentType, HealthCheck, ConnectionHealth,
     QualityMetrics, SystemHealth, StructuredLogEntry
 )

@@ -1,12 +1,12 @@
 """Unit tests for action sequencer service."""
 
 import pytest
-from src.services.action_sequencer import (
+from llm_integration_module.services.action_sequencer import (
     ActionSequencer,
     ActionDependency,
     ActionConflict
 )
-from src.models.actions import NetworkAction, ActionType, ActionSequence
+from llm_integration_module.models.actions import NetworkAction, ActionType, ActionSequence
 
 
 class TestActionSequencer:

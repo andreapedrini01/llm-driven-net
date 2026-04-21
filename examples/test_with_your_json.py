@@ -8,11 +8,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Import dei componenti del modulo
-from src.services.state_file_reader import StateFileReader
-from src.services.intent_parser import IntentParser
-from src.services.context_analyzer import ContextAnalyzer
-from src.models.intent import IntentObject
-from src.utils.logging import configure_logging, get_logger
+from llm_integration_module.services.state_file_reader import StateFileReader
+from llm_integration_module.services.intent_parser import IntentParser
+from llm_integration_module.services.context_analyzer import ContextAnalyzer
+from llm_integration_module.models.intent import IntentObject
+from llm_integration_module.utils.logging import configure_logging, get_logger
 
 # Configura logging
 configure_logging(log_level="INFO", json_logs=False)

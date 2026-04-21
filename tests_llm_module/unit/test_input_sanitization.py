@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime, timedelta
-from src.utils.input_sanitization import (
+from llm_integration_module.utils.input_sanitization import (
     InputSanitizer,
     RateLimiter,
     RateLimitConfig,

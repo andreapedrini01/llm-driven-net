@@ -11,8 +11,8 @@ from collections import deque
 from openai import AsyncOpenAI, OpenAIError, RateLimitError, APITimeoutError, APIConnectionError
 from pydantic import BaseModel
 
-from src.config import get_settings
-from src.utils.logging import chatgpt_usage_logger, set_correlation_id, get_correlation_id
+from llm_integration_module.config import get_settings
+from llm_integration_module.utils.logging import chatgpt_usage_logger, set_correlation_id, get_correlation_id
 
 
 logger = logging.getLogger(__name__)

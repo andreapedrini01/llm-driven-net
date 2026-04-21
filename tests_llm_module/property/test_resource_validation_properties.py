@@ -4,9 +4,9 @@ import pytest
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from typing import List, Dict, Any
-from src.services.intent_parser import IntentParser
-from src.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
-from src.models.network import (
+from llm_integration_module.services.intent_parser import IntentParser
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
+from llm_integration_module.models.network import (
     NetworkState, Topology, Switch, Link, Host, Flow,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics,
     Anomaly, AnomalyType, AnomalySeverity

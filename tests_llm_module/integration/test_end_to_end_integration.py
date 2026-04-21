@@ -2,14 +2,14 @@
 
 import pytest
 from datetime import datetime
-from src.services.intent_parser import IntentParser
-from src.models.intent import IntentObject, IntentType, Entity
-from src.models.network import (
+from llm_integration_module.services.intent_parser import IntentParser
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity
+from llm_integration_module.models.network import (
     NetworkState, Topology, Switch, Host, Link, 
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 )
 from typing import List
-from src.models.actions import NetworkAction, ActionType, ActionSequence
+from llm_integration_module.models.actions import NetworkAction, ActionType, ActionSequence
 
 
 class TestEndToEndIntegration:

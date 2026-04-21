@@ -18,8 +18,8 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 from hypothesis import given, strategies as st, settings, HealthCheck
 
-from src.models.actions import NetworkAction as LLMAction, ActionType
-from src.models.intent import IntentObject, IntentType, Entity
+from llm_integration_module.models.actions import NetworkAction as LLMAction, ActionType
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity
 
 # The threshold constant from main.py
 RULE_BASED_CONFIDENCE_THRESHOLD = 0.8

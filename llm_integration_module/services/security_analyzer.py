@@ -6,8 +6,8 @@ import logging
 import time
 from typing import List
 
-from src.models.security import SecuritySnapshot, SecurityReport
-from src.services.chatgpt_client import ChatGPTClient
+from llm_integration_module.models.security import SecuritySnapshot, SecurityReport
+from llm_integration_module.services.chatgpt_client import ChatGPTClient
 
 logger = logging.getLogger(__name__)
 

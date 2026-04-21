@@ -24,15 +24,15 @@ from typing import Dict, Any, List
 from unittest.mock import Mock, patch, AsyncMock
 import threading
 
-from src.services.state_file_reader import StateFileReader, FileReadResult
-from src.services.chatgpt_client import ChatGPTClient, ChatGPTConfig, BudgetAlert
-from src.services.action_output import ActionOutputInterface, ActionStatus
-from src.services.intent_parser import IntentParser
-from src.services.context_analyzer import ContextAnalyzer
-from src.models.network import NetworkState, Topology, Switch, Host, Link
-from src.models.network import NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
-from src.models.intent import IntentObject, IntentType
-from src.models.actions import NetworkAction, ActionType, ActionSequence
+from llm_integration_module.services.state_file_reader import StateFileReader, FileReadResult
+from llm_integration_module.services.chatgpt_client import ChatGPTClient, ChatGPTConfig, BudgetAlert
+from llm_integration_module.services.action_output import ActionOutputInterface, ActionStatus
+from llm_integration_module.services.intent_parser import IntentParser
+from llm_integration_module.services.context_analyzer import ContextAnalyzer
+from llm_integration_module.models.network import NetworkState, Topology, Switch, Host, Link
+from llm_integration_module.models.network import NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+from llm_integration_module.models.intent import IntentObject, IntentType
+from llm_integration_module.models.actions import NetworkAction, ActionType, ActionSequence
 
 
 class TestEndToEndScenarios:
@@ -192,7 +192,7 @@ class TestEndToEndScenarios:
             log_directory=str(self.output_dir / "logs")
         )
         
-        from src.models.actions import ValidationResult, SafetyReport
+        from llm_integration_module.models.actions import ValidationResult, SafetyReport
         validation = ValidationResult(is_valid=True, errors=[], warnings=[])
         safety = SafetyReport(is_safe=True, risk_level="low", risks=[])
         
@@ -855,7 +855,7 @@ class TestLoadAndPerformance:
             estimated_duration=1500
         )
         
-        from src.models.actions import ValidationResult, SafetyReport
+        from llm_integration_module.models.actions import ValidationResult, SafetyReport
         validation = ValidationResult(is_valid=True, errors=[], warnings=[])
         safety = SafetyReport(is_safe=True, risk_level="low", risks=[])
         

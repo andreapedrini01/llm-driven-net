@@ -15,7 +15,7 @@ import pytest
 from hypothesis import given, settings, HealthCheck
 from hypothesis import strategies as st
 
-from src.models.security import SecurityReport
+from llm_integration_module.models.security import SecurityReport
 
 
 # ---------------------------------------------------------------------------

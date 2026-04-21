@@ -8,7 +8,7 @@ import logging
 from enum import Enum
 from pydantic import BaseModel, Field
 
-from src.models.actions import (
+from llm_integration_module.models.actions import (
     NetworkAction,
     ActionSequence,
     ValidationResult,

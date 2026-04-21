@@ -12,7 +12,7 @@ import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 
-from src.models.network import NetworkState
+from llm_integration_module.models.network import NetworkState
 
 
 @dataclass

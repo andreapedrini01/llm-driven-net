@@ -8,11 +8,11 @@ convertendoli in strutture dati standardizzate per l'integrazione LLM.
 import logging
 import time
 from typing import List, Dict, Any, Optional, Tuple
-from src.models.core import (
+from llm_integration_module.models.core import (
     TopologyData, SwitchInfo, LinkInfo, MetricsData, PortMetrics, 
     AggregatedMetrics, DerivedMetrics
 )
-from src.models.health import QualityMetrics
+from llm_integration_module.models.health import QualityMetrics
 
 
 class DataProcessingError(Exception):
@@ -787,7 +787,7 @@ class DataProcessor:
         Returns:
             QualityMetrics con punteggi di qualità
         """
-        from src.models.health import QualityMetrics
+        from llm_integration_module.models.health import QualityMetrics
         
         issues_detected = []
         

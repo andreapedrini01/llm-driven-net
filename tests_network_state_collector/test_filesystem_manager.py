@@ -18,10 +18,10 @@ from network_state_collector.filesystem_manager import (
     FileSystemConfig, 
     FileSystemError
 )
-from src.models.core import (
+from llm_integration_module.models.core import (
     NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
 )
-from src.models.llm import LLMNetworkData, AnomalyIndicator
+from llm_integration_module.models.llm import LLMNetworkData, AnomalyIndicator
 
 
 class TestFileSystemConfig:

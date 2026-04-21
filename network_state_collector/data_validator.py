@@ -11,11 +11,11 @@ from typing import Dict, List, Any, Optional, Tuple, Set
 from dataclasses import dataclass, field
 from enum import Enum
 
-from src.models.core import (
+from llm_integration_module.models.core import (
     NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, 
     PortMetrics, AggregatedMetrics, DerivedMetrics
 )
-from src.models.health import QualityMetrics
+from llm_integration_module.models.health import QualityMetrics
 
 
 class ValidationSeverity(Enum):

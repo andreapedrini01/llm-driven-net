@@ -47,7 +47,7 @@ The design is additive — no existing interfaces change signature. The `IntentP
 
 ### 1. IntentParser (modified)
 
-**File:** `src/services/intent_parser.py`
+**File:** `llm_integration_module/services/intent_parser.py`
 
 New public method:
 
@@ -66,7 +66,7 @@ Internally, `_calculate_confidence_enhanced` already computes `base_confidence`,
 
 ### 2. PromptEngineeringSystem (modified)
 
-**File:** `src/services/prompt_engineering.py`
+**File:** `llm_integration_module/services/prompt_engineering.py`
 
 New enum value:
 
@@ -92,7 +92,7 @@ def build_confidence_enriched_prompt(
 
 ### 3. ActionSequencer (modified)
 
-**File:** `src/services/action_sequencer.py`
+**File:** `llm_integration_module/services/action_sequencer.py`
 
 New method:
 
@@ -111,7 +111,7 @@ This method reuses the existing JSON extraction logic from `parse_actions_from_r
 
 ### 4. ConfidenceCriteriaExtractor (new)
 
-**File:** `src/services/confidence_criteria_extractor.py`
+**File:** `llm_integration_module/services/confidence_criteria_extractor.py`
 
 ```python
 class ConfidenceCriteriaExtractor:
@@ -147,7 +147,7 @@ In the `not use_rule_based` branch, replace the current generic prompt construct
 
 ## Data Models
 
-**File:** `src/models/confidence.py`
+**File:** `llm_integration_module/models/confidence.py`
 
 ```python
 from pydantic import BaseModel, Field, validator

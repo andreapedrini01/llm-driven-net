@@ -14,8 +14,8 @@ from network_state_collector.security_scanner import (
     extract_host_ips,
     resolve_host_filter,
 )
-from src.models.security import NmapResult, NmapNotFoundError
-from src.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo
+from llm_integration_module.models.security import NmapResult, NmapNotFoundError
+from llm_integration_module.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo
 
 
 # ---------------------------------------------------------------------------

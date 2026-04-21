@@ -13,7 +13,7 @@ import pytest
 from hypothesis import given, strategies as st, settings, HealthCheck
 
 from network_state_collector.security_scanner import SecurityScanner
-from src.models.security import NmapResult
+from llm_integration_module.models.security import NmapResult
 
 
 # ---------------------------------------------------------------------------

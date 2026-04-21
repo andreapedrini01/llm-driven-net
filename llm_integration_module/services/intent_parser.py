@@ -4,9 +4,9 @@ import re
 import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple, Set
-from src.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
-from src.models.network import NetworkState
-from src.models.confidence import ConfidenceCriteriaBreakdown
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
+from llm_integration_module.models.network import NetworkState
+from llm_integration_module.models.confidence import ConfidenceCriteriaBreakdown
 
 
 class IntentParser:

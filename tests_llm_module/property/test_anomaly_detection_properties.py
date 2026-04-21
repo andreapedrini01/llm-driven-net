@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import time
 
-from src.services.context_analyzer import AnomalyDetectionSystem, NetworkStateCache
-from src.models.network import (
+from llm_integration_module.services.context_analyzer import AnomalyDetectionSystem, NetworkStateCache
+from llm_integration_module.models.network import (
     NetworkState, Topology, NetworkMetrics, BandwidthMetrics, 
     LatencyMetrics, UtilizationMetrics, Switch, Link, Host, Flow,
     Anomaly, AnomalyType, AnomalySeverity

@@ -5,8 +5,8 @@ from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from typing import List, Dict, Set
 from datetime import datetime
 
-from src.services.action_sequencer import ActionSequencer, ActionDependency, ActionConflict
-from src.models.actions import NetworkAction, ActionType, ActionSequence
+from llm_integration_module.services.action_sequencer import ActionSequencer, ActionDependency, ActionConflict
+from llm_integration_module.models.actions import NetworkAction, ActionType, ActionSequence
 
 
 class TestActionSequencingProperties:

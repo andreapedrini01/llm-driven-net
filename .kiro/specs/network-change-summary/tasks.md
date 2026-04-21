@@ -2,13 +2,13 @@
 
 ## Panoramica
 
-Implementazione del modulo `src/services/change_summary.py` con funzioni pure per la formattazione del riepilogo delle modifiche di rete, integrazione in `main.py` tra Step 8 e Step 9, e test property-based con Hypothesis.
+Implementazione del modulo `llm_integration_module/services/change_summary.py` con funzioni pure per la formattazione del riepilogo delle modifiche di rete, integrazione in `main.py` tra Step 8 e Step 9, e test property-based con Hypothesis.
 
 ## Task
 
-- [x] 1. Creare il modulo `src/services/change_summary.py` con le funzioni di formattazione
+- [x] 1. Creare il modulo `llm_integration_module/services/change_summary.py` con le funzioni di formattazione
   - [x] 1.1 Implementare `format_action_detail(action, result)` che formatta il dettaglio di una singola azione eseguita con tipo, target, parametri (se successo) o errore (se fallimento), icona di stato (✓/✗) e durata
-    - Usare `NetworkAction` da `src/models/actions.py` e `ExecutionResult` / `ExecutionStatus` da `northbound_script_generator/action_processor.py`
+    - Usare `NetworkAction` da `llm_integration_module/models/actions.py` e `ExecutionResult` / `ExecutionStatus` da `northbound_script_generator/action_processor.py`
     - _Requisiti: 1.1, 1.2, 1.3, 4.1_
 
   - [x] 1.2 Implementare `compute_state_diff(state_before, state_after)` che calcola le differenze tra due dizionari di stato di rete, identificando chiavi aggiunte, rimosse e modificate

@@ -46,24 +46,24 @@ The LLM Integration Module follows a modular architecture with clear separation 
 
 The application consists of several key components:
 
-**API Layer** (`src/api/`)
+**API Layer** (`llm_integration_module/api/`)
 - REST API endpoints for intent processing and action generation
 - Request validation and sanitization
 - Response formatting and error handling
 - Health check endpoints
 
-**Core Logic** (`src/core/`)
+**Core Logic** (`llm_integration_module/core/`)
 - Intent processing engine
 - Action generation logic
 - State management
 - Business rule enforcement
 
-**Integration Layer** (`src/integrations/`)
+**Integration Layer** (`llm_integration_module/integrations/`)
 - ChatGPT API client
 - External service integrations
 - API rate limiting and retry logic
 
-**Monitoring** (`src/monitoring/`)
+**Monitoring** (`llm_integration_module/monitoring/`)
 - Prometheus metrics collection
 - Performance tracking
 - Cost monitoring

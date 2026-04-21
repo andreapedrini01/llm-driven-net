@@ -158,12 +158,12 @@ python -m src.main
 ImportError: cannot import name 'app' from 'src.main'
 ```
 
-**Cause**: Syntax error in src/main.py or circular dependencies
+**Cause**: Syntax error in llm_integration_module/main.py or circular dependencies
 
 **Solution**:
 ```bash
 # Verify syntax
-python -m py_compile src/main.py
+python -m py_compile llm_integration_module/main.py
 
 # Check circular imports
 python -c "import src.main"
@@ -663,7 +663,7 @@ Memory continuously increases
 ```bash
 # 1. Monitor memory
 pip install memory_profiler
-python -m memory_profiler src/main.py
+python -m memory_profiler llm_integration_module/main.py
 
 # 2. Use garbage collector
 import gc

@@ -6,8 +6,8 @@ from datetime import datetime
 from typing import List, Dict, Set
 import copy
 
-from src.models.slices import NetworkSlice, SliceResources, SliceStatus, Path, Policy
-from src.models.network import NetworkState, Topology, Switch, Link, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+from llm_integration_module.models.slices import NetworkSlice, SliceResources, SliceStatus, Path, Policy
+from llm_integration_module.models.network import NetworkState, Topology, Switch, Link, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 
 
 class TestDependencyUpdateProperties:

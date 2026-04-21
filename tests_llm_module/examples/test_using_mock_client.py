@@ -8,10 +8,10 @@ import asyncio
 from typing import Dict, Any
 
 from tests.mocks import MockChatGPTClient, create_mock_client, MockResponseVariant
-from src.services.chatgpt_client import ChatGPTConfig
-from src.services.prompt_engineering import PromptEngineeringSystem, PromptType
-from src.models.intent import IntentObject, IntentType
-from src.models.network import NetworkState
+from llm_integration_module.services.chatgpt_client import ChatGPTConfig
+from llm_integration_module.services.prompt_engineering import PromptEngineeringSystem, PromptType
+from llm_integration_module.models.intent import IntentObject, IntentType
+from llm_integration_module.models.network import NetworkState
 
 
 # Example 1: Basic fixture setup
@@ -352,7 +352,7 @@ class TestMigrationExample:
     async def test_before_migration(self):
         """Example of test before migration (commented out to avoid real API calls)."""
         # BEFORE: Using real ChatGPT client
-        # from src.services.chatgpt_client import ChatGPTClient
+        # from llm_integration_module.services.chatgpt_client import ChatGPTClient
         # client = ChatGPTClient()  # Would make real API calls
         # response = await client.generate_response("Test")
         

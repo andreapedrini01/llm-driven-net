@@ -19,27 +19,27 @@ from typing import Optional, Dict, Any, List
 
 # Import existing modules
 from network_state_collector.collector import NetworkStateCollector
-from src.models import CollectorConfig
-from src.services.intent_parser import IntentParser
-from src.services.chatgpt_client import ChatGPTClient
-from src.services.context_analyzer import ContextAnalyzer
-from src.services.action_sequencer import ActionSequencer
-from src.services.validator import Validator
-from src.services.action_output import ActionOutputService
-from src.services.prompt_engineering import PromptEngineeringSystem
+from llm_integration_module.models import CollectorConfig
+from llm_integration_module.services.intent_parser import IntentParser
+from llm_integration_module.services.chatgpt_client import ChatGPTClient
+from llm_integration_module.services.context_analyzer import ContextAnalyzer
+from llm_integration_module.services.action_sequencer import ActionSequencer
+from llm_integration_module.services.validator import Validator
+from llm_integration_module.services.action_output import ActionOutputService
+from llm_integration_module.services.prompt_engineering import PromptEngineeringSystem
 from northbound_script_generator.action_processor import ActionProcessor
 from northbound_script_generator.models import NetworkAction as NorthboundAction
 from northbound_script_generator.config_loader import ConfigLoader
-from src.models.actions import NetworkAction as LLMAction, ActionType, ActionSequence
-from src.models.network import (
+from llm_integration_module.models.actions import NetworkAction as LLMAction, ActionType, ActionSequence
+from llm_integration_module.models.network import (
     NetworkState, Topology, Switch, Link, Flow,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 )
-from src.models.core import NetworkSnapshot
-from src.models.intent import IntentType
-from src.models.confidence import ConfidenceCriteriaBreakdown, ParameterSuggestion, ConfidenceModification
-from src.services.confidence_criteria_extractor import ConfidenceCriteriaExtractor
-from src.services.change_summary import generate_summary, generate_llm_summary
+from llm_integration_module.models.core import NetworkSnapshot
+from llm_integration_module.models.intent import IntentType
+from llm_integration_module.models.confidence import ConfidenceCriteriaBreakdown, ParameterSuggestion, ConfidenceModification
+from llm_integration_module.services.confidence_criteria_extractor import ConfidenceCriteriaExtractor
+from llm_integration_module.services.change_summary import generate_summary, generate_llm_summary
 from clean_cache import clean_all as clean_application_cache
 
 

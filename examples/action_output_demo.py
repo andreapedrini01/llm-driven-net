@@ -16,12 +16,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from datetime import datetime
-from src.services.action_output import (
+from llm_integration_module.services.action_output import (
     ActionOutputInterface,
     OutputFormat,
     ActionStatus
 )
-from src.models.actions import (
+from llm_integration_module.models.actions import (
     NetworkAction,
     ActionSequence,
     ActionType,

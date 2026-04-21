@@ -3,8 +3,8 @@
 import pytest
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
-from src.services.intent_parser import IntentParser
-from src.models.intent import IntentObject, IntentType, Entity
+from llm_integration_module.services.intent_parser import IntentParser
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity
 
 
 class TestIntentParsingProperties:

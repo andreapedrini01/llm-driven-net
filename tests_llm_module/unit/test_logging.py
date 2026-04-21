@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import structlog
 
-from src.utils.logging import (
+from llm_integration_module.utils.logging import (
     configure_logging,
     get_logger,
     set_correlation_id,

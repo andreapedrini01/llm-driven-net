@@ -5,8 +5,8 @@ from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from typing import List
 
-from src.models.slices import NetworkSlice, SliceResources, SliceStatus, Path, ServiceLevelAgreement
-from src.models.network import NetworkState, Topology, Switch, Link, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+from llm_integration_module.models.slices import NetworkSlice, SliceResources, SliceStatus, Path, ServiceLevelAgreement
+from llm_integration_module.models.network import NetworkState, Topology, Switch, Link, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 
 
 class TestResourceAllocationFairnessProperties:

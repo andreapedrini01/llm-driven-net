@@ -8,11 +8,11 @@ import numpy as np
 from unittest.mock import Mock, patch
 
 from network_state_collector.llm_integrator import LLMIntegrator, LLMIntegrationError
-from src.models.core import (
+from llm_integration_module.models.core import (
     NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
 )
-from src.models.llm import LLMNetworkData, AnomalyIndicator
-from src.models.health import QualityMetrics
+from llm_integration_module.models.llm import LLMNetworkData, AnomalyIndicator
+from llm_integration_module.models.health import QualityMetrics
 
 
 class TestLLMIntegrator:

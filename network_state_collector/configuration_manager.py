@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass, field
 
-from src.models.config import CollectorConfig, RyuConfig, RetryConfig, OutputConfig, CollectionConfig, LoggingConfig
+from llm_integration_module.models.config import CollectorConfig, RyuConfig, RetryConfig, OutputConfig, CollectionConfig, LoggingConfig
 from .error_manager import ErrorManager, ErrorCategory, ErrorSeverity
 
 

@@ -5,8 +5,8 @@ from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from typing import Set
 
-from src.models.slices import NetworkSlice, SliceResources, SliceStatus, Path
-from src.models.network import NetworkState, Topology, Switch, Link, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+from llm_integration_module.models.slices import NetworkSlice, SliceResources, SliceStatus, Path
+from llm_integration_module.models.network import NetworkState, Topology, Switch, Link, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 
 
 class TestResourceCleanupProperties:

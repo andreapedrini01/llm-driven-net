@@ -13,9 +13,9 @@ from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 
 from network_state_collector.collector import NetworkStateCollector
-from src.models.config import CollectorConfig
-from src.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
-from src.models.health import SystemHealth
+from llm_integration_module.models.config import CollectorConfig
+from llm_integration_module.models.core import NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo, PortMetrics
+from llm_integration_module.models.health import SystemHealth
 
 
 class TestNetworkStateCollector:

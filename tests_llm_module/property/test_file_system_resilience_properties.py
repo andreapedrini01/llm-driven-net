@@ -10,8 +10,8 @@ from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime, timedelta
 from unittest.mock import patch, Mock
 
-from src.services.state_file_reader import StateFileReader, FileReadResult
-from src.models.network import (
+from llm_integration_module.services.state_file_reader import StateFileReader, FileReadResult
+from llm_integration_module.models.network import (
     NetworkState, Topology, Switch, Link, Host, Flow,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics,
     Anomaly, AnomalyType, AnomalySeverity

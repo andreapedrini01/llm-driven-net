@@ -7,10 +7,10 @@ from typing import List, Dict, Any, Optional
 from unittest.mock import Mock, patch
 import copy
 
-from src.services.context_analyzer import NetworkStateCache, CacheEntry, ContextCorrelationEngine
-from src.services.intent_parser import IntentParser
-from src.models.network import NetworkState, Topology, Switch, Link, Host, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics, Flow
-from src.models.intent import IntentObject, IntentType, Entity
+from llm_integration_module.services.context_analyzer import NetworkStateCache, CacheEntry, ContextCorrelationEngine
+from llm_integration_module.services.intent_parser import IntentParser
+from llm_integration_module.models.network import NetworkState, Topology, Switch, Link, Host, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics, Flow
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity
 
 
 # Test data generators
@@ -522,7 +522,7 @@ class TestStateSync:
         NetworkState data available and request updates when data exceeds the configured age threshold.
         """
         # Create a simple network state for testing
-        from src.models.network import NetworkState, Topology, Switch, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+        from llm_integration_module.models.network import NetworkState, Topology, Switch, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
         
         topology = Topology(
             switches=[Switch(id="sw1", name="Switch1", dpid="1", ports=[1, 2], status="active")],

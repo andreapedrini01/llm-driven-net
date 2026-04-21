@@ -5,8 +5,8 @@ from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 import copy
 
-from src.models.slices import NetworkSlice, SliceResources, SliceStatus, Path, ServiceLevelAgreement, Policy
-from src.models.network import NetworkState, Topology, Switch, Link, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
+from llm_integration_module.models.slices import NetworkSlice, SliceResources, SliceStatus, Path, ServiceLevelAgreement, Policy
+from llm_integration_module.models.network import NetworkState, Topology, Switch, Link, NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics
 
 
 class TestServiceContinuityProperties:

@@ -13,15 +13,15 @@ from unittest.mock import MagicMock, AsyncMock
 import pytest
 from hypothesis import given, strategies as st, settings, HealthCheck
 
-from src.models.security import (
+from llm_integration_module.models.security import (
     SecuritySnapshot, NmapResult, OpenPort, SecurityReport
 )
-from src.models.core import (
+from llm_integration_module.models.core import (
     NetworkSnapshot, TopologyData, MetricsData, SwitchInfo, LinkInfo,
     AggregatedMetrics
 )
-from src.services.security_analyzer import SecurityAnalyzer
-from src.services.chatgpt_client import ChatGPTResponse
+from llm_integration_module.services.security_analyzer import SecurityAnalyzer
+from llm_integration_module.services.chatgpt_client import ChatGPTResponse
 from datetime import datetime
 
 

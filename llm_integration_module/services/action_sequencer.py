@@ -4,13 +4,13 @@ from typing import Dict, List, Set, Tuple, Optional
 from collections import defaultdict, deque
 import logging
 
-from src.models.actions import (
+from llm_integration_module.models.actions import (
     NetworkAction,
     ActionSequence,
     ActionType,
     ValidationResult
 )
-from src.models.confidence import ParameterSuggestion
+from llm_integration_module.models.confidence import ParameterSuggestion
 
 logger = logging.getLogger(__name__)
 

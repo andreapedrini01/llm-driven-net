@@ -12,8 +12,8 @@ from dataclasses import asdict, is_dataclass
 from datetime import datetime
 from pathlib import Path
 
-from src.models.core import NetworkSnapshot, TopologyData, MetricsData
-from src.models.llm import LLMNetworkData, AnomalyIndicator, ContextEmbedding
+from llm_integration_module.models.core import NetworkSnapshot, TopologyData, MetricsData
+from llm_integration_module.models.llm import LLMNetworkData, AnomalyIndicator, ContextEmbedding
 from .data_validator import ValidationResult
 
 
@@ -410,7 +410,7 @@ class JSONSerializer:
         """Converte dizionario in NetworkSnapshot"""
         # Implementazione semplificata - in un sistema reale
         # dovrebbe ricostruire completamente gli oggetti
-        from src.models.core import NetworkSnapshot, TopologyData, MetricsData
+        from llm_integration_module.models.core import NetworkSnapshot, TopologyData, MetricsData
         
         # Per ora, crea oggetti vuoti con i dati base
         # In una implementazione completa, dovrebbe ricostruire

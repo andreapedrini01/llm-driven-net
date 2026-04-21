@@ -4,7 +4,7 @@ import pytest
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime
 from typing import Dict, Any, List
-from src.models.actions import (
+from llm_integration_module.models.actions import (
     NetworkAction, ActionType, ActionSequence,
     ValidationResult, SafetyReport, SimulationResult
 )

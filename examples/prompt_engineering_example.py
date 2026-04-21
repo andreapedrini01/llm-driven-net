@@ -10,10 +10,10 @@ import asyncio
 import json
 from datetime import datetime
 
-from src.services.prompt_engineering import PromptEngineeringSystem, PromptType
-from src.services.chatgpt_client import ChatGPTClient
-from src.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
-from src.models.network import (
+from llm_integration_module.services.prompt_engineering import PromptEngineeringSystem, PromptType
+from llm_integration_module.services.chatgpt_client import ChatGPTClient
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
+from llm_integration_module.models.network import (
     NetworkState,
     Topology,
     Switch,

@@ -4,14 +4,14 @@ import json
 import pytest
 from datetime import datetime
 
-from src.services.prompt_engineering import (
+from llm_integration_module.services.prompt_engineering import (
     PromptEngineeringSystem,
     PromptType,
     PromptTemplate,
     ParsedResponse
 )
-from src.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
-from src.models.network import (
+from llm_integration_module.models.intent import IntentObject, IntentType, Entity, ContextualizedIntent
+from llm_integration_module.models.network import (
     NetworkState,
     Topology,
     Switch,
@@ -26,7 +26,7 @@ from src.models.network import (
     AnomalyType,
     AnomalySeverity
 )
-from src.models.actions import ActionSequence, NetworkAction, ActionType
+from llm_integration_module.models.actions import ActionSequence, NetworkAction, ActionType
 
 
 @pytest.fixture

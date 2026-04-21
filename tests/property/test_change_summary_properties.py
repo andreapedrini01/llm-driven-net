@@ -16,9 +16,9 @@ from typing import Dict, Any, Optional
 import pytest
 from hypothesis import given, strategies as st, settings, HealthCheck, assume
 
-from src.models.actions import NetworkAction, ActionType
+from llm_integration_module.models.actions import NetworkAction, ActionType
 from northbound_script_generator.action_processor import ExecutionResult, ExecutionStatus
-from src.services.change_summary import (
+from llm_integration_module.services.change_summary import (
     format_action_detail,
     compute_state_diff,
     format_summary_header,

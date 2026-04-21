@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from network_state_collector.configuration_manager import ConfigurationManager, ValidationResult
-from src.models.config import CollectorConfig, RyuConfig, RetryConfig, OutputConfig, CollectionConfig, LoggingConfig
+from llm_integration_module.models.config import CollectorConfig, RyuConfig, RetryConfig, OutputConfig, CollectionConfig, LoggingConfig
 from network_state_collector.error_manager import ErrorManager
 
 

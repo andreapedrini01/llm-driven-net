@@ -8,8 +8,8 @@ import tempfile
 from pathlib import Path
 from hypothesis import given, strategies as st, assume, settings, HealthCheck
 from datetime import datetime, timedelta
-from src.services.context_analyzer import NetworkStateCache
-from src.models.network import (
+from llm_integration_module.services.context_analyzer import NetworkStateCache
+from llm_integration_module.models.network import (
     NetworkState, Topology, Switch, Link, Host, Flow,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics,
     Anomaly, AnomalyType, AnomalySeverity

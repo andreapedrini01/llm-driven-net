@@ -22,10 +22,10 @@ flowchart TD
     NSC["NetworkStateCollector\ncollect_snapshot(security_scan=True)"]
     SS["SecurityScanner\nnetwork_state_collector/security_scanner.py"]
     NMAP["nmap subprocess\n(con timeout per host)"]
-    SNAP["SecuritySnapshot\nsrc/models/security.py"]
-    SA["SecurityAnalyzer\nsrc/services/security_analyzer.py"]
+    SNAP["SecuritySnapshot\nllm_integration_module/models/security.py"]
+    SA["SecurityAnalyzer\nllm_integration_module/services/security_analyzer.py"]
     CGP["ChatGPTClient\n(async)"]
-    REP["SecurityReport\nsrc/models/security.py"]
+    REP["SecurityReport\nllm_integration_module/models/security.py"]
     FS["FileSystem\ndata/security_history/"]
 
     CLI --> NSC
@@ -97,7 +97,7 @@ la funzione helper `resolve_host_filter(host_filter: List[str], snapshot: Networ
 risolve i nomi Mininet in IP (convenzione `hN` → `10.0.0.N`) e verifica che siano presenti
 nella topologia. Gli host non trovati vengono loggati come WARNING e ignorati.
 
-### SecurityAnalyzer (`src/services/security_analyzer.py`)
+### SecurityAnalyzer (`llm_integration_module/services/security_analyzer.py`)
 
 Costruisce il prompt e chiama `ChatGPTClient`.
 
@@ -164,7 +164,7 @@ def collect_snapshot(
 
 ---
 
-## Modelli Dati (`src/models/security.py`)
+## Modelli Dati (`llm_integration_module/models/security.py`)
 
 ### NmapResult
 

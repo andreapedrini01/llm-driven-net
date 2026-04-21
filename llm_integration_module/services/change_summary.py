@@ -9,7 +9,7 @@ that never raise unhandled exceptions.
 import logging
 from typing import Any, Dict, List, Optional
 
-from src.models.actions import NetworkAction
+from llm_integration_module.models.actions import NetworkAction
 from northbound_script_generator.action_processor import ExecutionResult, ExecutionStatus
 
 logger = logging.getLogger("ChangeSummary")

@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from src.models import CollectorConfig
+from llm_integration_module.models import CollectorConfig
 from .collector import NetworkStateCollector
 
 

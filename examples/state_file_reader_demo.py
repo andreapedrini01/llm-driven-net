@@ -6,8 +6,8 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from src.services.state_file_reader import StateFileReader
-from src.models.network import NetworkState
+from llm_integration_module.services.state_file_reader import StateFileReader
+from llm_integration_module.models.network import NetworkState
 
 
 def create_sample_state_file(cache_folder: str, file_name: str):

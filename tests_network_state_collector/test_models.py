@@ -9,7 +9,7 @@ import pytest
 import json
 import time
 from hypothesis import given, strategies as st
-from src.models.core import (
+from llm_integration_module.models.core import (
     NetworkSnapshot, TopologyData, MetricsData,
     SwitchInfo, LinkInfo, PortMetrics, AggregatedMetrics,
     SnapshotMetadata, DerivedMetrics

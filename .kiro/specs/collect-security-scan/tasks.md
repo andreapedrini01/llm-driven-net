@@ -9,10 +9,10 @@ della rete, costruisce un `SecuritySnapshot` e lo invia al `ChatGPTClient` per o
 
 ## Task
 
-- [x] 1. Creare i modelli dati in `src/models/security.py`
+- [x] 1. Creare i modelli dati in `llm_integration_module/models/security.py`
   - Implementare le dataclass `OpenPort`, `NmapResult` (con metodi `to_dict` / `from_dict`), `SecuritySnapshot` (composizione con `NetworkSnapshot`, metodi `to_dict`, `to_json`, `from_dict`, `from_json`) e `SecurityReport` (con `to_dict`, `to_json`, `from_dict`, `from_json`, `get_timestamp_iso`)
   - Aggiungere `NmapNotFoundError` come eccezione custom nel modulo
-  - Aggiornare `src/models/__init__.py` per esportare i nuovi tipi
+  - Aggiornare `llm_integration_module/models/__init__.py` per esportare i nuovi tipi
   - _Requisiti: 1.3, 2.1, 2.2, 2.4, 5.1, 5.2_
 
   - [ ]* 1.1 Scrivere property test per il round-trip di `SecuritySnapshot`
@@ -73,14 +73,14 @@ della rete, costruisce un `SecuritySnapshot` e lo invia al `ChatGPTClient` per o
 - [x] 3. Checkpoint — Verificare che tutti i test passino
   - Assicurarsi che tutti i test passino; chiedere all'utente se sorgono dubbi.
 
-- [x] 4. Implementare `SecurityAnalyzer` in `src/services/security_analyzer.py`
+- [x] 4. Implementare `SecurityAnalyzer` in `llm_integration_module/services/security_analyzer.py`
   - Implementare la classe `SecurityAnalyzer` con `__init__(chatgpt_client)`, `analyze(security_snapshot)`, `_build_prompt(security_snapshot)` e `_parse_response(raw)`
   - Usare `asyncio.run()` come bridge sync/async per chiamare `ChatGPTClient.generate_response()`
   - Includere il system message corretto con la struttura JSON attesa (Requisito 3.2)
   - Implementare la stima token con `len(text.split()) * 1.3` e il troncamento dei `NmapResult` meno rilevanti (ordinati per numero di porte aperte decrescente) se il prompt supera 12000 token (Requisito 3.6)
   - In caso di JSON non valido nella risposta, restituire `SecurityReport` con liste vuote e `raw_response` popolato (Requisito 3.4)
   - Propagare le eccezioni di `ChatGPTClient` dopo averle loggato (Requisito 3.5)
-  - Aggiornare `src/services/__init__.py` per esportare `SecurityAnalyzer`
+  - Aggiornare `llm_integration_module/services/__init__.py` per esportare `SecurityAnalyzer`
   - _Requisiti: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
   - [ ]* 4.1 Scrivere property test per la completezza del prompt

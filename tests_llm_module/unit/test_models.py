@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime
-from src.models import (
+from llm_integration_module.models import (
     IntentObject, IntentType, Entity,
     NetworkState, Topology, NetworkMetrics,
     BandwidthMetrics, LatencyMetrics, UtilizationMetrics,

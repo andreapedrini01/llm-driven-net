@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch, call
 import pytest
 
-from src.models.security import SecurityReport
+from llm_integration_module.models.security import SecurityReport
 
 
 # ---------------------------------------------------------------------------

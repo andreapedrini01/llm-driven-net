@@ -11,15 +11,15 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from unittest.mock import Mock, AsyncMock, patch
 
-from src.services.chatgpt_client import (
+from llm_integration_module.services.chatgpt_client import (
     ChatGPTClient,
     ChatGPTConfig,
     ChatGPTResponse
 )
-from src.services.intent_parser import IntentParser, IntentObject
-from src.services.context_analyzer import ContextAnalyzer, NetworkState
-from src.services.validator import Validator
-from src.utils.error_handling import (
+from llm_integration_module.services.intent_parser import IntentParser, IntentObject
+from llm_integration_module.services.context_analyzer import ContextAnalyzer, NetworkState
+from llm_integration_module.services.validator import Validator
+from llm_integration_module.utils.error_handling import (
     DegradedModeManager,
     get_degraded_mode_manager
 )

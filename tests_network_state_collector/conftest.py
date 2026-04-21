@@ -4,7 +4,7 @@ Configurazione pytest e fixture condivise per i test
 
 import pytest
 from hypothesis import settings, Verbosity
-from src.models import CollectorConfig
+from llm_integration_module.models import CollectorConfig
 
 
 # Configurazione Hypothesis per i test

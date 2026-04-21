@@ -25,19 +25,19 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List, Set, Tuple
 
 from network_state_collector.collector import NetworkStateCollector
-from src.services.context_analyzer import ContextAnalyzer
-from src.services.action_sequencer import ActionSequencer
-from src.services.validator import Validator
-from src.services.action_output import ActionOutputService
+from llm_integration_module.services.context_analyzer import ContextAnalyzer
+from llm_integration_module.services.action_sequencer import ActionSequencer
+from llm_integration_module.services.validator import Validator
+from llm_integration_module.services.action_output import ActionOutputService
 from northbound_script_generator.action_processor import ActionProcessor
 from northbound_script_generator.models import NetworkAction as NorthboundAction
-from src.models.actions import NetworkAction as LLMAction, ActionType
-from src.models.network import (
+from llm_integration_module.models.actions import NetworkAction as LLMAction, ActionType
+from llm_integration_module.models.network import (
     NetworkState, Topology, Switch, Link,
     NetworkMetrics, BandwidthMetrics, LatencyMetrics, UtilizationMetrics,
 )
-from src.models.core import NetworkSnapshot
-from src.models.intent import IntentType
+from llm_integration_module.models.core import NetworkSnapshot
+from llm_integration_module.models.intent import IntentType
 
 from main import (
     snapshot_to_network_state,

@@ -7,7 +7,7 @@ Enrich the ChatGPT fallback prompt with confidence criteria breakdown from Inten
 ## Tasks
 
 - [x] 1. Create confidence data models
-  - [x] 1.1 Create `src/models/confidence.py` with `ConfidenceCriteriaBreakdown`, `ParameterSuggestion`, and `ConfidenceModification` Pydantic models
+  - [x] 1.1 Create `llm_integration_module/models/confidence.py` with `ConfidenceCriteriaBreakdown`, `ParameterSuggestion`, and `ConfidenceModification` Pydantic models
     - `ConfidenceCriteriaBreakdown`: fields `base_confidence`, `entity_boost`, `type_boost`, `token_boost`, `quality_boost`, `penalties`, `final_score` (all float 0.0–1.0), `entities_detail` (list), `intent_type_detail` (dict)
     - Add `@validator('final_score')` that checks `final_score == max(0.1, min(1.0, sum_of_contributions - penalties))` within tolerance 0.01
     - `ParameterSuggestion`: fields `target_factor` (str), `suggested_parameter` (str), `suggested_value` (str), `estimated_improvement` (float 0.0–1.0), `reasoning` (str)
@@ -20,7 +20,7 @@ Enrich the ChatGPT fallback prompt with confidence criteria breakdown from Inten
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4**
 
 - [x] 2. Add `get_confidence_breakdown` to IntentParser
-  - [x] 2.1 Implement `get_confidence_breakdown(self, intent_obj: IntentObject) -> ConfidenceCriteriaBreakdown` in `src/services/intent_parser.py`
+  - [x] 2.1 Implement `get_confidence_breakdown(self, intent_obj: IntentObject) -> ConfidenceCriteriaBreakdown` in `llm_integration_module/services/intent_parser.py`
     - Re-run the same logic as `_calculate_confidence_enhanced` but capture individual factor values (`base_confidence`, `entity_boost`, `type_boost`, `token_boost`, `quality_boost`, `penalties`)
     - Build `entities_detail` list from `intent_obj.entities` (each entry: `{"name": ..., "type": ..., "confidence": ...}`)
     - Build `intent_type_detail` dict with `type` and `confidence` from `_classify_intent_type_enhanced`
@@ -41,10 +41,10 @@ Enrich the ChatGPT fallback prompt with confidence criteria breakdown from Inten
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 4. Add CONFIDENCE_ENRICHED prompt template
-  - [x] 4.1 Add `CONFIDENCE_ENRICHED = "confidence_enriched"` to `PromptType` enum in `src/services/prompt_engineering.py`
+  - [x] 4.1 Add `CONFIDENCE_ENRICHED = "confidence_enriched"` to `PromptType` enum in `llm_integration_module/services/prompt_engineering.py`
     - _Requirements: 7.1_
 
-  - [x] 4.2 Register the `CONFIDENCE_ENRICHED` template in `_initialize_templates()` in `src/services/prompt_engineering.py`
+  - [x] 4.2 Register the `CONFIDENCE_ENRICHED` template in `_initialize_templates()` in `llm_integration_module/services/prompt_engineering.py`
     - System message: instruct ChatGPT to act as an SDN expert that understands confidence scoring and to prioritize returning structured parameter suggestions aligned with the provided criteria
     - User template with placeholders: `{intent_text}`, `{network_state_summary}`, `{confidence_criteria_breakdown}`, `{response_schema}`
     - Template must describe each confidence factor with its current value and maximum possible contribution
@@ -63,7 +63,7 @@ Enrich the ChatGPT fallback prompt with confidence criteria breakdown from Inten
     - **Validates: Requirements 2.1, 2.2**
 
 - [x] 5. Add `parse_actions_and_suggestions` to ActionSequencer
-  - [x] 5.1 Implement `parse_actions_and_suggestions(self, response_content: str) -> Tuple[List[NetworkAction], List[ParameterSuggestion]]` in `src/services/action_sequencer.py`
+  - [x] 5.1 Implement `parse_actions_and_suggestions(self, response_content: str) -> Tuple[List[NetworkAction], List[ParameterSuggestion]]` in `llm_integration_module/services/action_sequencer.py`
     - Reuse existing JSON extraction logic from `parse_actions_from_response`
     - Parse `actions` array into `NetworkAction` objects
     - Parse `parameter_suggestions` array into `ParameterSuggestion` objects, validating `target_factor` against known factors
@@ -80,7 +80,7 @@ Enrich the ChatGPT fallback prompt with confidence criteria breakdown from Inten
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 7. Create ConfidenceCriteriaExtractor service
-  - [x] 7.1 Create `src/services/confidence_criteria_extractor.py` with `ConfidenceCriteriaExtractor` class
+  - [x] 7.1 Create `llm_integration_module/services/confidence_criteria_extractor.py` with `ConfidenceCriteriaExtractor` class
     - Define `VALID_FACTORS = {"base_confidence", "entity_boost", "type_boost", "token_boost", "quality_boost"}`
     - Implement `extract_modifications(self, breakdown: ConfidenceCriteriaBreakdown, suggestions: List[ParameterSuggestion]) -> List[ConfidenceModification]`
     - For each suggestion: if `target_factor` is in `VALID_FACTORS`, produce a `ConfidenceModification`; otherwise discard and log warning

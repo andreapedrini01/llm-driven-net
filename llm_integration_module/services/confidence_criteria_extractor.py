@@ -7,7 +7,7 @@ that can be applied to the IntentObject to improve confidence scores.
 import logging
 from typing import List
 
-from src.models.confidence import (
+from llm_integration_module.models.confidence import (
     ConfidenceCriteriaBreakdown,
     ConfidenceModification,
     ParameterSuggestion,

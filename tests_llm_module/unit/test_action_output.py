@@ -6,14 +6,14 @@ import tempfile
 from pathlib import Path
 from datetime import datetime
 
-from src.services.action_output import (
+from llm_integration_module.services.action_output import (
     ActionOutputInterface,
     NorthboundActionPackage,
     ActionOutputRecord,
     OutputFormat,
     ActionStatus
 )
-from src.models.actions import (
+from llm_integration_module.models.actions import (
     NetworkAction,
     ActionSequence,
     ActionType,
