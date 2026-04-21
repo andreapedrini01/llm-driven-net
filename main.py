@@ -40,6 +40,7 @@ from src.models.intent import IntentType
 from src.models.confidence import ConfidenceCriteriaBreakdown, ParameterSuggestion, ConfidenceModification
 from src.services.confidence_criteria_extractor import ConfidenceCriteriaExtractor
 from src.services.change_summary import generate_summary, generate_llm_summary
+from clean_cache import clean_all as clean_application_cache
 
 
 def snapshot_to_network_state(snapshot: NetworkSnapshot) -> NetworkState:
@@ -639,6 +640,7 @@ def main():
             print("║    collect --security-scan  + security scan (all hosts)  ║")
             print("║    intent <text>            Process a natural language   ║")
             print("║    health                   System health check          ║")
+            print("║    clean                    Clear application cache      ║")
             print("║    quit                     Exit                         ║")
             print("╚══════════════════════════════════════════════════════════╝\n")
         
@@ -710,6 +712,15 @@ def main():
                             status_icon = "✓" if component.status.value == "healthy" else "✗"
                             logger.info(f"  {status_icon} {name}: {component.status.value}")
                     
+                    continue
+                
+                # Command: clean
+                if user_input.lower() == 'clean':
+                    logger.info("Cleaning application cache...")
+                    result = clean_application_cache(verbose=False)
+                    logger.info(f"  ✓ data/:         {result['data_files']} file(s) removed")
+                    logger.info(f"  ✓ __pycache__:   {result['pycache_dirs']} directory(ies) removed")
+                    logger.info("Cache cleaned successfully")
                     continue
                 
                 # Command: intent
@@ -1012,7 +1023,7 @@ def main():
                 
                 # Unrecognized command
                 logger.warning(f"Unrecognized command: '{user_input}'")
-                logger.info("Use 'collect', 'intent <text>', 'health', or 'quit'")
+                logger.info("Use 'collect', 'intent <text>', 'health', 'clean', or 'quit'")
                 
             except KeyboardInterrupt:
                 logger.info("\nInterrupt received...")
