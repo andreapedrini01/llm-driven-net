@@ -719,6 +719,7 @@ def main():
                     logger.info("Cleaning application cache...")
                     result = clean_application_cache(verbose=False)
                     logger.info(f"  ✓ data/:         {result['data_files']} file(s) removed")
+                    logger.info(f"  ✓ output/:       {result['output_files']} file(s) removed")
                     logger.info(f"  ✓ __pycache__:   {result['pycache_dirs']} directory(ies) removed")
                     logger.info("Cache cleaned successfully")
                     continue
