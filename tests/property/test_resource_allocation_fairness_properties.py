@@ -12,7 +12,6 @@ from llm_integration_module.models.network import NetworkState, Topology, Switch
 class TestResourceAllocationFairnessProperties:
     """Property-based tests for resource allocation fairness."""
     
-    @staticmethod
     @st.composite
     def competing_slices(draw):
         """Generate multiple slices competing for resources."""

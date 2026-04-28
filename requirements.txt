@@ -26,7 +26,7 @@ hypothesis>=6.82.0,<=6.113.0
 
 # Standard testing
 pytest>=8.3.4
-pytest-asyncio>=0.24.0
+pytest-asyncio>=0.23.0,<0.24.0  # 0.24+ requires Python 3.9
 pytest-cov>=4.0.0
 pytest-mock>=3.10.0
 
@@ -59,9 +59,8 @@ prometheus-client>=0.20.0
 # Secrets management
 cryptography>=41.0.0,<44.0.0
 
-# Scientific computing (optional dependencies)
-numpy>=1.21.0,<1.25.0
-scipy>=1.9.0,<1.12.0
+# Scientific computing
+numpy>=1.21.0,<1.25.0  # 1.25+ requires Python 3.9
 
 # ============================================
 # Network Monitoring Integration Dependencies
@@ -76,7 +75,6 @@ python-nmap>=0.7.1
 
 # Async support
 aiohttp>=3.9.0,<3.11.0
-asyncio>=3.4.3
 eventlet==0.30.2
 
 # WebSocket support (for real-time updates)
@@ -87,9 +85,6 @@ aiosmtplib>=3.0.0
 
 # Slack notifications (optional)
 slack-sdk>=3.23.0
-
-# Data processing
-pandas>=2.0.0,<2.1.0
 
 # JSON schema validation
 jsonschema>=4.20.0

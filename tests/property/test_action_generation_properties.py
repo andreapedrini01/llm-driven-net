@@ -33,7 +33,6 @@ class TestActionGenerationProperties:
             self.chatgpt_client = None
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def valid_intent_object(draw):
         """Generate valid IntentObject instances."""
@@ -86,7 +85,6 @@ class TestActionGenerationProperties:
             parameters=parameters
         )
     
-    @staticmethod
     @st.composite
     def network_state_with_resources(draw):
         """Generate NetworkState with available resources."""

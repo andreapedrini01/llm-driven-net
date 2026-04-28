@@ -23,7 +23,6 @@ class TestDynamicStateAdaptationProperties:
         self.state_cache = NetworkStateCache(default_ttl=600)
         self.context_engine = ContextCorrelationEngine(self.state_cache)
     
-    @staticmethod
     @st.composite
     def network_state_with_changes(draw):
         """Generate a pair of network states with significant changes."""
@@ -135,7 +134,6 @@ class TestDynamicStateAdaptationProperties:
         
         return initial_state, changed_state, change_type
     
-    @staticmethod
     @st.composite
     def active_intent(draw):
         """Generate an active intent that would be affected by state changes."""

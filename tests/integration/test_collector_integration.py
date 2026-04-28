@@ -61,6 +61,7 @@ class TestCollectorIntegration:
         mock_connector_instance.get_switches.return_value = mock_switches
         mock_connector_instance.get_links.return_value = mock_links
         mock_connector_instance.get_port_stats.side_effect = lambda dpid: mock_port_stats.get(dpid, [])
+        mock_connector_instance.get_flow_stats.return_value = []
         
         # Crea collector e raccoglie snapshot
         collector = NetworkStateCollector()
@@ -101,6 +102,7 @@ class TestCollectorIntegration:
         
         mock_connector_instance.get_switches.return_value = mock_switches
         mock_connector_instance.get_links.return_value = mock_links
+        mock_connector_instance.get_flow_stats.return_value = []
         
         # Simula errore per il secondo switch
         def mock_get_port_stats(dpid):
@@ -181,6 +183,7 @@ class TestCollectorIntegration:
         mock_connector_instance.get_switches.return_value = mock_switches
         mock_connector_instance.get_links.return_value = mock_links
         mock_connector_instance.get_port_stats.return_value = mock_port_stats
+        mock_connector_instance.get_flow_stats.return_value = []
         
         # Crea collector
         collector = NetworkStateCollector()
@@ -224,6 +227,7 @@ class TestCollectorIntegration:
         mock_connector_instance.get_switches.return_value = mock_switches
         mock_connector_instance.get_links.return_value = mock_links
         mock_connector_instance.get_port_stats.side_effect = lambda dpid: mock_port_stats.get(dpid, [])
+        mock_connector_instance.get_flow_stats.return_value = []
         
         # Crea collector e raccoglie snapshot
         collector = NetworkStateCollector()

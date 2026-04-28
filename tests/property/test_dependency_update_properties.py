@@ -13,7 +13,6 @@ from llm_integration_module.models.network import NetworkState, Topology, Switch
 class TestDependencyUpdateProperties:
     """Property-based tests for dependency update consistency."""
     
-    @staticmethod
     @st.composite
     def slice_with_dependencies(draw):
         """Generate a network slice with dependent configurations."""
@@ -73,7 +72,6 @@ class TestDependencyUpdateProperties:
             updated_at=datetime.now().isoformat()
         )
     
-    @staticmethod
     @st.composite
     def state_change(draw):
         """Generate a state change that affects dependencies."""

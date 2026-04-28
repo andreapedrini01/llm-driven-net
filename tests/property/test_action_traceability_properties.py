@@ -28,7 +28,6 @@ class TestActionTraceabilityProperties:
     """Property-based tests for action traceability."""
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def valid_action_id(draw):
         """Generate valid action IDs."""
@@ -36,7 +35,6 @@ class TestActionTraceabilityProperties:
         length = draw(st.integers(min_value=1, max_value=50))
         return ''.join(draw(st.lists(st.sampled_from(chars), min_size=length, max_size=length)))
     
-    @staticmethod
     @st.composite
     def valid_target(draw):
         """Generate valid target identifiers."""
@@ -48,7 +46,6 @@ class TestActionTraceabilityProperties:
         target_generator = draw(st.sampled_from(target_types))
         return target_generator()
     
-    @staticmethod
     @st.composite
     def network_action(draw):
         """Generate a valid NetworkAction."""
@@ -84,7 +81,6 @@ class TestActionTraceabilityProperties:
             timeout=draw(st.integers(min_value=1, max_value=3600))
         )
     
-    @staticmethod
     @st.composite
     def action_sequence(draw):
         """Generate a valid ActionSequence."""
@@ -134,7 +130,6 @@ class TestActionTraceabilityProperties:
             rollback_plan=rollback_actions
         )
     
-    @staticmethod
     @st.composite
     def validation_result(draw):
         """Generate a ValidationResult."""
@@ -150,7 +145,6 @@ class TestActionTraceabilityProperties:
             suggestions=suggestions
         )
     
-    @staticmethod
     @st.composite
     def safety_report(draw):
         """Generate a SafetyReport."""

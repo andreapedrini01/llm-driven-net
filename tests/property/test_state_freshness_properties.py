@@ -20,7 +20,6 @@ class TestStateFreshnessProperties:
     """Property-based tests for state data freshness."""
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def valid_network_state_json(draw):
         """Generate valid network state JSON data."""

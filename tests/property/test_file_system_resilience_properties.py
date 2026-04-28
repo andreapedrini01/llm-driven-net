@@ -22,7 +22,6 @@ class TestFileSystemResilienceProperties:
     """Property-based tests for file system resilience."""
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def file_error_scenario(draw):
         """Generate file system error scenarios."""
@@ -48,7 +47,6 @@ class TestFileSystemResilienceProperties:
             'eventually_succeeds': eventually_succeeds
         }
     
-    @staticmethod
     @st.composite
     def valid_network_state_json(draw):
         """Generate valid network state JSON data."""
@@ -166,7 +164,6 @@ class TestFileSystemResilienceProperties:
             "anomalies": anomalies
         }
     
-    @staticmethod
     @st.composite
     def retry_configuration(draw):
         """Generate retry configuration parameters."""

@@ -1,10 +1,28 @@
-"""Simple test script to verify the API works locally."""
+"""Simple test script to verify the API works locally.
 
+Requires a running server on localhost:8080.
+"""
+
+import pytest
 import requests
 import json
 
 BASE_URL = "http://localhost:8080"
 API_URL = f"{BASE_URL}/api/v1"
+
+
+def _server_available():
+    try:
+        requests.get(f"{BASE_URL}/health", timeout=1)
+        return True
+    except (requests.ConnectionError, requests.Timeout):
+        return False
+
+
+pytestmark = pytest.mark.skipif(
+    not _server_available(),
+    reason="API server not running on localhost:8080"
+)
 
 def test_health():
     """Test health endpoint."""

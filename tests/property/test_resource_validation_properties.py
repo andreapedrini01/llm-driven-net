@@ -21,7 +21,6 @@ class TestResourceValidationProperties:
         self.parser = IntentParser()
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def valid_switch(draw):
         """Generate a valid Switch object."""
@@ -34,7 +33,6 @@ class TestResourceValidationProperties:
             status=draw(st.sampled_from(["active", "inactive", "maintenance"]))
         )
     
-    @staticmethod
     @st.composite
     def valid_host(draw):
         """Generate a valid Host object."""
@@ -48,7 +46,6 @@ class TestResourceValidationProperties:
             status=draw(st.sampled_from(["active", "inactive", "maintenance"]))
         )
     
-    @staticmethod
     @st.composite
     def valid_link(draw):
         """Generate a valid Link object."""
@@ -64,7 +61,6 @@ class TestResourceValidationProperties:
             status=draw(st.sampled_from(["active", "inactive", "maintenance"]))
         )
     
-    @staticmethod
     @st.composite
     def network_topology(draw):
         """Generate a valid network topology."""
@@ -108,7 +104,6 @@ class TestResourceValidationProperties:
             links=links
         )
     
-    @staticmethod
     @st.composite
     def network_state(draw):
         """Generate a valid NetworkState object."""
@@ -149,7 +144,6 @@ class TestResourceValidationProperties:
             anomalies=[]
         )
     
-    @staticmethod
     @st.composite
     def intent_with_resource_references(draw):
         """Generate an intent that contains resource references."""

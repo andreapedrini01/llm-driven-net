@@ -23,7 +23,6 @@ class TestAnomalyDetectionProperties:
         self.detection_system = AnomalyDetectionSystem(self.cache)
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def network_state_with_anomalous_patterns(draw):
         """Generate NetworkState instances with known anomalous patterns."""
@@ -147,7 +146,6 @@ class TestAnomalyDetectionProperties:
             anomalies=[]  # Start with no anomalies, let detection system find them
         )
     
-    @staticmethod
     @st.composite
     def network_state_with_known_anomalies(draw):
         """Generate NetworkState with specific known anomalous conditions."""

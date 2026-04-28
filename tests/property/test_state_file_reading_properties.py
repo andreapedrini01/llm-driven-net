@@ -19,7 +19,6 @@ class TestStateFileReadingProperties:
     """Property-based tests for state file reading reliability."""
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def valid_network_state_json(draw):
         """Generate valid network state JSON data."""
@@ -137,7 +136,6 @@ class TestStateFileReadingProperties:
             "anomalies": anomalies
         }
     
-    @staticmethod
     @st.composite
     def corrupted_json_data(draw):
         """Generate corrupted JSON data for testing error handling."""

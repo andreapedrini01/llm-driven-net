@@ -17,7 +17,6 @@ class TestClarificationProperties:
         self.parser = IntentParser()
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def ambiguous_intent(draw):
         """Generate intentionally ambiguous or incomplete intents."""
@@ -67,7 +66,6 @@ class TestClarificationProperties:
         all_templates = vague_templates + incomplete_templates + conflicting_templates + multi_interpretation_templates
         return draw(st.sampled_from(all_templates))
     
-    @staticmethod
     @st.composite
     def clear_intent(draw):
         """Generate clear, unambiguous intents."""
@@ -90,7 +88,6 @@ class TestClarificationProperties:
         
         return intent
     
-    @staticmethod
     @st.composite
     def network_state_with_resources(draw):
         """Generate a network state with various resources."""

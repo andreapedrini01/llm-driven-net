@@ -12,7 +12,6 @@ from llm_integration_module.models.network import NetworkState, Topology, Switch
 class TestResourceCleanupProperties:
     """Property-based tests for resource cleanup completeness."""
     
-    @staticmethod
     @st.composite
     def slice_to_delete(draw):
         """Generate a network slice that will be deleted."""

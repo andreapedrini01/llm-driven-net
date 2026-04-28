@@ -76,7 +76,7 @@ class TestCollectSnapshotWithoutSecurityScan:
 
             mock_switch = MagicMock()
             mock_switch.dpid = "1"
-            mock_raw.return_value = ([mock_switch], [], {})
+            mock_raw.return_value = ([mock_switch], [], {}, {})
 
             collector.data_processor.process_topology.return_value = MagicMock(switches=[mock_switch], links=[])
             collector.data_processor.process_metrics.return_value = MagicMock(aggregated_metrics={})
@@ -96,7 +96,7 @@ class TestCollectSnapshotWithoutSecurityScan:
 
             mock_switch = MagicMock()
             mock_switch.dpid = "1"
-            mock_raw.return_value = ([mock_switch], [], {})
+            mock_raw.return_value = ([mock_switch], [], {}, {})
 
             collector.data_processor.process_topology.return_value = MagicMock(switches=[mock_switch], links=[])
             collector.data_processor.process_metrics.return_value = MagicMock(aggregated_metrics={})
@@ -122,7 +122,7 @@ class TestCollectSnapshotWithSecurityScan:
 
             mock_switch = MagicMock()
             mock_switch.dpid = "1"
-            mock_raw.return_value = ([mock_switch], [], {})
+            mock_raw.return_value = ([mock_switch], [], {}, {})
 
             collector.data_processor.process_topology.return_value = MagicMock(switches=[mock_switch], links=[])
             collector.data_processor.process_metrics.return_value = MagicMock(aggregated_metrics={})
@@ -142,7 +142,7 @@ class TestCollectSnapshotWithSecurityScan:
 
             mock_switch = MagicMock()
             mock_switch.dpid = "1"
-            mock_raw.return_value = ([mock_switch], [], {})
+            mock_raw.return_value = ([mock_switch], [], {}, {})
 
             collector.data_processor.process_topology.return_value = MagicMock(switches=[mock_switch], links=[])
             collector.data_processor.process_metrics.return_value = MagicMock(aggregated_metrics={})
@@ -165,7 +165,7 @@ class TestCollectSnapshotWithSecurityScan:
 
             mock_switch = MagicMock()
             mock_switch.dpid = "1"
-            mock_raw.return_value = ([mock_switch], [], {})
+            mock_raw.return_value = ([mock_switch], [], {}, {})
 
             collector.data_processor.process_topology.return_value = MagicMock(switches=[mock_switch], links=[])
             collector.data_processor.process_metrics.return_value = MagicMock(aggregated_metrics={})

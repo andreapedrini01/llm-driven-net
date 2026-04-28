@@ -56,7 +56,6 @@ class TestDegradedModeProperties:
             self.degraded_mode_manager.exit_degraded_mode(service_name)
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def api_unavailable_scenario(draw):
         """Generate scenarios where API is unavailable."""
@@ -75,7 +74,6 @@ class TestDegradedModeProperties:
             'request_count': request_count
         }
     
-    @staticmethod
     @st.composite
     def simple_intent_text(draw):
         """Generate simple intent text for rule-based processing."""
@@ -95,7 +93,6 @@ class TestDegradedModeProperties:
         
         return draw(st.sampled_from(patterns))
     
-    @staticmethod
     @st.composite
     def network_state_minimal(draw):
         """Generate minimal network state for testing."""

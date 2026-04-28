@@ -35,7 +35,6 @@ class TestSliceConfigurationProperties:
         except ValueError:
             self.chatgpt_client = None
     
-    @staticmethod
     @st.composite
     def slice_creation_intent(draw):
         """Generate intent for network slice creation."""
@@ -121,7 +120,6 @@ class TestSliceConfigurationProperties:
             parameters=parameters
         )
     
-    @staticmethod
     @st.composite
     def network_state_with_available_resources(draw):
         """Generate NetworkState with sufficient resources for slice creation."""

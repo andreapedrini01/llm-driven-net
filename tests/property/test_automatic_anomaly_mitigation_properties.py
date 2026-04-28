@@ -14,6 +14,88 @@ from llm_integration_module.models.network import (
 from llm_integration_module.models.actions import NetworkAction, ActionType
 
 
+@st.composite
+def _network_state_for_anomaly(draw, anomaly: Anomaly):
+    """Generate network state matching the anomaly."""
+    # Generate switches
+    num_switches = draw(st.integers(min_value=3, max_value=8))
+    switches = []
+    for i in range(num_switches):
+        status = "active"
+        switch_id = f"switch-{i}"
+        
+        # If anomaly is switch failure, mark some switches as failed
+        if anomaly.type == AnomalyType.SWITCH_FAILURE and switch_id in anomaly.affected_resources:
+            status = "failed"
+        
+        switch = Switch(
+            id=switch_id,
+            name=f"Switch {i}",
+            dpid=f"00:00:00:00:00:00:00:{i:02x}",
+            ports=[1, 2, 3, 4],
+            status=status
+        )
+        switches.append(switch)
+    
+    # Generate links
+    links = []
+    for i in range(num_switches - 1):
+        status = "active"
+        link_id = f"link-{i}"
+        
+        # If anomaly is link failure, mark some links as failed
+        if anomaly.type == AnomalyType.LINK_FAILURE and link_id in anomaly.affected_resources:
+            status = "failed"
+        
+        link = Link(
+            id=link_id,
+            source_switch=switches[i].id,
+            source_port=1,
+            destination_switch=switches[i+1].id,
+            destination_port=2,
+            bandwidth=draw(st.integers(min_value=1000, max_value=10000)),
+            latency=draw(st.floats(min_value=1.0, max_value=20.0)),
+            status=status
+        )
+        links.append(link)
+    
+    topology = Topology(switches=switches, links=links, hosts=[])
+    
+    # Generate metrics based on anomaly type
+    if anomaly.type == AnomalyType.TRAFFIC_SPIKE:
+        bandwidth_util = draw(st.floats(min_value=90.0, max_value=99.0))
+    else:
+        bandwidth_util = draw(st.floats(min_value=30.0, max_value=70.0))
+    
+    metrics = NetworkMetrics(
+        bandwidth=BandwidthMetrics(
+            total_capacity=10000,
+            used_bandwidth=int(10000 * bandwidth_util / 100),
+            available_bandwidth=int(10000 * (100 - bandwidth_util) / 100),
+            utilization_percentage=bandwidth_util
+        ),
+        latency=LatencyMetrics(
+            average_latency=draw(st.floats(min_value=5.0, max_value=50.0)),
+            min_latency=1.0,
+            max_latency=100.0,
+            jitter=5.0
+        ),
+        utilization=UtilizationMetrics(
+            cpu_utilization=draw(st.floats(min_value=30.0, max_value=80.0)),
+            memory_utilization=draw(st.floats(min_value=40.0, max_value=80.0)),
+            port_utilization={}
+        )
+    )
+    
+    return NetworkState(
+        timestamp=datetime.now(),
+        topology=topology,
+        flows=[],
+        metrics=metrics,
+        anomalies=[anomaly]
+    )
+
+
 class TestAutomaticAnomalyMitigationProperties:
     """Property-based tests for automatic anomaly mitigation."""
     
@@ -22,7 +104,6 @@ class TestAutomaticAnomalyMitigationProperties:
         self.state_cache = NetworkStateCache()
         self.detection_system = AnomalyDetectionSystem(self.state_cache)
     
-    @staticmethod
     @st.composite
     def critical_anomaly(draw):
         """Generate a critical anomaly that requires mitigation."""
@@ -56,88 +137,6 @@ class TestAutomaticAnomalyMitigationProperties:
             }
         )
     
-    @staticmethod
-    @st.composite
-    def network_state_for_anomaly(draw, anomaly: Anomaly):
-        """Generate network state matching the anomaly."""
-        # Generate switches
-        num_switches = draw(st.integers(min_value=3, max_value=8))
-        switches = []
-        for i in range(num_switches):
-            status = "active"
-            switch_id = f"switch-{i}"
-            
-            # If anomaly is switch failure, mark some switches as failed
-            if anomaly.type == AnomalyType.SWITCH_FAILURE and switch_id in anomaly.affected_resources:
-                status = "failed"
-            
-            switch = Switch(
-                id=switch_id,
-                name=f"Switch {i}",
-                dpid=f"00:00:00:00:00:00:00:{i:02x}",
-                ports=[1, 2, 3, 4],
-                status=status
-            )
-            switches.append(switch)
-        
-        # Generate links
-        links = []
-        for i in range(num_switches - 1):
-            status = "active"
-            link_id = f"link-{i}"
-            
-            # If anomaly is link failure, mark some links as failed
-            if anomaly.type == AnomalyType.LINK_FAILURE and link_id in anomaly.affected_resources:
-                status = "failed"
-            
-            link = Link(
-                id=link_id,
-                source_switch=switches[i].id,
-                source_port=1,
-                destination_switch=switches[i+1].id,
-                destination_port=2,
-                bandwidth=draw(st.integers(min_value=1000, max_value=10000)),
-                latency=draw(st.floats(min_value=1.0, max_value=20.0)),
-                status=status
-            )
-            links.append(link)
-        
-        topology = Topology(switches=switches, links=links, hosts=[])
-        
-        # Generate metrics based on anomaly type
-        if anomaly.type == AnomalyType.TRAFFIC_SPIKE:
-            bandwidth_util = draw(st.floats(min_value=90.0, max_value=99.0))
-        else:
-            bandwidth_util = draw(st.floats(min_value=30.0, max_value=70.0))
-        
-        metrics = NetworkMetrics(
-            bandwidth=BandwidthMetrics(
-                total_capacity=10000,
-                used_bandwidth=int(10000 * bandwidth_util / 100),
-                available_bandwidth=int(10000 * (100 - bandwidth_util) / 100),
-                utilization_percentage=bandwidth_util
-            ),
-            latency=LatencyMetrics(
-                average_latency=draw(st.floats(min_value=5.0, max_value=50.0)),
-                min_latency=1.0,
-                max_latency=100.0,
-                jitter=5.0
-            ),
-            utilization=UtilizationMetrics(
-                cpu_utilization=draw(st.floats(min_value=30.0, max_value=80.0)),
-                memory_utilization=draw(st.floats(min_value=40.0, max_value=80.0)),
-                port_utilization={}
-            )
-        )
-        
-        return NetworkState(
-            timestamp=datetime.now(),
-            topology=topology,
-            flows=[],
-            metrics=metrics,
-            anomalies=[anomaly]
-        )
-    
     @settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
     @given(
         anomaly=critical_anomaly(),
@@ -160,7 +159,7 @@ class TestAutomaticAnomalyMitigationProperties:
         assume(anomaly.severity == AnomalySeverity.CRITICAL)
         
         # Generate matching network state
-        network_state = data.draw(self.network_state_for_anomaly(anomaly))
+        network_state = data.draw(_network_state_for_anomaly(anomaly))
         
         # Update cache
         self.state_cache.update_state(network_state)
@@ -260,7 +259,7 @@ class TestAutomaticAnomalyMitigationProperties:
         assume(anomaly.severity == AnomalySeverity.CRITICAL)
         
         # Generate network state
-        network_state = data.draw(self.network_state_for_anomaly(anomaly))
+        network_state = data.draw(_network_state_for_anomaly(anomaly))
         self.state_cache.update_state(network_state)
         
         # Generate response actions
@@ -291,7 +290,7 @@ class TestAutomaticAnomalyMitigationProperties:
         assume(anomaly.severity == AnomalySeverity.CRITICAL)
         
         # Generate network state
-        network_state = data.draw(self.network_state_for_anomaly(anomaly))
+        network_state = data.draw(_network_state_for_anomaly(anomaly))
         self.state_cache.update_state(network_state)
         
         # Generate response - should not require any additional input

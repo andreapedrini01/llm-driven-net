@@ -14,6 +14,7 @@ from llm_integration_module.services.chatgpt_client import (
     RateLimitInfo,
     BudgetAlert
 )
+from tests.conftest import run_async
 from openai import RateLimitError, APITimeoutError, APIConnectionError, OpenAIError
 
 
@@ -31,9 +32,9 @@ class TestAPIResilienceProperties:
             timeout=30,
             max_retries=3
         )
-    
+
+
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def api_error_scenario(draw):
         """Generate API error scenarios."""
@@ -52,7 +53,6 @@ class TestAPIResilienceProperties:
             'eventually_succeeds': eventually_succeeds
         }
     
-    @staticmethod
     @st.composite
     def rate_limit_scenario(draw):
         """Generate rate limit scenarios."""
@@ -108,9 +108,9 @@ class TestAPIResilienceProperties:
         eventually_succeeds = scenario['eventually_succeeds']
         
         # Assume reasonable failure counts for testing
-        # Generic errors are not retried, so they can't eventually succeed through retries
+        # Generic errors are not retried, so they always fail immediately
         if error_type == 'generic':
-            assume(not eventually_succeeds or failure_count == 1)
+            assume(not eventually_succeeds)
         else:
             assume(failure_count <= self.mock_config.max_retries or eventually_succeeds)
         
@@ -140,7 +140,7 @@ class TestAPIResilienceProperties:
             with patch.object(asyncio, 'sleep', new_callable=AsyncMock):
                 if eventually_succeeds and failure_count < self.mock_config.max_retries:
                     # Should eventually succeed
-                    response = asyncio.run(client.generate_response("Test prompt"))
+                    response = run_async(client.generate_response("Test prompt"))
                     
                     # Verify response is valid
                     assert isinstance(response, ChatGPTResponse)
@@ -163,7 +163,7 @@ class TestAPIResilienceProperties:
                 else:
                     # Should fail after max retries
                     with pytest.raises((RateLimitError, APITimeoutError, APIConnectionError, OpenAIError)):
-                        asyncio.run(client.generate_response("Test prompt"))
+                        run_async(client.generate_response("Test prompt"))
                     
                     # Verify all retries were attempted (for retryable errors)
                     # Generic errors are not retried, only specific API errors
@@ -229,7 +229,7 @@ class TestAPIResilienceProperties:
                         # Verify backoff doesn't exceed max wait time
                         assert all(t <= 60.0 for t in sleep_times)
         
-        asyncio.run(run_test())
+        run_async(run_test())
     
     @settings(max_examples=15, suppress_health_check=[HealthCheck.too_slow], deadline=None)
     @given(scenario=rate_limit_scenario())
@@ -284,7 +284,7 @@ class TestAPIResilienceProperties:
                     # remaining_requests can be negative when over limit
                     assert rate_info.remaining_requests <= rate_limit
         
-        asyncio.run(run_test())
+        run_async(run_test())
     
     @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow], deadline=10000)
     @given(
@@ -364,7 +364,7 @@ class TestAPIResilienceProperties:
             
             # Make requests
             for i in range(num_requests):
-                asyncio.run(client.generate_response(f"Request {i}"))
+                run_async(client.generate_response(f"Request {i}"))
             
             # Verify cost tracking
             stats = client.get_stats()
@@ -436,7 +436,7 @@ class TestAPIResilienceProperties:
                 # Verify queue is empty after processing
                 assert client.get_queue_size() == 0
         
-        asyncio.run(run_test())
+        run_async(run_test())
     
     @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow], deadline=10000)
     @given(
@@ -458,7 +458,7 @@ class TestAPIResilienceProperties:
             
             with patch.object(asyncio, 'sleep', new_callable=AsyncMock):
                 # First request should succeed after retries
-                response = asyncio.run(client.generate_response("Test prompt"))
+                response = run_async(client.generate_response("Test prompt"))
                 
                 assert isinstance(response, ChatGPTResponse)
                 assert response.content == "Test response"
@@ -527,7 +527,7 @@ class TestAPIResilienceProperties:
             mock_request.side_effect = [error, mock_response]
             
             with patch.object(asyncio, 'sleep', new_callable=AsyncMock):
-                response = asyncio.run(client.generate_response("Test prompt"))
+                response = run_async(client.generate_response("Test prompt"))
                 
                 # All error types should be retried and eventually succeed
                 assert isinstance(response, ChatGPTResponse)

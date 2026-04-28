@@ -15,7 +15,6 @@ class TestIntentParsingProperties:
         self.parser = IntentParser()
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def natural_language_intent(draw):
         """Generate realistic natural language intents."""

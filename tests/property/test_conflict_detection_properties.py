@@ -21,7 +21,6 @@ class TestConflictDetectionProperties:
         self.sequencer = ActionSequencer()
     
     # Generator strategies for test data
-    @staticmethod
     @st.composite
     def action_type_strategy(draw):
         """Generate valid action types."""
@@ -32,7 +31,6 @@ class TestConflictDetectionProperties:
             ActionType.CONFIG_CHANGE
         ]))
     
-    @staticmethod
     @st.composite
     def network_action_strategy(draw, action_id=None, action_type=None, target=None):
         """Generate valid NetworkAction instances."""
@@ -85,7 +83,6 @@ class TestConflictDetectionProperties:
             timeout=draw(st.integers(min_value=10, max_value=120))
         )
     
-    @staticmethod
     @st.composite
     def conflicting_action_pair_strategy(draw):
         """Generate a pair of actions that should conflict."""
@@ -186,7 +183,6 @@ class TestConflictDetectionProperties:
             
             return (action1, action2, "resource")
     
-    @staticmethod
     @st.composite
     def non_conflicting_action_pair_strategy(draw):
         """Generate a pair of actions that should NOT conflict."""
@@ -223,7 +219,6 @@ class TestConflictDetectionProperties:
         
         return (action1, action2)
     
-    @staticmethod
     @st.composite
     def action_sequence_with_conflicts_strategy(draw):
         """Generate an action sequence that contains conflicts."""

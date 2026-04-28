@@ -12,7 +12,6 @@ from llm_integration_module.models.network import NetworkState, Topology, Switch
 class TestServiceContinuityProperties:
     """Property-based tests for service continuity preservation."""
     
-    @staticmethod
     @st.composite
     def active_network_slice(draw):
         """Generate an active network slice."""
@@ -69,7 +68,6 @@ class TestServiceContinuityProperties:
             updated_at=datetime.now().isoformat()
         )
     
-    @staticmethod
     @st.composite
     def slice_modification(draw):
         """Generate a modification to apply to a slice."""

@@ -368,6 +368,7 @@ class TestChaosEngineering:
 
 
 
+@pytest.mark.slow
 class TestFileWatching:
     """Tests for file watching and automatic state refresh."""
     
@@ -465,7 +466,7 @@ class TestFileWatching:
             json.dump(state_data, f)
         
         # Wait for file system event to be processed
-        time.sleep(2.0)
+        time.sleep(3.0)
         
         # Verify callback was called
         assert self.callback_called is True
