@@ -55,7 +55,7 @@ All topologies automatically attach a Docker-based nmap scanner container (if Co
 
 - **ComnetsEmu** already installed and working (see [ComnetsEmu repository](https://git.comnets.net/public-repo/comnetsemu.git) for installation instructions)
 - **Python 3.8** with `venv` support
-- **nmap** installed on the VM (`sudo apt install nmap`)
+- **nmap** installed on the VM
 - An **OpenAI API key**
 
 ## Installation
@@ -65,54 +65,56 @@ All topologies automatically attach a Docker-based nmap scanner container (if Co
 The project must be cloned inside the ComnetsEmu root directory:
 
 ```bash
-cd ~/comnetsemu   # or wherever your comnetsemu installation is
+cd ~/comnetsemu
 git clone https://github.com/andreapedrini01/llm-driven-net.git
 cd llm-driven-net
 ```
 
-### 2. Create and activate the virtual environment
+### 2. Install system packages and set up the Python environment
+
+Install nmap and the Python 3.8 venv module at the system level:
+
+```bash
+sudo apt update
+sudo apt install -y python3.8-venv nmap
+```
+
+Then create and activate the virtual environment:
 
 ```bash
 # Remove any previous venv
 rm -rf venv
 
-# Create a new venv (use python3.8 if that's what your VM has)
-python3 -m venv venv
+# Create a new venv with Python 3.8
+python3.8 -m venv venv
 
 # Activate it
 source venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 3. Install Python dependencies
 
-The project uses Ryu, which needs a specific setuptools version. Use the install script:
-
-```bash
-python install.py
-```
-
-This will:
-1. Install a compatible `setuptools` and `pbr` for Ryu
-2. Install `ryu` without build isolation
-3. Install all remaining dependencies from `requirements.txt`
-
-You also need `nmap` and `flask` installed at the system level (outside the venv):
+Inside the venv, install Flask and python-nmap (needed for the scanner interface), then all project dependencies:
 
 ```bash
-sudo apt install nmap
 pip install flask python-nmap
 ```
 
+> Install the requirements with the install script which handles setuptools compatibility:
+> ```bash
+> python install.py
+> ```
+
 ### 4. Configure the environment
 
-Copy the example environment file and fill in your values:
+Copy the example environment file and add your API key:
 
 ```bash
 cp .env_example .env
 nano .env
 ```
 
-The only value you **must** change is `OPENAI_API_KEY` — replace `your-openai-api-key-here` with your actual key from [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Everything else has sensible defaults.
+The only value you **must** change is `OPENAI_API_KEY` — replace `your-openai-api-key-here` with your actual key from [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Save with `Ctrl+O`, `Enter`, `Ctrl+X`.
 
 See `.env_example` for the full list of available settings.
 
@@ -126,35 +128,39 @@ docker build -t progetto-nmap-manet deployment/progetto-nmap-manet/
 
 ## Running the Project
 
-You need **three terminal panes** (we recommend using tmux). All commands assume you are inside the `llm-driven-net/` directory with the venv activated.
+You need **three terminal panes** (we recommend using tmux). All commands assume you are inside `~/comnetsemu/llm-driven-net/`.
 
-### Terminal 1 — Ryu Controller
+### Terminal 1 — Ryu Controller (venv)
 
 ```bash
+cd ~/comnetsemu/llm-driven-net
 source venv/bin/activate
 ryu-manager ryu_apps/simple_switch_13_lldp.py ryu.app.ofctl_rest ryu.app.rest_topology --observe-links
 ```
 
-> The custom `simple_switch_13_lldp.py` app is a drop-in replacement for `ryu.app.simple_switch_13` that adds LLDP passthrough for proper link discovery. The `--observe-links` flag is required.
+> The custom `simple_switch_13_lldp.py` is a drop-in replacement for `ryu.app.simple_switch_13` that adds LLDP passthrough for proper link discovery. The `--observe-links` flag is required.
 
 > If Ryu fails to start, try: `pip install eventlet==0.30.2`
 
-### Terminal 2 — Mininet Topology
+### Terminal 2 — Mininet Topology (no venv)
 
-Make sure you are **outside** the virtual environment for this terminal (do not activate the venv here):
+Do **not** activate the virtual environment in this terminal. Run the topology with sudo directly:
 
 ```bash
+cd ~/comnetsemu/llm-driven-net
 sudo python3 topology.py
 ```
 
-Or use one of the alternative topologies:
+Or use one of the alternative topologies with custom parameters:
 
 ```bash
-# Linear: 6 switches in a chain, 2 hosts each
+# Linear: default 6 switches, 2 hosts each
 sudo python3 topology_linear.py
+sudo python3 topology_linear.py --switches 8 --hosts-per-switch 3
 
-# Ring: 4 core switches in a ring, 3 hosts per cluster
+# Ring: default 4 core switches, 3 hosts per cluster
 sudo python3 topology_ring.py
+sudo python3 topology_ring.py --core-switches 6 --hosts-per-cluster 4
 ```
 
 Wait for the Mininet CLI prompt (`mininet>`). You can test connectivity:
@@ -163,11 +169,11 @@ Wait for the Mininet CLI prompt (`mininet>`). You can test connectivity:
 mininet> pingall
 ```
 
-### Terminal 3 — Main Application
+### Terminal 3 — Main Application (venv with sudo)
 
 ```bash
-source venv/bin/activate
-sudo python3 main.py
+cd ~/comnetsemu/llm-driven-net
+sudo ./venv/bin/python3 main.py
 ```
 
 You should see the startup banner with all modules initialized. Now you can use the CLI.
