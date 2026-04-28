@@ -156,10 +156,12 @@ Or use one of the alternative topologies with custom parameters:
 ```bash
 # Linear: default 6 switches, 2 hosts each
 sudo python3 topology_linear.py
+# Custom parameters
 sudo python3 topology_linear.py --switches 8 --hosts-per-switch 3
 
 # Ring: default 4 core switches, 3 hosts per cluster
 sudo python3 topology_ring.py
+# Custom parameters
 sudo python3 topology_ring.py --core-switches 6 --hosts-per-cluster 4
 ```
 
