@@ -2,7 +2,7 @@
 
 An intent-based networking system that uses **ChatGPT (OpenAI API)** to interpret natural language commands and automatically configure an SDN network running on **ComnetsEmu/Mininet** with a **Ryu OpenFlow controller**.
 
-You describe what you want the network to do in plain English (e.g. *"block traffic from h1 to h3"*, *"create a 50 Mbps slice between h1 and h5"*), and the system figures out the right OpenFlow rules, installs them, and verifies the result.
+You describe what you want the network to do in plain English (e.g. *"block traffic from h1 to h3"*, *"create a 50 mbps slice between h1 and h5"*), and the system figures out the right OpenFlow rules, installs them, and verifies the result.
 
 ## Table of Contents
 
@@ -54,7 +54,7 @@ All topologies automatically attach a Docker-based nmap scanner container (if Co
 ## Prerequisites
 
 - **ComnetsEmu** already installed and working (see [ComnetsEmu repository](https://git.comnets.net/public-repo/comnetsemu.git) for installation instructions)
-- **Python 3.8+** with `venv` support
+- **Python 3.8** with `venv` support
 - **nmap** installed on the VM (`sudo apt install nmap`)
 - An **OpenAI API key**
 
@@ -191,8 +191,8 @@ You should see the startup banner with all modules initialized. Now you can use 
 ```
 > intent block traffic from h1 to h3
 > intent allow traffic from h2 to h5
-> intent create a slice between h1 and h10 with 50 Mbps bandwidth
-> intent modify slice between h1 and h10 to 100 Mbps
+> intent create a slice between h1 and h10 with 50 mbps bandwidth
+> intent modify slice between h1 and h10 to 100 mbps
 > intent delete slice between h1 and h10
 > intent add a flow rule on s1 from h1 to h2
 > intent delete all flow rules on s1
