@@ -1,7 +1,3 @@
-# Kiro IDE files
-#.kiro/
-.kiro/specs/documentation-consolidation/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
