@@ -456,7 +456,7 @@ class TestFileWatching:
         )
         
         # Wait for watcher to initialize
-        time.sleep(0.5)
+        time.sleep(1.0)
         
         # Modify the file
         state_data = self._create_valid_state_json()
@@ -465,8 +465,11 @@ class TestFileWatching:
         with open(self.state_file_path, 'w') as f:
             json.dump(state_data, f)
         
-        # Wait for file system event to be processed
-        time.sleep(3.0)
+        # Poll for the callback to fire (up to 10 seconds)
+        for _ in range(20):
+            if self.callback_called:
+                break
+            time.sleep(0.5)
         
         # Verify callback was called
         assert self.callback_called is True
@@ -497,7 +500,7 @@ class TestFileWatching:
         )
         
         # Wait for initialization
-        time.sleep(0.5)
+        time.sleep(1.0)
         
         # Modify file multiple times
         for i in range(3):
@@ -507,7 +510,12 @@ class TestFileWatching:
             with open(self.state_file_path, 'w') as f:
                 json.dump(state_data, f)
             
-            time.sleep(1.5)  # Wait for event processing
+            # Poll until this update is received (up to 5 seconds each)
+            expected = len(states_received) + 1
+            for _ in range(10):
+                if len(states_received) >= expected:
+                    break
+                time.sleep(0.5)
         
         # Verify multiple updates were received
         assert len(states_received) >= 2  # At least some updates

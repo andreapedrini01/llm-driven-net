@@ -126,9 +126,13 @@ class TestGenerateLLMSummaryErrorHandling:
         action = _make_action()
         result = _make_result()
 
-        output = asyncio.get_event_loop().run_until_complete(
-            generate_llm_summary(client, "block traffic", [action], [result])
-        )
+        loop = asyncio.new_event_loop()
+        try:
+            output = loop.run_until_complete(
+                generate_llm_summary(client, "block traffic", [action], [result])
+            )
+        finally:
+            loop.close()
 
         assert output is None, "generate_llm_summary should return None on exception"
 
@@ -141,9 +145,13 @@ class TestGenerateLLMSummaryErrorHandling:
         action = _make_action()
         result = _make_result()
 
-        output = asyncio.get_event_loop().run_until_complete(
-            generate_llm_summary(client, "block traffic", [action], [result])
-        )
+        loop = asyncio.new_event_loop()
+        try:
+            output = loop.run_until_complete(
+                generate_llm_summary(client, "block traffic", [action], [result])
+            )
+        finally:
+            loop.close()
 
         assert output == "Traffic was blocked successfully."
 
@@ -156,8 +164,12 @@ class TestGenerateLLMSummaryErrorHandling:
         action = _make_action()
         result = _make_result()
 
-        output = asyncio.get_event_loop().run_until_complete(
-            generate_llm_summary(client, "block traffic", [action], [result])
-        )
+        loop = asyncio.new_event_loop()
+        try:
+            output = loop.run_until_complete(
+                generate_llm_summary(client, "block traffic", [action], [result])
+            )
+        finally:
+            loop.close()
 
         assert output is None, "generate_llm_summary should return None for whitespace-only content"
