@@ -319,18 +319,18 @@ The `docs/` folder contains deeper technical documentation on specific subsystem
 
 ```bash
 # Run all tests
-pytest
+python3 -m pytest
 
 # Run by category
-pytest tests/unit/              # Unit tests
-pytest tests/property/          # Property-based tests (Hypothesis)
-pytest tests/integration/       # Integration tests
+python3 -m pytest tests/unit/              # Unit tests
+python3 -m pytest tests/property/          # Property-based tests (Hypothesis)
+python3 -m pytest tests/integration/       # Integration tests
 
 # Run with coverage
-pytest --cov=llm_integration_module --cov=network_state_collector --cov=northbound_script_generator
+python3 -m pytest --cov=llm_integration_module --cov=network_state_collector --cov=northbound_script_generator
 
 # Run a specific test file
-pytest tests/unit/test_collector.py -v
+python3 -m pytest tests/unit/test_collector.py -v
 ```
 
 ## Tmux Quick Reference
