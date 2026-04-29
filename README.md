@@ -3,7 +3,7 @@
 ## Overview
 
 Il Northbound Script Generator è un modulo semplificato per l'elaborazione di azioni di rete che si integra con ComnetsEMU per fornire capacità di gestione della rete. Questo modulo è progettato per essere autonomo e leggero, senza dipendenze da database complessi o sistemi API.
-**Nonostante sia un documento aggiornato, fare riferimento unicamente al README del branch main**
+**Il seguente documento rispecchia un piano di sviluppo precedente rispetto a quello finale, per questo fare riferimento unicamente al README del branch main**
 
 **Status:** ✅ Operativo | **Version:** 2.0.0 (Simplified) | **Last Updated:** Aprile 2026
 
@@ -285,8 +285,6 @@ MIT License - See LICENSE file for details
   - All 13 tasks completed
   - Full documentation
   - Production-ready deployment
-
-**Although up-to-date, please refer exclusively to the README.md in the main branch**
 ---
 
 **Production Ready** ✅ | **Fully Documented** ✅ | **Enterprise Grade** ✅
